@@ -18,9 +18,13 @@
   nebula tinted by element) for every sign; tap to switch. New home: hero card, swipeable practice rails, floating
   tab bar, modern type. Tarot: pick cards from a fan, card collection (x / 22). Georgian dates without locale data.
 
+- Production readiness (2026-10-14): Neon PostgreSQL (asyncpg, pooler-safe, tested on real PostgreSQL), Render
+  blueprint, external cron endpoint with cache warm-up, gzip + image caching, webhook answered instantly, Groq models
+  moved to gpt-oss/qwen with automatic fallback, `/diag` self-check and `scripts/check_env.py`.
+
 ## Next
 - Art (optional): a second gold variant per sign for daily rotation (`<sign>-2`), Minor Arcana if the deck grows to 78.
-- Deploy (HTTPS host), register the Mini App in BotFather, test inside Telegram.
+- Deploy following `docs/DEPLOY.md` (Neon + Render + cron-job.org), register the Mini App in BotFather, run `/diag`.
 - Feedback round on the design and texts.
 - Leaderboard and tasks (Telegram channel, X) from the legacy bot.
 - Kundli extras: navamsa (D9), current dasha periods.

@@ -6,8 +6,9 @@ import time
 _tmp = tempfile.mkdtemp()
 os.environ.update({
     "BOT_TOKEN": "123456:TEST-TOKEN", "BOT_ENABLED": "false", "AI_PROVIDER": "mock",
-    "DATABASE_URL": f"sqlite+aiosqlite:///{_tmp}/test.db", "ENV": "production",
-    "PUBLIC_BASE_URL": "https://astro.test",
+    # set TEST_DATABASE_URL=postgresql://... to run the whole suite against PostgreSQL
+    "DATABASE_URL": os.environ.get("TEST_DATABASE_URL") or f"sqlite+aiosqlite:///{_tmp}/test.db", "ENV": "production",
+    "PUBLIC_BASE_URL": "https://astro.test", "CRON_SECRET": "cron-test-secret", "MORNING_PUSH_MODE": "off",
 })
 
 import pytest  # noqa: E402
@@ -29,6 +30,15 @@ def auth(uid: int, start_param: str | None = None, auth_date: int | None = None,
 
 @pytest.fixture(scope="module")
 def client():
+    import asyncio
+    from app.db import Base, engine
+    from app import models  # noqa: F401
+
+    async def reset():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+    asyncio.run(reset())
+    asyncio.run(engine.dispose())
     with TestClient(app) as c:
         yield c
 
@@ -207,3 +217,54 @@ def test_kundli(client, monkeypatch):
     client.patch("/api/user/profile", headers=auth(100), json={"birth_city": "Nowhere-xyz"})
     r = client.get("/api/kundli", headers=auth(100)).json()
     assert r["city_not_found"] and r["chart"]["ascendant"] is None
+
+
+def test_health_cron_gzip(client):
+    assert client.get("/healthz").json() == {"ok": True}
+    assert client.get("/healthz?deep=1").json()["db"] == "ok"
+    assert client.get("/cron/morning").status_code == 403
+    assert client.get("/cron/morning?key=wrong").status_code == 403
+    assert client.get("/cron/morning?key=cron-test-secret").status_code == 503  # bot disabled in tests
+    r = client.get("/", headers={"Accept-Encoding": "gzip"})
+    assert r.status_code == 200 and r.headers.get("content-encoding") == "gzip"
+    img = client.get("/static/img/zodiac/leo.webp")
+    assert img.status_code == 200 and "max-age=604800" in img.headers["cache-control"]
+
+
+def test_database_url_normalization():
+    from app.config import normalize_database_url
+    url, args = normalize_database_url(
+        "postgresql://u:p@ep-cool-1-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+    assert url.startswith("postgresql+asyncpg://u:p@ep-cool-1-pooler") and "sslmode" not in url and "channel_binding" not in url
+    assert "prepared_statement_cache_size=0" in url and args == {"ssl": "require", "statement_cache_size": 0}
+    url, args = normalize_database_url("postgres://u:p@ep-x.eu-central-1.aws.neon.tech/db?sslmode=require")
+    assert url == "postgresql+asyncpg://u:p@ep-x.eu-central-1.aws.neon.tech/db" and args == {"ssl": "require"}
+    assert normalize_database_url("sqlite+aiosqlite:///x.db") == ("sqlite+aiosqlite:///x.db", {})
+
+
+def test_groq_fallback_and_json_repair():
+    import asyncio, json as _json
+    from types import SimpleNamespace as NS
+    from app.ai import prompts as P
+    from app.ai.provider import GroqProvider, extract_json
+
+    assert extract_json('Sure!\n```json\n{"a": 1}\n```') == {"a": 1}
+    calls = []
+
+    class Completions:
+        async def create(self, **kw):
+            calls.append(kw)
+            if kw["model"] == "dead/model":
+                e = Exception("The model `dead/model` has been decommissioned"); e.status_code = 400; raise e
+            if "response_format" in kw and kw["model"] == "openai/gpt-oss-20b":
+                raise Exception("response_format json_object is not supported")
+            body = {"quote": "q", "affirmation": "a", "focus": "Patience"}
+            return NS(choices=[NS(message=NS(content="Here you go: " + _json.dumps(body)))])
+
+    client = NS(chat=NS(completions=Completions()))
+    ai = GroqProvider("k", "dead/model", "dead/model", "v", 5, ["openai/gpt-oss-20b"], client=client)
+    res = asyncio.run(ai.complete_json("sys", "user", P.EnergyAI, fast=True))
+    assert res.focus == "Patience" and "dead/model" in ai.dead and "openai/gpt-oss-20b" in ai.no_json_mode
+    assert calls[-1]["extra_body"] == {"reasoning_effort": "low"} and "response_format" not in calls[-1]
+    n = len(calls); asyncio.run(ai.complete_json("sys", "user", P.EnergyAI, fast=True))
+    assert len(calls) == n + 1  # the dead model is skipped from now on

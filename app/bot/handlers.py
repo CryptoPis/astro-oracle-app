@@ -75,6 +75,13 @@ async def cmd_broadcast(message: Message, command: CommandObject, bot: Bot):
     await status.edit_text(f"✅ Sent: <b>{ok}</b>\n❌ Failed/blocked: <b>{fail}</b>")
 
 
+@router.message(Command("diag"), F.func(is_admin))
+async def cmd_diag(message: Message, bot: Bot):
+    from app.services.diag import format_report, run_checks
+    status = await message.answer("🔎 Checking keys and services…")
+    await status.edit_text(format_report(await run_checks(bot), html=True))
+
+
 def build_bot() -> tuple[Bot, Dispatcher]:
     bot = Bot(token=settings.bot_token, default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher()

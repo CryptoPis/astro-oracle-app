@@ -3,9 +3,11 @@
 **What it is.** A Telegram Mini App for astrology and divination, bot @astrogm2026bot. Languages: Georgian (main),
 English, Russian. Owner: CryptoPis. Code: github.com/CryptoPis/astro-oracle-app (branch `main`).
 
-**Stack.** Python FastAPI + aiogram 3 (webhook) in one process; async SQLAlchemy (SQLite now, PostgreSQL-ready);
-Groq for AI (JSON outputs, `llama-3.3-70b-versatile`, vision `llama-4-scout`); astronomy-engine for real planetary
-positions. Frontend: one file `frontend/app.html` (no framework) → `python -m scripts.build_frontend` builds
+**Stack.** Python FastAPI + aiogram 3 (webhook) in one process; async SQLAlchemy (Neon PostgreSQL in production,
+SQLite locally); Groq for AI with automatic model fallback (`openai/gpt-oss-120b`, fast `openai/gpt-oss-20b`, vision
+`qwen/qwen3.8-27b`; Groq retired the Llama models in 2026); astronomy-engine for real planetary positions (no AstroAPI).
+Hosting: Render (render.yaml blueprint) + Neon + cron-job.org (keep-alive and /cron/morning). Guide: `docs/DEPLOY.md`.
+Admin self-check: `/diag` in the bot. Frontend: one file `frontend/app.html` (no framework) → `python -m scripts.build_frontend` builds
 `static/index.html` (served at `/`) and `dist/preview.html` (browser preview with demo data).
 
 **Security rules.** Every API call is authenticated with Telegram `initData` (HMAC-SHA256), never trust the client.
@@ -22,4 +24,4 @@ oracle's voice. Zodiac art: all 12 signs in one black & gold engraved style, no 
 is multilingual); Aries, Taurus, Cancer also keep earlier purple paintings as daily variants. Tarot: full 22-card deck. Art style and prompts: `docs/ART_PROMPTS.md`.
 
 **Status / next.** See `ROADMAP.md` (done, next, parked mining, ideas inbox: voice, monetization with Telegram Stars,
-engagement strategy). Not deployed yet; next technical step is hosting + BotFather Mini App registration.
+engagement strategy). Deployment-ready; follow `docs/DEPLOY.md`.

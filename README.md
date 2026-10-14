@@ -38,7 +38,11 @@ uvicorn app.main:app --reload
 pytest -q
 ```
 
-## Production
+## Production (recommended: Neon + Render + cron-job.org)
+Step-by-step guide in Georgian: **`docs/DEPLOY.md`**. Render reads `render.yaml`; you only paste BOT_TOKEN, GROQ_API_KEY,
+DATABASE_URL (Neon) and ADMIN_IDS. After deploy, send `/diag` to the bot to check every key and service.
+
+## Production (any Docker host)
 1. BotFather: `/newapp` → choose @astrogm2026bot → Web App URL = `https://<your-domain>/` → short name (put it in `MINI_APP_SHORT_NAME`).
 2. Fill `.env` (`ENV=production`, real `BOT_TOKEN`, `GROQ_API_KEY`, `PUBLIC_BASE_URL=https://…`, long random `WEBHOOK_SECRET`, `ADMIN_IDS`).
 3. Run behind HTTPS (Caddy/nginx/Cloudflare): `docker build -t astro . && docker run -d --env-file .env -v $PWD/data:/srv/data -p 8000:8000 astro`

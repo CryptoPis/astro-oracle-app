@@ -24,9 +24,23 @@ log = logging.getLogger(__name__)
 HEADER = {"ka": "🌅 შენი დილის ჰოროსკოპი", "ru": "🌅 Твой утренний гороскоп", "en": "🌅 Your morning horoscope"}
 
 
+async def warm_cache(session, langs: set[str], day) -> None:
+    """Pre-generates today's horoscope and energy for every sign in every language in use, so the
+    first person to open the app in the morning doesn't wait for the AI."""
+    for lang in sorted(langs):
+        for sign in astro.SIGNS:
+            for job in (content.get_horoscope(session, sign, "day", lang, day), content.get_daily_energy(session, sign, lang, day)):
+                try:
+                    await job
+                except Exception:
+                    log.warning("warm-up failed for %s/%s", sign, lang, exc_info=True)
+
+
 async def send_morning_horoscopes(bot: Bot) -> None:
     day = economy.today_utc()
     async with SessionLocal() as session:
+        langs = set((await session.scalars(select(User.lang).distinct())).all()) or {"ka"}
+        await warm_cache(session, {l for l in langs if l in ("ka", "en", "ru")}, day)
         users = (await session.execute(select(User.telegram_id, User.lang, User.birth_date)
                                        .where(User.birth_date.is_not(None), User.is_blocked.is_(False)))).all()
         sent = 0
@@ -51,7 +65,7 @@ async def send_morning_horoscopes(bot: Bot) -> None:
 
 def start_scheduler(bot: Bot) -> AsyncIOScheduler | None:
     s = get_settings()
-    if not s.morning_push_enabled:
+    if s.morning_push_mode != "internal":
         return None
     sched = AsyncIOScheduler(timezone=s.scheduler_timezone)
     sched.add_job(send_morning_horoscopes, "cron", hour=s.morning_push_hour, minute=0, args=[bot],

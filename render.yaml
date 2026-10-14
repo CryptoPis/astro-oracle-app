@@ -1,0 +1,35 @@
+# Render Blueprint: Render → New → Blueprint → pick this repository.
+# Secrets marked `sync: false` are asked for once in the Render dashboard; they never live in Git.
+services:
+  - type: web
+    name: astro-oracle
+    runtime: python
+    plan: free
+    region: frankfurt            # closest Render region to Georgia; pick Neon in Frankfurt too
+    buildCommand: pip install -r requirements.txt && python -m scripts.build_frontend --no-preview
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /healthz
+    autoDeploy: true             # every push to main redeploys
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: ENV
+        value: production
+      - key: BOT_USERNAME
+        value: astrogm2026bot
+      - key: MINI_APP_SHORT_NAME
+        value: app
+      - key: MORNING_PUSH_MODE
+        value: external          # cron-job.org calls /cron/morning (the free plan sleeps, an in-app timer would miss it)
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: BOT_TOKEN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DATABASE_URL        # Neon connection string, pasted as Neon shows it
+        sync: false
+      - key: ADMIN_IDS           # your Telegram user id (from @userinfobot), comma-separated for several
+        sync: false

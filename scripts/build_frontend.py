@@ -8,6 +8,7 @@ Outputs:
 """
 import base64
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,6 +33,9 @@ def main() -> None:
         path = ROOT / m.group(1)
         return "data:image/webp;base64," + base64.b64encode(path.read_bytes()).decode()
 
+    if "--no-preview" in sys.argv:   # production build (Render): only the page the app serves
+        print("built static/index.html")
+        return
     preview = re.sub(r"(static/img/[\w/.-]+\.webp)", inline, src).replace("<!--BODY-->", "")
     (ROOT / "dist").mkdir(exist_ok=True)
     (ROOT / "dist" / "preview.html").write_text(preview, encoding="utf-8")
