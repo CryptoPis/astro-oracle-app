@@ -18,7 +18,7 @@ astro-oracle/
 │   ├── index.html         built Mini App page (do not edit; edit frontend/app.html)
 │   └── img/               logo + zodiac art (webp)
 ├── frontend/app.html      Mini App source: design, screens, API client, demo mode
-├── scripts/               migrate_legacy_db.py, build_frontend.py, fetch_tarot_images.py (optional)
+├── scripts/               migrate_legacy_db.py, build_frontend.py
 └── tests/test_api.py
 ```
 
@@ -65,7 +65,8 @@ Errors: `{"detail": {"code": "...", "message": "..."}}`. Codes: `daily_quota` (4
 
 ## Assets still needed
 - `static/img/zodiac/`: Aries, Taurus, Gemini, Cancer are in place. Leo → Pisces are missing; the app shows a gold glyph medallion for them until art is added (`<sign>.webp`, then add it to `ART` in `frontend/app.html`).
-- Tarot faces are drawn in code (numeral + astrological correspondence), so no tarot image files are required.
+- Tarot: 21 illustrated cards + card back in `static/img/tarot/`. The Hierophant painting is missing; the app draws a gold-line face for it until `hierophant.webp` is added (then add it to `TAROT_IMG` in `frontend/app.html`).
+- Practice icons (12) in `static/img/icons/`.
 
 ## Not yet ported from the legacy bot
 Advisor chat, aura & coffee (vision → needs an upload endpoint), compatibility, kundli (needs a real ephemeris), moon ritual, numerology reading, magic sphere, leaderboard, tasks, admin cashout review. The economy constants for all of them already exist in `services/economy.py`.

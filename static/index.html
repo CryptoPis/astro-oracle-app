@@ -131,9 +131,15 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .pips { display: flex; gap: 6px; }
 .pips i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--gold-deep); }
 .pips i.on { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px rgba(226,189,106,.6); }
-.teaser { display: flex; align-items: center; gap: 16px; }
-.teaser .mini { width: 54px; flex: none; }
-.teaser div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.practices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 10px; }
+.pr { display: grid; justify-items: center; align-content: start; gap: 5px; background: none; border: 0; padding: 0; text-align: center; color: var(--mist); }
+.pr img { width: min(86px, 100%); aspect-ratio: 1 / 1; max-width: 100%; transition: transform .25s, filter .25s; filter: drop-shadow(0 0 14px rgba(139,108,255,.28)); }
+.pr:active img { transform: scale(.94); }
+.pr span { font-size: .84rem; line-height: 1.2; text-wrap: balance; }
+.pr small { font-size: .74rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.pr.soon img { filter: saturate(.45) brightness(.62); }
+.pr.soon span { color: var(--haze); }
+.pr.soon small { color: var(--haze); }
 
 /* ── zodiac strip ── */
 .strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 2px 10px; margin-inline: -4px; scrollbar-width: none; }
@@ -167,7 +173,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 /* ── tarot ── */
 .table { position: relative; min-height: 300px; display: grid; place-items: center; }
 #smoke { position: absolute; inset: -40px -16px; width: calc(100% + 32px); height: calc(100% + 80px); pointer-events: none; z-index: 3; }
-.deck { position: relative; width: 150px; aspect-ratio: 3 / 5; }
+.deck { position: relative; width: 156px; aspect-ratio: 2 / 3; cursor: pointer; }
 .deck .card { position: absolute; inset: 0; }
 .deck .card:nth-child(1) { transform: rotate(-7deg) translate(-10px, 4px); }
 .deck .card:nth-child(2) { transform: rotate(4deg) translate(8px, 2px); }
@@ -176,18 +182,18 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 @keyframes sh1 { 35% { transform: rotate(-16deg) translate(-70px, -6px); } 70% { transform: rotate(6deg) translate(20px, 0); } }
 @keyframes sh2 { 35% { transform: rotate(14deg) translate(70px, -10px); } 70% { transform: rotate(-6deg) translate(-20px, 0); } }
 .spread { display: flex; justify-content: center; gap: 12px; width: 100%; }
-.slot { flex: 0 1 150px; min-width: 0; display: grid; gap: 8px; justify-items: center; }
+.slot { flex: 0 1 180px; min-width: 0; display: grid; gap: 8px; justify-items: center; }
 .slot .pos { font-size: .8rem; color: var(--gold); }
-.card { width: 100%; aspect-ratio: 3 / 5; perspective: 900px; max-width: 100%; }
+.card { width: 100%; aspect-ratio: 2 / 3; perspective: 900px; max-width: 100%; }
 .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 1s cubic-bezier(.2,.7,.2,1); }
 .card.flipped .card-inner { transform: rotateY(180deg); }
 .card.enter { animation: deal .7s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes deal { from { transform: translateY(40px) scale(.85); opacity: 0; } }
 .back, .face { position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
 .back { background: var(--dusk); box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(226,189,106,.4); }
-.back svg, .face svg { width: 100%; height: 100%; display: block; }
-.face { transform: rotateY(180deg); box-shadow: 0 0 34px rgba(226,189,106,.28), 0 10px 30px rgba(0,0,0,.5); }
-.face.rev svg { transform: rotate(180deg); }
+.back img, .face img, .back svg, .face svg { width: 100%; height: 100%; display: block; object-fit: cover; }
+.face { transform: rotateY(180deg); background: var(--dusk); box-shadow: 0 0 34px rgba(226,189,106,.28), 0 10px 30px rgba(0,0,0,.5); }
+.face.rev img, .face.rev svg { transform: rotate(180deg); }
 .cards-text { display: grid; gap: 22px; }
 .card-read { display: grid; gap: 6px; }
 .card-read h3 small { font: 500 .8rem var(--body); color: var(--gold); margin-left: 6px; }
@@ -295,19 +301,18 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <p class="focus" id="focus"></p>
         <p class="affirm" id="affirm"></p>
       </div>
-      <div class="energy">
-        <p class="label" data-i18n="lucky"></p>
-        <div class="lucky" id="lucky"></div>
-      </div>
       <div class="gift" id="gift">
         <div class="gift-top"><h3 data-i18n="giftTitle"></h3><span class="muted" id="streakText"></span></div>
         <div class="pips" id="pips" aria-hidden="true"></div>
         <button class="btn wide" id="giftBtn"></button>
       </div>
-      <div class="teaser">
-        <div class="mini card"><div class="card-inner"><div class="back" data-back></div></div></div>
-        <div><h3 data-i18n="cardOfDay"></h3><p class="muted" data-i18n="cardOfDaySub"></p></div>
-        <button class="btn ghost" data-go="tarot" data-i18n="open"></button>
+      <div class="energy">
+        <h2 data-i18n="practices"></h2>
+        <div class="practices" id="practices"></div>
+      </div>
+      <div class="energy">
+        <p class="label" data-i18n="lucky"></p>
+        <div class="lucky" id="lucky"></div>
       </div>
     </section>
 
@@ -454,7 +459,11 @@ const I18N = {
     e_ai:"ვარსკვლავები ახლა ბინდშია. სცადე ცოტა ხანში.", e_quota:"დღის ლიმიტი ამოიწურა. ხვალ ისევ სცადე.",
     e_auth:"სესია ამოიწურა. დახურე და თავიდან გახსენი აპლიკაცია.", e_net:"კავშირი ვერ დამყარდა. შეამოწმე ინტერნეტი.", e_generic:"რაღაც ვერ გამოვიდა. სცადე თავიდან.",
     a_horoscope_day:"დღის ჰოროსკოპი", a_horoscope_week:"კვირის ჰოროსკოპი", a_horoscope_month:"თვის ჰოროსკოპი", a_tarot:"ტარო", a_dream:"სიზმრის ახსნა",
-    a_daily:"დღის საჩუქარი", a_ref:"მეგობრის მოწვევა"
+    a_daily:"დღის საჩუქარი", a_ref:"მეგობრის მოწვევა",
+    practices:"პრაქტიკები", soon:"მალე", soonToast:"ეს პრაქტიკა მალე დაემატება.",
+    pr_day:"დღის ჰოროსკოპი", pr_week:"კვირის ჰოროსკოპი", pr_month:"თვის ჰოროსკოპი", pr_tarot:"ტარო", pr_dream:"სიზმრები",
+    pr_compat:"თავსებადობა", pr_numerology:"ნუმეროლოგია", pr_moon:"მთვარის რიტუალი", pr_sphere:"ჯადოსნური სფერო",
+    pr_advisor:"AI ასტროლოგი", pr_aura:"აურა", pr_coffee:"ყავაზე მკითხაობა"
   },
   en: {
     demo:"Demo mode", tHome:"Sky", tHoro:"Horoscope", tTarot:"Tarot", tDream:"Dreams", tProfile:"Profile",
@@ -481,7 +490,11 @@ const I18N = {
     e_ai:"The stars are clouded right now. Try again in a moment.", e_quota:"Daily limit reached. Try again tomorrow.",
     e_auth:"Session expired. Close and reopen the app.", e_net:"No connection. Check your internet.", e_generic:"Something went wrong. Try again.",
     a_horoscope_day:"Daily horoscope", a_horoscope_week:"Weekly horoscope", a_horoscope_month:"Monthly horoscope", a_tarot:"Tarot", a_dream:"Dream reading",
-    a_daily:"Daily gift", a_ref:"Invite a friend"
+    a_daily:"Daily gift", a_ref:"Invite a friend",
+    practices:"Practices", soon:"Soon", soonToast:"This practice is coming soon.",
+    pr_day:"Daily horoscope", pr_week:"Weekly horoscope", pr_month:"Monthly horoscope", pr_tarot:"Tarot", pr_dream:"Dreams",
+    pr_compat:"Compatibility", pr_numerology:"Numerology", pr_moon:"Moon ritual", pr_sphere:"Magic sphere",
+    pr_advisor:"AI astrologer", pr_aura:"Aura", pr_coffee:"Coffee reading"
   },
   ru: {
     demo:"Демо-режим", tHome:"Небо", tHoro:"Гороскоп", tTarot:"Таро", tDream:"Сны", tProfile:"Профиль",
@@ -508,7 +521,11 @@ const I18N = {
     e_ai:"Звёзды сейчас скрыты облаками. Попробуй чуть позже.", e_quota:"Дневной лимит исчерпан. Попробуй завтра.",
     e_auth:"Сессия истекла. Закрой и снова открой приложение.", e_net:"Нет соединения. Проверь интернет.", e_generic:"Что-то пошло не так. Попробуй снова.",
     a_horoscope_day:"Гороскоп на день", a_horoscope_week:"Гороскоп на неделю", a_horoscope_month:"Гороскоп на месяц", a_tarot:"Таро", a_dream:"Толкование сна",
-    a_daily:"Подарок дня", a_ref:"Пригласить друга"
+    a_daily:"Подарок дня", a_ref:"Пригласить друга",
+    practices:"Практики", soon:"Скоро", soonToast:"Эта практика скоро появится.",
+    pr_day:"Гороскоп на день", pr_week:"Гороскоп на неделю", pr_month:"Гороскоп на месяц", pr_tarot:"Таро", pr_dream:"Сны",
+    pr_compat:"Совместимость", pr_numerology:"Нумерология", pr_moon:"Ритуал Луны", pr_sphere:"Магический шар",
+    pr_advisor:"AI астролог", pr_aura:"Аура", pr_coffee:"Гадание на кофе"
   }
 };
 
@@ -590,16 +607,6 @@ const ARCANA = [
 const ARC = Object.fromEntries(ARCANA.map((a, i) => [a[0], { n: i, sym: a[1], ka: a[2], en: a[3], kwKa: a[4], kwEn: a[5] }]));
 
 /* ═════════════ card art (drawn, no image files needed) ═════════════ */
-const BACK_SVG = (() => {
-  const rays = Array.from({ length: 24 }, (_, i) => { const a = i * Math.PI / 12, r1 = 22, r2 = i % 2 ? 34 : 44;
-    return `<line x1="${60 + r1 * Math.cos(a)}" y1="${100 + r1 * Math.sin(a)}" x2="${60 + r2 * Math.cos(a)}" y2="${100 + r2 * Math.sin(a)}"/>`; }).join("");
-  return `<svg viewBox="0 0 120 200" aria-hidden="true"><defs><radialGradient id="bk" cx="50%" cy="50%" r="70%"><stop offset="0" stop-color="#2d2468"/><stop offset="1" stop-color="#120d30"/></radialGradient></defs>
-  <rect width="120" height="200" fill="url(#bk)"/><g fill="none" stroke="#e2bd6a" stroke-opacity=".75" stroke-width=".7">
-  <rect x="6" y="6" width="108" height="188" rx="6"/><rect x="10" y="10" width="100" height="180" rx="4" stroke-opacity=".35"/>
-  <circle cx="60" cy="100" r="46" stroke-opacity=".4"/><circle cx="60" cy="100" r="18"/>${rays}
-  <path d="M60 18 L63 26 L60 34 L57 26Z M60 166 L63 174 L60 182 L57 174Z" fill="#e2bd6a" fill-opacity=".7"/></g>
-  <path d="M66 92a10 10 0 1 0 0 16 8 8 0 0 1 0-16z" fill="#e2bd6a" fill-opacity=".85"/></svg>`;
-})();
 function faceSvg(id, title) {
   const a = ARC[id] || ARC.fool, name = (title || (S.lang === "ka" ? a.ka : a.en)).replace(/[<&>"]/g, "");
   const size = name.length > 14 ? 8.4 : name.length > 10 ? 9.4 : 10.5;
@@ -614,7 +621,30 @@ function faceSvg(id, title) {
   <text x="60" y="114" text-anchor="middle" font-family="'Noto Sans Symbols','Segoe UI Symbol',serif" font-size="38" fill="#3b2d6b">${a.sym}︎</text>
   <text x="60" y="179" text-anchor="middle" font-family="Cormorant, 'Noto Serif Georgian', Georgia, serif" font-size="${size}" font-weight="600" fill="#3b2d6b">${name}</text></svg>`;
 }
-const paintBacks = (root = document) => root.querySelectorAll("[data-back]").forEach((n) => { n.innerHTML = BACK_SVG; });
+/* Illustrated deck (the Hierophant has no painting yet, so it uses the drawn face) */
+const BACK_IMG = "static/img/tarot/back.webp";
+const TAROT_IMG = {
+  fool: "static/img/tarot/fool.webp", magician: "static/img/tarot/magician.webp", high_priestess: "static/img/tarot/high_priestess.webp",
+  empress: "static/img/tarot/empress.webp", emperor: "static/img/tarot/emperor.webp", lovers: "static/img/tarot/lovers.webp",
+  chariot: "static/img/tarot/chariot.webp", strength: "static/img/tarot/strength.webp", hermit: "static/img/tarot/hermit.webp",
+  wheel_of_fortune: "static/img/tarot/wheel_of_fortune.webp", justice: "static/img/tarot/justice.webp", hanged_man: "static/img/tarot/hanged_man.webp",
+  death: "static/img/tarot/death.webp", temperance: "static/img/tarot/temperance.webp", devil: "static/img/tarot/devil.webp",
+  tower: "static/img/tarot/tower.webp", star: "static/img/tarot/star.webp", moon: "static/img/tarot/moon.webp",
+  sun: "static/img/tarot/sun.webp", judgement: "static/img/tarot/judgement.webp", world: "static/img/tarot/world.webp"
+};
+const ICON = {
+  day: "static/img/icons/hero_day.webp", week: "static/img/icons/hero_week.webp", month: "static/img/icons/hero_month.webp",
+  tarot: "static/img/icons/tarot.webp", dream: "static/img/icons/dream.webp", compat: "static/img/icons/compat.webp",
+  numerology: "static/img/icons/numerology.webp", moon: "static/img/icons/moon.webp", sphere: "static/img/icons/sphere.webp",
+  advisor: "static/img/icons/advisor.webp", aura: "static/img/icons/aura.webp", coffee: "static/img/icons/coffee.webp"
+};
+function imgNode(src) { const i = el("img"); i.src = src; i.alt = ""; i.decoding = "async"; i.onerror = () => { i.replaceWith(el("span")); }; return i; }
+const paintBacks = (root = document) => root.querySelectorAll("[data-back]").forEach((n) => { n.replaceChildren(imgNode(BACK_IMG)); });
+function fillFace(face, c) {
+  if (TAROT_IMG[c.id]) { const i = imgNode(TAROT_IMG[c.id]); i.alt = c.title || c.name || ""; i.onerror = () => { face.innerHTML = faceSvg(c.id, c.title); }; face.replaceChildren(i); }
+  else face.innerHTML = faceSvg(c.id, c.title);
+}
+function preload(srcs) { return Promise.race([Promise.all(srcs.map((s) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = s; }))), new Promise((r) => setTimeout(r, 2500))]); }
 
 /* ═════════════ effects ═════════════ */
 function fitCanvas(c) { const dpr = Math.min(devicePixelRatio || 1, 2), r = c.getBoundingClientRect();
@@ -903,13 +933,29 @@ async function loadHome() {
   const sign = S.user && S.user.sign;
   $("#todayLine").textContent = fmtDate(now, { weekday: "long", day: "numeric", month: "long" }) + (sign ? ` · ${sname(sign.id)} ${g(sign.id)}` : "");
   S.moon = moonNow(); $("#moonLine").textContent = `${S.moon.name} · ${t("illum", { n: S.moon.illumination })}`;
-  renderGift();
+  renderGift(); renderPractices();
   try { const e = await api("GET", "/api/daily/energy");
     if (e.moon) { S.moon = { ...S.moon, ...e.moon, name: MOON_NAMES[e.moon.code] ? MOON_NAMES[e.moon.code][S.lang] : e.moon.name }; }
     $("#quote").textContent = e.quote; $("#affirm").textContent = e.affirmation;
     const f = $("#focus"); f.replaceChildren(`${t("focusLbl")}: `, el("b", null, e.focus));
     $("#lucky").replaceChildren(...e.lucky_numbers.map((n) => el("span", null, n)));
   } catch (err) { $("#quote").textContent = t("e_ai"); }
+}
+const PRACTICES = [
+  ["day", 20, () => openHoro("day")], ["week", 20, () => openHoro("week")], ["month", 20, () => openHoro("month")],
+  ["tarot", 50, () => go("tarot")], ["dream", 50, () => go("dream")], ["compat", 100], ["numerology", 35],
+  ["moon", 70], ["sphere", 25], ["advisor", 50], ["aura", 60], ["coffee", 50]
+];
+function renderPractices() {
+  $("#practices").replaceChildren(...PRACTICES.map(([id, coins, open]) => {
+    const b = el("button", "pr" + (open ? "" : " soon")), img = imgNode(ICON[id]);
+    b.append(img, el("span", null, t("pr_" + id)), el("small", null, open ? `+${coins} $AST` : t("soon")));
+    b.addEventListener("click", () => { if (open) open(); else { haptic.tap(); toast(t("soonToast")); } });
+    return b; }));
+}
+function openHoro(period) {
+  S.period = period; $("#periodSeg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.period === period)));
+  const wasLoaded = S.loaded.horo; go("horo"); if (wasLoaded) fetchHoro();
 }
 function renderGift() {
   const u = S.user || {}, streak = u.streak || 0, btn = $("#giftBtn"), avail = u.daily_reward_available !== false;
@@ -971,8 +1017,9 @@ $("#drawBtn").addEventListener("click", async () => {
     const q = $("#question").value.trim();
     const [r] = await Promise.all([api("POST", "/api/tarot/draw", { spread: S.spread, question: S.spread === "three" && q ? q : null }), wait(1000)]);
     deck.hidden = true; spread.replaceChildren(); spread.hidden = false;
+    await preload(r.cards.map((c) => TAROT_IMG[c.id]).filter(Boolean));
     const slots = r.cards.map((c, i) => { const slot = el("div", "slot"), card = el("div", "card enter"), inner = el("div", "card-inner"), back = el("div", "back"), face = el("div", "face" + (c.reversed ? " rev" : ""));
-      card.style.animationDelay = `${i * 120}ms`; back.innerHTML = BACK_SVG; face.innerHTML = faceSvg(c.id, c.title); inner.append(back, face); card.append(inner);
+      card.style.animationDelay = `${i * 120}ms`; back.append(imgNode(BACK_IMG)); fillFace(face, c); inner.append(back, face); card.append(inner);
       slot.append(el("span", "pos", t(c.position) || c.position), card); spread.append(slot); return card; });
     await wait(700);
     for (const card of slots) { card.classList.add("flipped"); haptic.tap(); await wait(350); TableFx.burst(card); await wait(450); }

@@ -1,9 +1,8 @@
 """Tarot deck: Major Arcana (matches the current index.html UI).
 
-Images are served from /static/img/tarot/<slug>.jpg. Run
-scripts/fetch_tarot_images.py once to download the public-domain
-Rider–Waite (1909) scans from Wikimedia Commons, so the app no longer
-hotlinks Wikimedia.
+Images are the project's own illustrated deck, served from
+/static/img/tarot/<slug>.webp. The Hierophant has no painting yet; the
+frontend draws a gold-line face for it.
 
 To add the Minor Arcana later, append 56 entries to DECK. No other code
 needs to change.
@@ -21,7 +20,7 @@ class Card:
 
     def to_dict(self, base_url: str, reversed_: bool) -> dict:
         return {"id": self.slug, "number": self.number, "name": self.name, "reversed": reversed_,
-                "image_url": f"{base_url}/static/img/tarot/{self.slug}.jpg"}
+                "image_url": f"{base_url}/static/img/tarot/{self.slug}.webp"}
 
 
 _MAJOR = [
