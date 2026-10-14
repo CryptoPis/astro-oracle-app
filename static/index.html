@@ -373,6 +373,14 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .ptable th { text-align: left; font-weight: 500; color: var(--haze); font-size: .8rem; padding: 6px 4px; border-bottom: 1px solid var(--veil); }
 .ptable td { padding: 7px 4px; border-bottom: 1px solid var(--veil); font-variant-numeric: tabular-nums; }
 .ptable-wrap { overflow-x: auto; }
+.rashi-seg { margin-bottom: 10px; }
+.dasha { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.dasha li { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px 10px; border-radius: 10px; font-variant-numeric: tabular-nums; }
+.dasha li span { color: var(--haze); font-size: .85rem; }
+.dasha li.now { background: linear-gradient(90deg, rgba(226,189,106,.16), transparent); box-shadow: inset 2px 0 0 var(--gold); }
+.dasha li.now b { color: var(--gold); }
+.dasha.sub li { padding: 5px 10px; font-size: .9rem; }
+.dasha-now { font: 600 1.1rem var(--display); color: var(--ivory); margin: 4px 0 10px; }
 .note { font-size: .88rem; color: var(--haze); padding: 10px 14px; border-left: 2px solid var(--veil); }
 .note button { background: none; border: 0; padding: 0; color: var(--gold); text-decoration: underline; font-size: inherit; }
 
@@ -742,6 +750,7 @@ const I18N = {
     choosePhoto:"ფოტოს არჩევა", changePhoto:"სხვა ფოტო", readPhoto:"წაკითხვა", photoPrivacy:"ფოტო მხოლოდ წაკითხვისთვის გამოიყენება და არ ინახება.",
     energyL:"ენერგია", e_photo:"ფოტო ამ კითხვას არ შეესაბამება. სცადე სხვა ფოტო.", e_large:"ფოტო ძალიან დიდია. აირჩიე 8 მბ-ზე ნაკლები.",
     kundliTitle:"კუნდლი", kundliSub:"შენი ვედური დაბადების რუკა, გამოთვლილი პლანეტების რეალური მდებარეობით.",
+    navamsa:"ნავამშა (D9)", dashaL:"დაშა პერიოდები", mahadasha:"მაჰადაშა", antardasha:"ანტარდაშა", untilL:"{d}-მდე", antarOf:"{p}-ის მაჰადაშის ქვეპერიოდები",
     rashi:"რაში", nakshatra:"ნაკშატრა", pada:"პადა", lagna:"ლაგნა", planet:"პლანეტა", signL:"ნიშანი", houseL:"სახლი", sunL:"მზე", moonL:"მთვარე",
     noTime:"ლაგნისა და სახლებისთვის საჭიროა დაბადების დრო და ქალაქი.", toProfile:"მიუთითე პროფილში", cityNotFound:"ქალაქი „{c}“ ვერ ვიპოვე. შეამოწმე მართლწერა პროფილში.",
     pl_sun:"მზე", pl_moon:"მთვარე", pl_mars:"მარსი", pl_mercury:"მერკური", pl_jupiter:"იუპიტერი", pl_venus:"ვენერა", pl_saturn:"სატურნი", pl_rahu:"რაჰუ", pl_ketu:"კეტუ",
@@ -802,6 +811,7 @@ const I18N = {
     choosePhoto:"Choose photo", changePhoto:"Another photo", readPhoto:"Read", photoPrivacy:"The photo is used only for the reading and is not stored.",
     energyL:"Energy", e_photo:"This photo doesn't fit the reading. Try another one.", e_large:"The photo is too large. Choose one under 8 MB.",
     kundliTitle:"Kundli", kundliSub:"Your Vedic birth chart, computed from real planetary positions.",
+    navamsa:"Navamsa (D9)", dashaL:"Dasha periods", mahadasha:"mahadasha", antardasha:"antardasha", untilL:"until {d}", antarOf:"Sub-periods of the {p} mahadasha",
     rashi:"Rashi", nakshatra:"Nakshatra", pada:"pada", lagna:"Lagna", planet:"Planet", signL:"Sign", houseL:"House", sunL:"Sun", moonL:"Moon",
     noTime:"The lagna and houses need your birth time and city.", toProfile:"Add them in Profile", cityNotFound:"Couldn't find the city “{c}”. Check the spelling in Profile.",
     pl_sun:"Sun", pl_moon:"Moon", pl_mars:"Mars", pl_mercury:"Mercury", pl_jupiter:"Jupiter", pl_venus:"Venus", pl_saturn:"Saturn", pl_rahu:"Rahu", pl_ketu:"Ketu",
@@ -862,6 +872,7 @@ const I18N = {
     choosePhoto:"Выбрать фото", changePhoto:"Другое фото", readPhoto:"Прочитать", photoPrivacy:"Фото используется только для чтения и не сохраняется.",
     energyL:"Энергия", e_photo:"Это фото не подходит для чтения. Попробуй другое.", e_large:"Фото слишком большое. Выбери до 8 МБ.",
     kundliTitle:"Кундли", kundliSub:"Твоя ведическая натальная карта по реальным положениям планет.",
+    navamsa:"Навамша (D9)", dashaL:"Периоды даши", mahadasha:"махадаша", antardasha:"антардаша", untilL:"до {d}", antarOf:"Подпериоды махадаши: {p}",
     rashi:"Раши", nakshatra:"Накшатра", pada:"пада", lagna:"Лагна", planet:"Планета", signL:"Знак", houseL:"Дом", sunL:"Солнце", moonL:"Луна",
     noTime:"Для лагны и домов нужны время и город рождения.", toProfile:"Укажи их в профиле", cityNotFound:"Город «{c}» не найден. Проверь написание в профиле.",
     pl_sun:"Солнце", pl_moon:"Луна", pl_mars:"Марс", pl_mercury:"Меркурий", pl_jupiter:"Юпитер", pl_venus:"Венера", pl_saturn:"Сатурн", pl_rahu:"Раху", pl_ketu:"Кету",
@@ -914,6 +925,8 @@ const fmtDate = (d, opts) => {
   if (S.lang === "ka") { const m = opts.month === "short" ? KA_MONTHS[d.getMonth()].slice(0, 3) : KA_MONTHS[d.getMonth()];
     return (opts.weekday ? KA_DAYS[d.getDay()] + ", " : "") + `${d.getDate()} ${m}`; }
   try { return new Intl.DateTimeFormat(LOCALE[S.lang], opts).format(d); } catch { return d.toDateString(); } };
+const monthYear = (iso) => { const [y, m] = iso.split("-").map(Number);
+  return S.lang === "ka" ? `${KA_MONTHS[m - 1].slice(0, 3)} ${y}` : fmtDate(new Date(y, m - 1, 1), { month: "short", year: "numeric" }); };
 const rangeText = (s) => { const [m1,d1,m2,d2] = RANGES[s]; const y = 2001;
   return `${fmtDate(new Date(y, m1-1, d1), { day:"numeric", month:"long" })} – ${fmtDate(new Date(y, m2-1, d2), { day:"numeric", month:"long" })}`; };
 function signOf(iso) { const [, m, d] = iso.split("-").map(Number);
@@ -1505,11 +1518,18 @@ const Demo = (() => {
           past: "You went through a tense period that made you stronger.", present: "You stand before a choice, and your heart shows the right way.", future: "A journey and a pleasant meeting lie ahead.", advice: "Be brave and take the first step yourself." } }; }
     if (p === "/api/kundli") { await wait(1500); if (!db.user.birth_date) throw new ApiError(400, "needs_birth_date"); const L = ka() ? "ka" : "en";
       const chart = {"planets":[{"id":"sun","lon":102.354,"sign":"Cancer","degree":12.35,"retro":false,"house":12},{"id":"moon","lon":231.468,"sign":"Scorpio","degree":21.47,"retro":false,"house":4},{"id":"mars","lon":147.642,"sign":"Leo","degree":27.64,"retro":false,"house":1},{"id":"mercury","lon":84.947,"sign":"Gemini","degree":24.95,"retro":false,"house":11},{"id":"jupiter","lon":165.583,"sign":"Virgo","degree":15.58,"retro":false,"house":2},{"id":"venus","lon":62.002,"sign":"Gemini","degree":2.0,"retro":false,"house":11},{"id":"saturn","lon":304.766,"sign":"Aquarius","degree":4.77,"retro":true,"house":7},{"id":"rahu","lon":225.578,"sign":"Scorpio","degree":15.58,"retro":true,"house":4},{"id":"ketu","lon":45.578,"sign":"Taurus","degree":15.58,"retro":true,"house":10}],"ascendant":{"sign":"Leo","degree":23.83,"lon":143.835},"moon_nakshatra":{"name":"Jyeshtha","pada":2},"ayanamsa":23.7633,"has_time":true,"has_place":true,"place":{"name":"Tbilisi, Georgia","lat":41.69,"lon":44.83,"tz":"Asia/Tbilisi"}};
+      [...chart.planets, chart.ascendant].forEach((p) => { p.d9 = SIGNS[Math.floor(p.lon * 9 / 30) % 12]; });
+      const per = (rows) => rows.map(([lord, start, end]) => ({ lord, start, end, current: start <= "2026-10-14" && "2026-10-14" < end }));
+      chart.dasha = { current: { maha: "venus", maha_end: "2031-03-02", antar: "saturn", antar_end: "2027-03-02" },
+        mahadashas: per([["mercury", "1995-07-15", "2004-03-02"], ["ketu", "2004-03-02", "2011-03-02"], ["venus", "2011-03-02", "2031-03-02"], ["sun", "2031-03-02", "2037-03-02"], ["moon", "2037-03-02", "2047-03-02"], ["mars", "2047-03-02", "2054-03-02"], ["rahu", "2054-03-02", "2072-03-02"], ["jupiter", "2072-03-02", "2088-03-02"], ["saturn", "2088-03-02", "2107-03-02"]]),
+        antardashas: per([["venus", "2011-03-02", "2014-07-02"], ["sun", "2014-07-02", "2015-07-02"], ["moon", "2015-07-02", "2017-03-02"], ["mars", "2017-03-02", "2018-05-02"], ["rahu", "2018-05-02", "2021-05-02"], ["jupiter", "2021-05-02", "2024-01-02"], ["saturn", "2024-01-02", "2027-03-02"], ["mercury", "2027-03-02", "2029-01-02"], ["ketu", "2029-01-02", "2031-03-02"]]) };
       const reading = L === "ka" ? { title: "ლომის გული, მორიელის სიღრმე", overview: "ლომის ლაგნა და პირველ სახლში მდგარი მარსი ძლიერ ნებას და ლიდერობის ბუნებრივ ნიჭს გაძლევს. მთვარე მორიელში ემოციურ სიღრმესა და ინტუიციას მატებს. იუპიტერი მეორე სახლში სიტყვისა და შემოსავლის კეთილ ენერგიაზე მიუთითებს.",
           ascendant: "ლომის ლაგნა გხდის თვალსაჩინოს და გულუხვს. ადამიანები ბუნებრივად გენდობიან.", moon: "მთვარე მორიელში, ჯიეშთჰა ნაკშატრაში: ღრმა გრძნობები, დამცველის ინსტინქტი და ძლიერი ინტუიცია.", sun: "მზე კირჩხიბში, მეთორმეტე სახლში: შინაგანი სამყარო და მარტოობაში აღდგენის უნარი.",
+          navamsa: "ნავამშაში მთვარე თავის სახლშია: გრძნობები მყარია, ოჯახი კი შენი ძალის წყარო.", dasha: "ახლა ვენერას მაჰადაშა და სატურნის ანტარდაშაა: სიყვარულისა და სილამაზის პერიოდი, რომელიც მოთმინებასა და შრომას ითხოვს.",
           strengths: ["ნებისყოფა", "ინტუიცია", "გულუხვობა"], challenges: ["სიჯიუტე", "ემოციური ჩაკეტვა"], advice: "ძალა გამოიყენე სხვების მხარდასაჭერად და არა მათ დასამორჩილებლად." }
         : { title: "A lion's heart, a scorpion's depth", overview: "A Leo lagna with Mars in the first house gives strong will and a natural gift for leadership. The Moon in Scorpio adds emotional depth and intuition. Jupiter in the second house blesses speech and income.",
           ascendant: "A Leo lagna makes you visible and generous; people trust you naturally.", moon: "Moon in Scorpio, Jyeshtha nakshatra: deep feelings, a protector's instinct and strong intuition.", sun: "Sun in Cancer in the twelfth house: a rich inner world and the ability to recover in solitude.",
+          navamsa: "In the navamsa the Moon sits in its own sign: steady feelings, with family as a source of strength.", dasha: "You are in the Venus mahadasha and the Saturn antardasha: a time of love and beauty that also asks for patience and work.",
           strengths: ["willpower", "intuition", "generosity"], challenges: ["stubbornness", "emotional withdrawal"], advice: "Use your strength to support others, not to overrule them." };
       return { chart, reading, city_not_found: false, reward: limited("kundli", 100, 1) }; }
     if (p === "/api/dreams" && method === "GET") return { total: db.dreams.length, items: db.dreams };
@@ -1860,19 +1880,31 @@ function coffeeView(a) { const root = el("div", "reading"), syms = el("div", "sy
 /* ═════════════ KUNDLI ═════════════ */
 const RASHI_LAYOUT = [["Pisces", 1, 1], ["Aries", 1, 2], ["Taurus", 1, 3], ["Gemini", 1, 4], ["Cancer", 2, 4], ["Leo", 3, 4],
   ["Virgo", 4, 4], ["Libra", 4, 3], ["Scorpio", 4, 2], ["Sagittarius", 4, 1], ["Capricorn", 3, 1], ["Aquarius", 2, 1]];
+/* d9 = false: rashi (D1) chart; true: navamsa (D9), where every point sits in its p.d9 sign. */
+function rashiGrid(c, d9) {
+  const signOfP = (p) => (d9 ? p.d9 : p.sign), lagna = c.ascendant && signOfP(c.ascendant);
+  const grid = el("div", "rashi"); grid.setAttribute("role", "img"); grid.setAttribute("aria-label", d9 ? t("navamsa") : t("rashi"));
+  for (const [sign, row, col] of RASHI_LAYOUT) {
+    const cell = el("div", "house" + (lagna === sign ? " lagna" : "")); cell.style.gridRow = row; cell.style.gridColumn = col;
+    c.planets.filter((p) => signOfP(p) === sign).forEach((p) => { const b = el("b", p.retro && !["rahu", "ketu"].includes(p.id) ? "r" : "", t("ab_" + p.id)); b.title = t("pl_" + p.id); cell.append(b); });
+    if (lagna === sign) cell.append(el("b", null, t("lagna").slice(0, 3)));
+    cell.append(el("span", "sg sym", g(sign))); grid.append(cell); }
+  const core = el("div", "core");
+  core.append(el("b", null, d9 ? t("navamsa") : t("rashi")), el("span", null, `${t("nakshatra")}: ${c.moon_nakshatra.name}, ${t("pada")} ${c.moon_nakshatra.pada}`));
+  if (c.place) core.append(el("span", null, c.place.name)); grid.append(core);
+  return grid; }
+function dashaList(periods, sub) {
+  const ul = el("ul", "dasha" + (sub ? " sub" : ""));
+  periods.forEach((p) => { const li = el("li", p.current ? "now" : ""); li.append(el("b", null, t("pl_" + p.lord)), el("span", null, `${monthYear(p.start)} – ${monthYear(p.end)}`)); ul.append(li); });
+  return ul; }
 async function loadKundli() {
   const out = $("#kundliOut"); loading(out);
   try { const r = await api("GET", "/api/kundli"), c = r.chart, a = r.reading, root = el("div", "reading");
-    const grid = el("div", "rashi"); grid.setAttribute("role", "img"); grid.setAttribute("aria-label", t("rashi"));
-    for (const [sign, row, col] of RASHI_LAYOUT) {
-      const cell = el("div", "house" + (c.ascendant && c.ascendant.sign === sign ? " lagna" : "")); cell.style.gridRow = row; cell.style.gridColumn = col;
-      c.planets.filter((p) => p.sign === sign).forEach((p) => { const b = el("b", p.retro && !["rahu", "ketu"].includes(p.id) ? "r" : "", t("ab_" + p.id)); b.title = t("pl_" + p.id); cell.append(b); });
-      if (c.ascendant && c.ascendant.sign === sign) cell.append(el("b", null, t("lagna").slice(0, 3)));
-      cell.append(el("span", "sg sym", g(sign))); grid.append(cell); }
-    const core = el("div", "core"), moon = c.planets.find((p) => p.id === "moon");
-    core.append(el("b", null, t("rashi")), el("span", null, `${t("nakshatra")}: ${c.moon_nakshatra.name}, ${t("pada")} ${c.moon_nakshatra.pada}`));
-    if (c.place) core.append(el("span", null, c.place.name)); grid.append(core);
-    root.append(grid);
+    const seg = el("div", "seg rashi-seg"), slot = el("div");
+    [["D1", false], ["D9", true]].forEach(([label, d9]) => { const b = el("button", null, label); b.type = "button"; b.setAttribute("aria-pressed", String(!d9));
+      b.addEventListener("click", () => { seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); haptic.tap(); slot.replaceChildren(rashiGrid(c, d9)); });
+      seg.append(b); });
+    slot.append(rashiGrid(c, false)); root.append(seg, slot);
     if (r.city_not_found) root.append(el("p", "note", t("cityNotFound", { c: (S.user && S.user.birth_city) || "" })));
     else if (!c.ascendant) { const n = el("p", "note"), b = el("button", null, t("toProfile")); b.type = "button"; b.addEventListener("click", () => go("profile")); n.append(t("noTime") + " ", b); root.append(n); }
     const tbl = el("table", "ptable"), head = el("tr"); [t("planet"), t("signL"), "°", t("houseL")].forEach((h) => head.append(el("th", null, h)));
@@ -1880,8 +1912,16 @@ async function loadKundli() {
     c.planets.forEach((p) => { const tr = el("tr"); tr.append(el("td", null, t("pl_" + p.id) + (p.retro && !["rahu", "ketu"].includes(p.id) ? " ℞" : "")),
       el("td", null, `${g(p.sign)} ${sname(p.sign)}`), el("td", null, p.degree.toFixed(1)), el("td", null, p.house ?? "–")); tb.append(tr); });
     const thead = el("thead"); thead.append(head); tbl.append(thead, tb); const wrap = el("div", "ptable-wrap"); wrap.append(tbl);
-    root.append(wrap, el("h2", null, a.title), el("p", null, a.overview), block(t("lagna"), a.ascendant), block(t("moonL"), a.moon), block(t("sunL"), a.sun),
-      pairBlock(a.strengths, a.challenges), el("p", "advice", a.advice));
+    root.append(wrap);
+    const d = c.dasha;
+    if (d && d.current) {
+      root.append(el("h2", null, t("dashaL")), el("p", "dasha-now", `${t("pl_" + d.current.maha)} ${t("mahadasha")} · ${t("pl_" + d.current.antar)} ${t("antardasha")}`),
+        el("p", "muted", t("untilL", { d: monthYear(d.current.antar_end) })), dashaList(d.mahadashas, false),
+        el("span", "label", t("antarOf", { p: t("pl_" + d.current.maha) })), dashaList(d.antardashas, true)); }
+    root.append(el("h2", null, a.title), el("p", null, a.overview), block(t("lagna"), a.ascendant), block(t("moonL"), a.moon), block(t("sunL"), a.sun));
+    if (a.navamsa) root.append(block(t("navamsa"), a.navamsa));
+    if (a.dasha) root.append(block(t("dashaL"), a.dasha));
+    root.append(pairBlock(a.strengths, a.challenges), el("p", "advice", a.advice));
     out.replaceChildren(root);
   } catch (e) { S.loaded.kundli = false; if (e.code === "needs_birth_date") needDateNote(out); else out.replaceChildren(el("p", "empty", errText(e))); }
 }

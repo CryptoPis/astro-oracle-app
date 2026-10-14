@@ -378,6 +378,8 @@ class KundliAI(BaseModel):
     ascendant: str
     moon: str
     sun: str
+    navamsa: str = ""
+    dasha: str = ""
     strengths: list[str] = Field(default_factory=list, max_length=4)
     challenges: list[str] = Field(default_factory=list, max_length=4)
     advice: str
@@ -389,6 +391,8 @@ KUNDLI_SCHEMA = """{
   "ascendant": "2 sentences about the lagna (or about the chart without a known birth time, if lagna is unknown)",
   "moon": "2 sentences about the moon sign and nakshatra",
   "sun": "2 sentences about the sun sign",
+  "navamsa": "2 sentences about the navamsa (D9): inner nature, marriage and dharma, using the given D9 placements",
+  "dasha": "2-3 sentences about the current Vimshottari mahadasha and antardasha: the themes of this period and until when it lasts",
   "strengths": ["3 short phrases"],
   "challenges": ["2 short phrases"],
   "advice": "one actionable sentence"

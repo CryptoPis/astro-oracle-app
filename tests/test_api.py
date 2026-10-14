@@ -214,6 +214,10 @@ def test_kundli(client, monkeypatch):
     r = client.get("/api/kundli", headers=auth(100)).json()
     assert r["chart"]["ascendant"]["sign"] == "Leo" and r["chart"]["place"]["tz"] == "Asia/Tbilisi"
     assert all(p["house"] for p in r["chart"]["planets"]) and r["reward"]["coins_earned"] == 0
+    assert r["chart"]["ascendant"]["d9"] and all(p["d9"] for p in r["chart"]["planets"])
+    d = r["chart"]["dasha"]
+    assert len(d["mahadashas"]) == 9 and len(d["antardashas"]) == 9 and d["current"]["maha"] and d["current"]["antar"]
+    assert sum(p["current"] for p in d["mahadashas"]) == 1
     client.patch("/api/user/profile", headers=auth(100), json={"birth_city": "Nowhere-xyz"})
     r = client.get("/api/kundli", headers=auth(100)).json()
     assert r["city_not_found"] and r["chart"]["ascendant"] is None
@@ -268,3 +272,16 @@ def test_groq_fallback_and_json_repair():
     assert calls[-1]["extra_body"] == {"reasoning_effort": "low"} and "response_format" not in calls[-1]
     n = len(calls); asyncio.run(ai.complete_json("sys", "user", P.EnergyAI, fast=True))
     assert len(calls) == n + 1  # the dead model is skipped from now on
+
+
+def test_navamsa_and_dasha():
+    from datetime import date, datetime, time, timezone
+    from app.core.chart import Place, compute_chart, navamsa_sign
+    assert navamsa_sign(0) == "Aries" and navamsa_sign(3.4) == "Taurus" and navamsa_sign(30) == "Capricorn"  # earth starts at Capricorn
+    assert navamsa_sign(47.75) == "Gemini"  # Rohini pada 3
+    c = compute_chart(date(1990, 8, 15), time(8, 0), Place("Tbilisi", 41.72, 44.78, "Asia/Tbilisi"),
+                      datetime(2026, 10, 14, tzinfo=timezone.utc))
+    d = c["dasha"]
+    assert c["moon_nakshatra"]["name"] == "Rohini" and d["mahadashas"][0]["lord"] == "moon"  # Rohini is ruled by the Moon
+    assert d["mahadashas"][0]["start"] == "1990-08-15" and d["mahadashas"][0]["end"].startswith("1994-10")
+    assert d["current"] == {"maha": "jupiter", "maha_end": "2035-10-22", "antar": "ketu", "antar_end": "2027-09-04"}

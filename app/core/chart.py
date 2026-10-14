@@ -6,7 +6,7 @@ Houses use the whole-sign system from the ascendant (lagna), as is usual in Jyot
 """
 import math
 from dataclasses import dataclass
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import astronomy as A
@@ -20,6 +20,10 @@ NAKSHATRAS = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
               "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha",
               "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"]
 J2000 = 2451545.0
+# Vimshottari dasha: lords in order from Ashwini, years each (120 in total)
+DASHA = [("ketu", 7), ("venus", 20), ("sun", 6), ("moon", 10), ("mars", 7), ("rahu", 18), ("jupiter", 16),
+         ("saturn", 19), ("mercury", 17)]
+DASHA_YEAR = 365.25  # days
 
 
 @dataclass
@@ -51,13 +55,50 @@ def _ascendant(t: A.Time, lat: float, lon: float) -> float:
     return math.degrees(math.atan2(math.cos(ramc), -(math.sin(ramc) * math.cos(eps) + math.tan(phi) * math.sin(eps)))) % 360
 
 
+def navamsa_sign(sid: float) -> str:
+    """D9 sign: the zodiac in 108 slices of 3°20', counted on from Aries (equals the fire/earth/air/water start rule)."""
+    return SIGNS[int(sid * 9 // 30) % 12]
+
+
 def _point(pid: str, sid: float, retro: bool, lagna_sign: int | None) -> dict:
     s = int(sid // 30)
     return {"id": pid, "lon": round(sid, 3), "sign": SIGNS[s], "degree": round(sid % 30, 2), "retro": retro,
-            "house": ((s - lagna_sign) % 12 + 1) if lagna_sign is not None else None}
+            "house": ((s - lagna_sign) % 12 + 1) if lagna_sign is not None else None, "d9": navamsa_sign(sid)}
 
 
-def compute_chart(birth_date: date, birth_time: time | None, place: Place | None) -> dict:
+def _sub_periods(lord_index: int, start: datetime, years: float) -> list[dict]:
+    """Split a period of `years` among the nine lords, starting from lord_index, in Vimshottari proportions."""
+    out = []
+    for k in range(9):
+        lord, y = DASHA[(lord_index + k) % 9]
+        end = start + timedelta(days=years * y / 120 * DASHA_YEAR)
+        out.append({"lord": lord, "start": start, "end": end})
+        start = end
+    return out
+
+
+def vimshottari(moon_sid: float, birth_utc: datetime, now: datetime) -> dict:
+    span = 360 / 27
+    n = int(moon_sid // span)
+    first = n % 9
+    elapsed = (moon_sid % span) / span  # part of the first dasha already lived before birth
+    start = birth_utc - timedelta(days=elapsed * DASHA[first][1] * DASHA_YEAR)
+    mahas = _sub_periods(first, start, 120)
+    current = next((m for m in mahas if m["start"] <= now < m["end"]), None)
+    antars = []
+    if current:
+        i = [lord for lord, _ in DASHA].index(current["lord"])
+        antars = _sub_periods(i, current["start"], DASHA[i][1])
+    day = lambda d: d.date().isoformat()
+    fmt = lambda ps: [{"lord": p["lord"], "start": day(max(p["start"], birth_utc)), "end": day(p["end"]),
+                       "current": p["start"] <= now < p["end"]} for p in ps]
+    antar_now = next((a for a in antars if a["start"] <= now < a["end"]), None)
+    return {"mahadashas": fmt(mahas), "antardashas": fmt(antars),
+            "current": current and {"maha": current["lord"], "maha_end": day(current["end"]),
+                                    "antar": antar_now and antar_now["lord"], "antar_end": antar_now and day(antar_now["end"])}}
+
+
+def compute_chart(birth_date: date, birth_time: time | None, place: Place | None, now: datetime | None = None) -> dict:
     local = datetime.combine(birth_date, birth_time or time(12, 0))
     if place:
         try:
@@ -76,7 +117,7 @@ def compute_chart(birth_date: date, birth_time: time | None, place: Place | None
     if birth_time is not None and place is not None:
         asc_sid = (_ascendant(t, place.lat, place.lon) - ayan) % 360
         lagna_sign = int(asc_sid // 30)
-        asc = {"sign": SIGNS[lagna_sign], "degree": round(asc_sid % 30, 2), "lon": round(asc_sid, 3)}
+        asc = {"sign": SIGNS[lagna_sign], "degree": round(asc_sid % 30, 2), "lon": round(asc_sid, 3), "d9": navamsa_sign(asc_sid)}
 
     planets = []
     for pid, body in PLANETS:
@@ -96,7 +137,7 @@ def compute_chart(birth_date: date, birth_time: time | None, place: Place | None
     return {"planets": planets, "ascendant": asc, "moon_nakshatra": nak, "ayanamsa": round(ayan, 4),
             "has_time": birth_time is not None, "has_place": place is not None,
             "place": place and {"name": place.name, "lat": round(place.lat, 3), "lon": round(place.lon, 3), "tz": place.tz},
-            "utc": utc.isoformat()}
+            "utc": utc.isoformat(), "dasha": vimshottari(moon, utc, now or datetime.now(timezone.utc))}
 
 
 def chart_summary(chart: dict) -> str:
@@ -104,5 +145,9 @@ def chart_summary(chart: dict) -> str:
     parts = [f"{p['id']}={p['sign']} {p['degree']:.0f}°{' R' if p['retro'] and p['id'] not in ('rahu', 'ketu') else ''}"
              + (f" H{p['house']}" if p["house"] else "") for p in chart["planets"]]
     asc = chart["ascendant"]
+    d9 = ", ".join(f"{p['id']}={p['d9']}" for p in chart["planets"])
+    cur = chart["dasha"]["current"]
+    dasha = f"; Vimshottari now: {cur['maha']} mahadasha / {cur['antar']} antardasha (until {cur['antar_end']})" if cur else ""
     return (f"Lagna: {asc['sign'] + ' ' + format(asc['degree'], '.0f') + '°' if asc else 'unknown (no birth time/place)'}; "
-            f"Moon nakshatra: {chart['moon_nakshatra']['name']} pada {chart['moon_nakshatra']['pada']}; " + ", ".join(parts))
+            f"Moon nakshatra: {chart['moon_nakshatra']['name']} pada {chart['moon_nakshatra']['pada']}; " + ", ".join(parts)
+            + f"; Navamsa (D9): {('lagna=' + asc['d9'] + ', ') if asc else ''}{d9}{dasha}")
