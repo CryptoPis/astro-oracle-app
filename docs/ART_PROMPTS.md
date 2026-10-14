@@ -1,73 +1,169 @@
-# Art prompts for $Astro Oracle
+# $Astro Oracle: სურათების სია და პრომპტები
 
-## როგორ გამოვიყენოთ (ქართულად)
-1. გახსენი ChatGPT (ან OpenArt), სადაც წინა სურათები შექმენი.
-2. ჩასვი **სტილის ბლოკი** და შემდეგ კონკრეტული სურათის აღწერა. პრომპტები ინგლისურადაა, რადგან სურათის მოდელები ინგლისურს უკეთ იგებენ.
-3. სტილის შესანარჩუნებლად შეგიძლია მიამაგრო ერთ-ერთი არსებული სურათი (მაგ. `კურო.png` ან ტაროს კარტი) და დაწერო: "match the style of the attached image".
-4. სურათები ატვირთე პროექტის საქაღალდეში, დაარქვი ქვემოთ მითითებული სახელები და მომწერე. აპლიკაციაში თავად ჩავსვამ.
-5. თითო ნიშანზე 2-3 ვარიანტი შეგიძლია გააკეთო (`leo.png`, `leo-2.png`, `leo-3.png`). აპლიკაცია მათ ყოველდღე შეცვლის.
-
-Aspect ratios: zodiac **3:2 landscape** (1536×1024), tarot **2:3 portrait** (1024×1536).
+## მთავარი წესი: სურათზე ტექსტი არ უნდა იყოს
+აპლიკაცია სამ ენაზე მუშაობს (ქართული, ინგლისური, რუსული). სახელებს, თარიღებს და აღწერებს აპლიკაცია თავად აწერს
+მომხმარებლის ენაზე. ამიტომ **ყველა სურათი უნდა იყოს ტექსტის, ასოებისა და ციფრების გარეშე.** ყველა პრომპტში
+ეს მითითება უკვე ჩაწერილია.
 
 ---
 
-## Style block (paste first, every time)
+## 1. რა გვაქვს და რა გვაკლია (შემოწმდა 2026-10-14)
+
+### ზოდიაქოს ნიშნები: 12-დან 7 გვაქვს, მაგრამ სტილი არაერთგვაროვანია
+| ნიშანი | ფაილი | მდგომარეობა | რა საჭიროა |
+|---|---|---|---|
+| ♈ ვერძი | aries | იასამნისფერი სტილი | ⭐ გადახატვა ოქროს სტილში |
+| ♉ კურო | taurus | იასამნისფერი სტილი | ⭐ გადახატვა ოქროს სტილში |
+| ♊ ტყუპები | gemini | **ინგლისური წარწერა აქვს** („COSMIC DUALITY“) | ❗ აუცილებლად ხელახლა |
+| ♋ კირჩხიბი | cancer | იასამნისფერი სტილი | ⭐ გადახატვა ოქროს სტილში |
+| ♌ ლომი | leo | ✅ ოქროს სტილი | — |
+| ♍ ქალწული | virgo | **არ არის** | ❗ აუცილებელი |
+| ♎ სასწორი | libra | ✅ ოქროს სტილი | — |
+| ♏ მორიელი | scorpio | **არ არის** | ❗ აუცილებელი |
+| ♐ მშვილდოსანი | sagittarius | **არ არის** | ❗ აუცილებელი |
+| ♑ თხის რქა | capricorn | **არ არის** | ❗ აუცილებელი |
+| ♒ მერწყული | aquarius | **არ არის** | ❗ აუცილებელი |
+| ♓ თევზები | pisces | ✅ ოქროს სტილი | — |
+
+### ტაროს კარტები (დიდი არკანი): 22-დან 21 გვაქვს
+- ❗ აკლია: **იეროფანტი** (V).
+- სურვილისამებრ: **სულელს** (0) თავზე შეცდომით „I“ აწერია. შეიძლება ხელახლა.
+
+### პრაქტიკების ხატულები: 13-დან 13 ✅
+ყველა არის და ტექსტი არცერთზე არ წერია. ცვლილება არ სჭირდება.
+
+### ლოგო ✅
+„ASTRO“ ბრენდის სახელია და ყველა ენაზე ერთნაირად რჩება. ცვლილება არ სჭირდება.
+
+---
+
+## 2. რაოდენობები
+
+| პრიორიტეტი | რა | რაოდენობა |
+|---|---|---|
+| ❗ აუცილებელი | ქალწული, მორიელი, მშვილდოსანი, თხის რქა, მერწყული, ტყუპები + იეროფანტი | **7** |
+| ⭐ რეკომენდებული | ვერძი, კურო, კირჩხიბი ოქროს სტილში (რომ 12-ვე ერთნაირი იყოს) | **3** |
+| 🔄 სურვილისამებრ | მეორე ვარიანტი თითო ნიშანზე, ყოველდღიური ცვლილებისთვის | **12** |
+| 🃏 მოგვიანებით | მცირე არკანი, თუ დასტას 78 კარტამდე გავზრდით | **56** |
+
+**ახლა საკმარისია 10 სურათი** (აუცილებელი 7 და რეკომენდებული 3).
+
+---
+
+## 3. როგორ შევქმნათ ChatGPT-ში
+1. გახსენი ახალი ჩატი ChatGPT-ში.
+2. **მიამაგრე ლომის სურათი** (Leo პოსტერი) სტილის ნიმუშად. ეს ყველაზე მნიშვნელოვანი ნაბიჯია: ასე ყველა ნიშანი ერთ სტილში გამოვა.
+3. ჩასვი ქვემოთ მოცემული მზა პრომპტი მთლიანად, ერთბაშად.
+4. თუ შედეგზე წარწერა მაინც გამოჩნდა, მიწერე: **"Remove all text, letters and numbers. Keep everything else the same."**
+5. ერთ ჩატში შეიძლება რამდენიმე ნიშნის ზედიზედ შექმნა, ოღონდ ყოველ ჯერზე ახალი პრომპტი ჩასვი.
+
+---
+
+## 4. მზა პრომპტები: ზოდიაქო (კვადრატი 1:1, ოქროს სტილი)
+
+ყველა ზოდიაქოს პრომპტი ერთი შაბლონით არის აწყობილი და განსხვავდება მხოლოდ **SUBJECT** ნაწილით. ქვემოთ თითო ნიშანზე სრული, მზა ტექსტია.
+
+### ❗ ქალწული: `virgo`
 ```
-Ornate celestial fantasy illustration. Deep indigo and violet night sky with soft purple nebula clouds,
-scattered stars and tiny galaxies. The subject is formed from luminous golden light and cosmic dust, with
-glowing gold filigree details and subtle amethyst highlights. Rich, cinematic lighting, high detail,
-painterly but crisp, centered composition with breathing room around the subject. Palette: midnight
-indigo #0d0a24, violet #8b6cff, gold #e2bd6a, ivory highlights. No text, no letters, no watermark, no frame.
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a serene young woman (the Virgin) in a flowing robe, holding a sheaf of golden wheat, a single bright star (Spica) shining above her hand, calm graceful pose.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
 ```
 
-## Zodiac: black & gold poster series (Leo, Libra, Pisces are in the app)
-The three posters found on 2026-10-14 set the best style so far. To get the missing signs in exactly that look,
-attach `leo` (or `libra`) as a reference and use:
+### ❗ მორიელი: `scorpio`
 ```
-Same style as the attached image: black background with fine gold engraving, ornate gold frame with corner flourishes,
-two crescent moons at the top, a large gold circle in the center with the zodiac subject, laurel branches on the sides,
-classical temples and a sunrise over water at the bottom, scattered stars and constellations. Portrait 4:5.
-Subject in the circle: {SUBJECT}. Put the title "{NAME}" at the top and the dates at the bottom, like the reference.
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a powerful golden scorpion with an elegantly curved tail raised high, finely engraved armor plates, one glowing red-gold star (Antares) on its back, a faint mist around it.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
 ```
-(The app crops away the title and dates automatically and shows the Georgian name instead.)
 
-Still missing in this series: **Virgo, Scorpio, Sagittarius, Capricorn, Aquarius** (and optionally Aries, Taurus,
-Gemini, Cancer again, so all 12 match). Subjects: use the table below.
-
-## Zodiac subjects (also usable with the purple style block) — file names `virgo.png` …
-| File | Subject line (add after the style block) |
-|---|---|
-| leo.png | A majestic lion with a mane of swirling golden starlight and solar flares, standing proud on a glowing crescent of rock, a radiant sun disc behind its head. |
-| virgo.png | A serene maiden in a flowing violet robe woven from stars, holding a sheaf of golden wheat that glows like constellations, soft moonlight on her face. |
-| libra.png | Elegant golden scales of balance floating in space, each pan holding a tiny glowing planet, delicate filigree chains, a calm violet nebula behind. |
-| scorpio.png | A powerful scorpion made of dark crystal and molten gold, its curved tail glowing with a single crimson star (Antares), mist swirling around it. |
-| sagittarius.png | A centaur archer drawing a bow of light, the arrow a streaking comet aimed at the stars, mane and tail made of golden stardust. |
-| capricorn.png | A mythical sea-goat: front half a noble mountain goat with spiralling golden horns, back half a shimmering fish tail of cosmic water. |
-| aquarius.png | A water-bearer pouring a stream of liquid starlight from a golden urn; the stream turns into a river of tiny stars flowing across the sky. |
-| pisces.png | Two luminous koi-like fish circling each other in a yin-yang spiral, linked by a glowing golden cord, trailing star bubbles. |
-
-Variants for existing signs (optional, for daily rotation): `aries-2.png`, `taurus-2.png`, `gemini-2.png`, `cancer-2.png` — same subject, different pose or angle.
-
-## Tarot — missing Major Arcana card
-Use the tarot frame style of the existing deck (attach `00_fool.jpg` as reference):
+### ❗ მშვილდოსანი: `sagittarius`
 ```
-Tarot card in portrait 2:3, ornate gold Art Nouveau frame with small sacred-geometry medallions in the corners,
-deep cosmic purple background. Same style as the attached card. No text, no title, no numbers.
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a noble golden centaur archer drawing a bow, the arrow aimed upward at the stars, flowing mane and tail made of golden stardust, dynamic heroic pose.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
 ```
-| File | Subject |
-|---|---|
-| 05_hierophant.jpg | A wise high priest on a stone throne between two pillars, raising a hand in blessing, golden triple crown, two crossed golden keys at his feet, stained-glass light behind. |
 
-## Tarot — Minor Arcana (56 cards, optional next step)
-Same tarot frame prompt, then:
-- **Wands** (fire, passion): golden-red flames, wooden staffs with sprouting leaves of light. Files `wands_01.jpg` … `wands_14.jpg`.
-- **Cups** (water, feelings): golden chalices overflowing with starlit water, moonlit seas. Files `cups_01.jpg` … `cups_14.jpg`.
-- **Swords** (air, mind): silver-gold blades, wind and clouds, crisp starlight. Files `swords_01.jpg` … `swords_14.jpg`.
-- **Pentacles** (earth, wealth): golden coins engraved with pentagrams, gardens and mountains. Files `pentacles_01.jpg` … `pentacles_14.jpg`.
+### ❗ თხის რქა: `capricorn`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a mythical golden sea-goat: the front is a proud mountain goat with long spiralling horns, the back is a curling fish tail with shimmering scales, standing on a rock above gentle waves.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
+```
 
-Numbers 1–10 show that many symbols in a scene that matches the classic Rider–Waite meaning; 11–14 are Page, Knight, Queen, King.
-Example: *"Three of Cups: three women raising golden chalices of starlight in a joyful toast, celebration under a violet sky."*
+### ❗ მერწყული: `aquarius`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a graceful water-bearer pouring a stream from an ornate golden urn; the stream turns into a flowing river of tiny golden stars that spirals through the circle.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
+```
 
-## Moving versions (later)
-Each painting can become a 4–6 second seamless loop (gentle mane movement, drifting stars) with an image-to-video
-tool. The app is ready to play short `.webm/.mp4` loops in the same "living" card.
+### ❗ ტყუპები: `gemini`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: twin figures standing side by side and holding hands, one bathed in sunlight and one in moonlight, two bright stars (Castor and Pollux) above their heads, mirrored elegant poses.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
+```
+
+### ⭐ ვერძი: `aries`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a majestic golden ram with large spiralling horns, head held high, fiery golden fleece, determined gaze, facing slightly to the side.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
+```
+
+### ⭐ კურო: `taurus`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: a mighty golden bull with strong curved horns, calm and grounded, a small cluster of seven stars (the Pleiades) glowing above its shoulder, flowers at its feet.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
+```
+
+### ⭐ კირჩხიბი: `cancer`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, two golden crescent moons in the upper corners, gold laurel branches on the sides, small constellations and scattered stars, a soft golden sunrise over water at the bottom.
+SUBJECT in the circle: an elegant golden crab with ornate engraved shell and raised claws, a large full moon glowing behind it, gentle waves and seashells around.
+Absolutely no text: no letters, no words, no numbers, no titles, no dates, no zodiac names anywhere in the image.
+```
+
+---
+
+## 5. მზა პრომპტი: ტარო (ვერტიკალური 2:3)
+**მიამაგრე რომელიმე არსებული ტაროს კარტი** სტილის ნიმუშად, მაგალითად `05_lovers.jpg`.
+
+### ❗ იეროფანტი: `hierophant`
+```
+Create a vertical 2:3 tarot card in exactly the same style as the attached card: ornate gold Art Nouveau frame with small sacred-geometry medallions in the corners, deep cosmic purple and blue background with nebulae and stars, rich painterly fantasy illustration.
+SUBJECT: The Hierophant — a wise high priest seated on a stone throne between two pillars, raising his right hand in blessing, wearing a golden triple crown and red-gold robes, two crossed golden keys at his feet, soft stained-glass light behind him.
+Absolutely no text: no letters, no words, no numbers, no Roman numerals, no card title anywhere on the card.
+```
+
+### სურვილისამებრ: სულელი, ნომრის გარეშე: `fool`
+```
+Create a vertical 2:3 tarot card in exactly the same style as the attached card: ornate gold Art Nouveau frame with small sacred-geometry medallions in the corners, deep cosmic purple and blue background with nebulae and stars, rich painterly fantasy illustration.
+SUBJECT: The Fool — a young traveler in colorful robes stepping toward the edge of a cliff among the stars, a small bundle on a staff over his shoulder, a white rose in his hand, a little white dog at his feet, a glowing sun behind him.
+Absolutely no text: no letters, no words, no numbers, no Roman numerals, no card title anywhere on the card.
+```
+
+---
+
+## 6. სურვილისამებრ: მეორე ვარიანტები (ყოველდღიური ცვლილებისთვის)
+აიღე ნებისმიერი ნიშნის პრომპტი ზემოდან და SUBJECT-ის ბოლოს დაამატე:
+```
+Make it a different composition from the first version: a different pose and angle, the subject seen in motion.
+```
+დაარქვი ფაილს ბოლოში `-2`, მაგალითად `leo-2`.
+
+---
+
+## 7. როგორ გამოგიგზავნო სურათები
+**უმარტივესი გზა:** პირდაპირ ამ ჩატში ჩააგდე (გადმოათრიე ან 📎 ღილაკით), ისე, როგორც ლომი, სასწორი და თევზები გამოაგზავნე.
+ერთ შეტყობინებაში რამდენიმე სურათიც შეიძლება.
+
+**მეორე გზა, პროექტის საქაღალდე:** claude.ai → მარცხნივ **Projects** → **AstroBot** → მარჯვნივ **Files / Project knowledge** → **+** → **Upload from device**.
+შემდეგ მომწერე „ავტვირთე“ და მე იქიდან ავიღებ.
+
+**ფაილების სახელები:** ChatGPT-დან გადმოწერილ სურათს თუ ცხრილში მითითებულ სახელს დაარქმევ (მაგ. `virgo.png`), კარგია.
+თუ არა, არაუშავს: სურათს ვნახავ და თავად მივხვდები, რომელია.
+
+**შემდეგ ყველაფერს მე ვაკეთებ:** სურათს ვჭრი და ვაპატარავებ, ჩავსვამ აპლიკაციაში, პრევიუს ვაახლებ და GitHub-ზე ვტვირთავ.

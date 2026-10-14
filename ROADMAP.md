@@ -17,8 +17,9 @@
   tab bar, modern type. Tarot: pick cards from a fan, card collection (x / 22). Georgian dates without locale data.
 
 ## Next
-- Missing art: Virgo, Scorpio, Sagittarius, Capricorn, Aquarius in the black & gold poster style (Leo, Libra, Pisces added
-  2026-10-14), the Hierophant tarot card; optional variants and Minor Arcana. Prompts: `docs/ART_PROMPTS.md`.
+- Missing art (audit 2026-10-14, rule: no text in any image, the app is multilingual): required 7 — Virgo, Scorpio,
+  Sagittarius, Capricorn, Aquarius, Gemini (old one has English text, removed from the app) and the Hierophant;
+  recommended 3 — Aries, Taurus, Cancer redone in the black & gold style. Ready prompts: `docs/ART_PROMPTS.md`.
 - Deploy (HTTPS host), register the Mini App in BotFather, test inside Telegram.
 - Feedback round on the design and texts.
 - Leaderboard and tasks (Telegram channel, X) from the legacy bot.
