@@ -20,7 +20,21 @@ painterly but crisp, centered composition with breathing room around the subject
 indigo #0d0a24, violet #8b6cff, gold #e2bd6a, ivory highlights. No text, no letters, no watermark, no frame.
 ```
 
-## Zodiac (missing 8) — file names `leo.png` … `pisces.png`
+## Zodiac: black & gold poster series (Leo, Libra, Pisces are in the app)
+The three posters found on 2026-10-14 set the best style so far. To get the missing signs in exactly that look,
+attach `leo` (or `libra`) as a reference and use:
+```
+Same style as the attached image: black background with fine gold engraving, ornate gold frame with corner flourishes,
+two crescent moons at the top, a large gold circle in the center with the zodiac subject, laurel branches on the sides,
+classical temples and a sunrise over water at the bottom, scattered stars and constellations. Portrait 4:5.
+Subject in the circle: {SUBJECT}. Put the title "{NAME}" at the top and the dates at the bottom, like the reference.
+```
+(The app crops away the title and dates automatically and shows the Georgian name instead.)
+
+Still missing in this series: **Virgo, Scorpio, Sagittarius, Capricorn, Aquarius** (and optionally Aries, Taurus,
+Gemini, Cancer again, so all 12 match). Subjects: use the table below.
+
+## Zodiac subjects (also usable with the purple style block) — file names `virgo.png` …
 | File | Subject line (add after the style block) |
 |---|---|
 | leo.png | A majestic lion with a mane of swirling golden starlight and solar flares, standing proud on a glowing crescent of rock, a radiant sun disc behind its head. |

@@ -18,7 +18,8 @@ compatibility, AI astrologer chat, aura and coffee photo readings, kundli (sider
 
 **Design.** Night sky indigo `#0d0a24`, violet `#8b6cff`, gold `#e2bd6a`. Living art cards (tilt with the phone,
 change daily), swipeable rails, floating tab bar. Fonts: Jost/Manrope (UI), Noto Sans Georgian, Cormorant for the
-oracle's voice. Art style and prompts: `docs/ART_PROMPTS.md`.
+oracle's voice. Zodiac art: black & gold engraved posters (Leo, Libra, Pisces) plus earlier purple paintings
+(Aries, Taurus, Gemini, Cancer); posters are cropped to the central circle. Art style and prompts: `docs/ART_PROMPTS.md`.
 
 **Status / next.** See `ROADMAP.md` (done, next, parked mining, ideas inbox: voice, monetization with Telegram Stars,
 engagement strategy). Not deployed yet; next technical step is hosting + BotFather Mini App registration.

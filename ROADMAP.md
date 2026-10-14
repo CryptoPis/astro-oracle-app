@@ -17,13 +17,12 @@
   tab bar, modern type. Tarot: pick cards from a fan, card collection (x / 22). Georgian dates without locale data.
 
 ## Next
-- Missing art: generate with `docs/ART_PROMPTS.md` (8 zodiac paintings, the Hierophant, optional variants and Minor Arcana).
+- Missing art: Virgo, Scorpio, Sagittarius, Capricorn, Aquarius in the black & gold poster style (Leo, Libra, Pisces added
+  2026-10-14), the Hierophant tarot card; optional variants and Minor Arcana. Prompts: `docs/ART_PROMPTS.md`.
 - Deploy (HTTPS host), register the Mini App in BotFather, test inside Telegram.
 - Feedback round on the design and texts.
 - Leaderboard and tasks (Telegram channel, X) from the legacy bot.
 - Kundli extras: navamsa (D9), current dasha periods.
-
-Missing art: 8 zodiac paintings (Leo → Pisces), the Hierophant tarot card.
 
 ## Parked: mining (tap-to-earn)
 Decision 2026-10-14: paused. The app launches as an astrology product; mining may return later.
