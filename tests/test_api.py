@@ -87,6 +87,8 @@ def test_tarot(client):
     assert [c["position"] for c in t["cards"]] == ["past", "present", "future"]
     assert len({c["id"] for c in t["cards"]}) == 3
     assert len(client.get("/api/tarot/history", headers=auth(100)).json()["items"]) == 2
+    coll = client.get("/api/tarot/collection", headers=auth(100)).json()
+    assert coll["total"] == 22 and sum(coll["owned"].values()) == 4
 
 
 def test_dreams(client):

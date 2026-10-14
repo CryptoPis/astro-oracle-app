@@ -68,6 +68,17 @@ async def draw(body: TarotDrawRequest, user: User = Depends(current_user),
     return _reading_out(reading, repeated=False, reward=reward)
 
 
+@router.get("/collection")
+async def collection(user: User = Depends(current_user), session: AsyncSession = Depends(get_session)):
+    """Which cards the user has drawn so far, with counts (for the collection grid)."""
+    rows = (await session.scalars(select(Reading.payload).where(Reading.user_id == user.telegram_id, Reading.kind == "tarot"))).all()
+    owned: dict[str, int] = {}
+    for payload in rows:
+        for card in payload.get("cards", []):
+            owned[card["id"]] = owned.get(card["id"], 0) + 1
+    return {"owned": owned, "total": len(tarot.DECK)}
+
+
 @router.get("/history")
 async def history(limit: int = Query(20, le=100), offset: int = 0, user: User = Depends(current_user),
                   session: AsyncSession = Depends(get_session)):
