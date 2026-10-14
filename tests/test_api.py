@@ -119,3 +119,23 @@ def test_ai_failure_refunds_quota(client, monkeypatch):
     r = client.post("/api/dreams/analyze", headers=auth(100), json={"text": "A long dream about doors"})
     assert r.status_code == 503 and r.json()["detail"]["code"] == "ai_unavailable"
     assert client.get("/api/user/profile", headers=auth(100)).json()["user"]["coins"] == before
+
+
+def test_numerology(client):
+    assert client.get("/api/numerology", headers=auth(200)).json()["detail"]["code"] == "needs_birth_date"
+    r = client.get("/api/numerology", headers=auth(100)).json()
+    assert r["life_path"] == 33 and r["is_master"] and 1 <= r["personal_year"] <= 9
+    assert r["reading"]["strengths"] and r["year_reading"]["theme"] and r["reward"]["coins_earned"] == 35
+    assert client.get("/api/numerology", headers=auth(100)).json()["reward"]["coins_earned"] == 0
+
+
+def test_sphere(client):
+    earned = [client.post("/api/sphere", headers=auth(100), json={"question": "Will it work?"}).json() for _ in range(6)]
+    assert all(e["tone"] in ("yes", "wait", "no") and e["answer"] for e in earned)
+    assert [e["reward"]["coins_earned"] for e in earned] == [25] * 5 + [0]
+
+
+def test_personal_year():
+    from datetime import date
+    from app.core.astro import personal_year_number
+    assert personal_year_number(date(1990, 8, 15), 2026) == 6  # 1+5+8+2+0+2+6 = 24 -> 6

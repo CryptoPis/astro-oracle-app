@@ -4,13 +4,12 @@
 - Backend: FastAPI + aiogram 3 webhook, Telegram initData auth, async SQLAlchemy, Groq JSON-mode AI, $AST ledger.
 - Mini App: sky (astrolabe, moon phase, energy, lucky numbers, daily gift), horoscope (12 signs, day/week/month),
   illustrated tarot (card of the day, three-card spread), dream interpreter + journal, profile (birth date, language, invite).
+- Numerology (life path + personal year, AI reading cached per number) and the magic sphere (server-side answer).
 - Assets from the old React app: 21 tarot paintings, card back, 12 practice icons.
 
 ## Next (one at a time)
 | Practice | Backend | Notes |
 |---|---|---|
-| Numerology | `/api/numerology` | life path already calculated; AI reading cached per number + language |
-| Magic sphere | `/api/sphere` | no AI; server-side random answer so the coin reward can't be faked |
 | Moon ritual | `/api/moon/ritual` | cached per moon phase + language per day |
 | Compatibility | `/api/compatibility` | two birth dates, sun signs + elements |
 | AI astrologer | `/api/advisor` | chat with short history; strict daily quota |

@@ -47,6 +47,17 @@ def zodiac_sign(d: date) -> str:
     return before if d.day < cutoff else after
 
 
+def _reduce(total: int, keep_master: bool) -> int:
+    while total > 9 and not (keep_master and total in (11, 22, 33)):
+        total = sum(int(c) for c in str(total))
+    return total
+
+
+def personal_year_number(birth: date, year: int) -> int:
+    """Birth day + birth month + current year, reduced to 1-9."""
+    return _reduce(sum(int(c) for c in f"{birth.day}{birth.month}{year}"), keep_master=False)
+
+
 def life_path_number(d: date) -> int:
     total = sum(int(c) for c in d.strftime("%d%m%Y"))
     while total > 9 and total not in (11, 22, 33):

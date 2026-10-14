@@ -60,6 +60,8 @@ Run a **single** process/worker (bot dispatcher + scheduler + SQLite). Scaling o
 | GET | /api/tarot/history | |
 | POST | /api/dreams/analyze | `{text, save}` → structured analysis, saved to journal |
 | GET / DELETE | /api/dreams, /api/dreams/{id} | dream journal |
+| GET | /api/numerology | life path + personal year readings (cached per number/lang), +35 $AST once a day |
+| POST | /api/sphere | `{question?}` → `{answer, tone: yes\|wait\|no}`, +25 $AST up to 5× a day |
 
 Errors: `{"detail": {"code": "...", "message": "..."}}`. Codes: `daily_quota` (429), `ai_unavailable` (503), `needs_birth_date`, `bad_sign` (400), `already_claimed` (409).
 

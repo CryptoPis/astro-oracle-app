@@ -168,3 +168,52 @@ ENERGY_SCHEMA = """{
 def energy_prompt(lang: str, sign: str, moon_name: str, day: str) -> tuple[str, str]:
     task = "Write the daily cosmic energy message for this sign."
     return _system(lang, task, ENERGY_SCHEMA), f"Sign: {sign}\nDate: {day}\nMoon phase: {moon_name}"
+
+
+# ───────────────────────── Numerology ─────────────────────────
+class NumerologyAI(BaseModel):
+    title: str
+    essence: str
+    strengths: list[str] = Field(min_length=1, max_length=4)
+    challenges: list[str] = Field(min_length=1, max_length=3)
+    purpose: str
+    love: str
+    career: str
+    advice: str
+
+
+NUMEROLOGY_SCHEMA = """{
+  "title": "2-4 word archetype name for this number (e.g. 'The Seeker')",
+  "essence": "2-3 sentences: the core nature of this life path",
+  "strengths": ["3 short strengths, 1-3 words each"],
+  "challenges": ["2 short challenges, 1-3 words each"],
+  "purpose": "2-3 sentences: karmic purpose and life lesson",
+  "love": "1-2 sentences about relationships",
+  "career": "1-2 sentences about work and vocation",
+  "advice": "one actionable sentence"
+}"""
+
+
+def numerology_prompt(lang: str, number: int) -> tuple[str, str]:
+    master = number in (11, 22, 33)
+    task = (f"Explain Pythagorean numerology Life Path Number {number}"
+            f"{' (a master number: mention what makes it special)' if master else ''}.")
+    return _system(lang, task, NUMEROLOGY_SCHEMA), f"Life Path Number: {number}"
+
+
+class PersonalYearAI(BaseModel):
+    theme: str
+    text: str
+    advice: str
+
+
+PERSONAL_YEAR_SCHEMA = """{
+  "theme": "2-5 word theme of this personal year",
+  "text": "2-3 sentences: what this personal year brings",
+  "advice": "one actionable sentence for this year"
+}"""
+
+
+def personal_year_prompt(lang: str, number: int, year: int) -> tuple[str, str]:
+    task = f"Explain Personal Year Number {number} in numerology for the calendar year {year}."
+    return _system(lang, task, PERSONAL_YEAR_SCHEMA), f"Personal Year: {number}\nYear: {year}"

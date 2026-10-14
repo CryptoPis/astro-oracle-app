@@ -214,6 +214,32 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .entry .body { padding: 0 2px 16px; display: grid; gap: 10px; }
 .empty { color: var(--haze); font-style: italic; padding: 8px 0; }
 
+/* ── sub-views ── */
+.back-link { justify-self: start; display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 0; color: var(--gold); font-size: .95rem; }
+.num-hero { position: relative; display: grid; place-items: center; width: min(280px, 100%); aspect-ratio: 1 / 1; max-width: 100%; margin: 0 auto; }
+.num-hero img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; animation: spin 240s linear infinite; }
+.num-hero b { position: relative; font: 600 6.6rem/1 var(--display); color: var(--ivory); font-variant-numeric: lining-nums;
+  text-shadow: 0 0 28px rgba(226,189,106,.65), 0 0 70px rgba(139,108,255,.55); }
+.num-hero .master { position: absolute; bottom: 12%; font-size: .78rem; color: var(--gold); padding: 3px 10px; border-radius: 99px; border: 1px solid rgba(226,189,106,.45); background: rgba(13,10,36,.7); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.pair ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
+.pair li { display: flex; gap: 8px; align-items: baseline; }
+.pair li::before { content: "✦"; color: var(--gold); font-size: .7rem; }
+.pair .dim li::before { content: "◇"; color: var(--haze); }
+.orb-stage { position: relative; display: grid; place-items: center; min-height: 300px; }
+#sphereFx { position: absolute; inset: -30px -16px; width: calc(100% + 32px); height: calc(100% + 60px); pointer-events: none; z-index: 2; }
+.ball { position: relative; width: min(260px, 78%); aspect-ratio: 1 / 1; max-width: 100%; border: 0; background: none; padding: 0; border-radius: 50%; }
+.ball img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 30px rgba(139,108,255,.55)); }
+.ball.charging img { animation: charge 1.6s ease-in-out; }
+@keyframes charge { 30% { filter: drop-shadow(0 0 70px rgba(170,140,255,.95)) brightness(1.35); transform: scale(1.05); } 65% { transform: scale(.98); } }
+.answer { min-height: 2.6em; text-align: center; font: italic 500 1.9rem/1.2 var(--display); color: var(--ivory); text-wrap: balance; }
+.answer.show { animation: reveal 1s ease both; }
+@keyframes reveal { from { opacity: 0; filter: blur(10px); } }
+.tone { justify-self: center; font-size: .82rem; padding: 3px 12px; border-radius: 99px; border: 1px solid var(--veil); color: var(--haze); }
+.tone.yes { color: var(--gold); border-color: rgba(226,189,106,.5); }
+.center { text-align: center; }
+
 /* ── profile ── */
 .me { display: grid; justify-items: center; gap: 8px; text-align: center; }
 .avatar { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font: 600 2.6rem var(--display); color: var(--gold);
@@ -365,6 +391,28 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
       </div>
     </section>
 
+    <!-- NUMEROLOGY -->
+    <section class="view" id="v-num" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="numTitle"></h1><p class="muted" data-i18n="numSub"></p></div>
+      <div id="numOut"></div>
+    </section>
+
+    <!-- SPHERE -->
+    <section class="view" id="v-sphere" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="sphereTitle"></h1><p class="muted" data-i18n="sphereSub"></p></div>
+      <input class="field" id="sphereQ" maxlength="200" data-i18n-ph="spherePh">
+      <div class="orb-stage">
+        <canvas id="sphereFx" aria-hidden="true"></canvas>
+        <button class="ball" id="ball" aria-describedby="answer"><img src="static/img/icons/sphere.webp" alt=""></button>
+      </div>
+      <p class="answer" id="answer" aria-live="polite"></p>
+      <span class="tone" id="tone" hidden></span>
+      <button class="btn wide" id="sphereBtn" data-i18n="sphereBtn"></button>
+      <p class="muted center" id="sphereLeft"></p>
+    </section>
+
     <!-- PROFILE -->
     <section class="view" id="v-profile" hidden>
       <div class="me">
@@ -463,7 +511,13 @@ const I18N = {
     practices:"პრაქტიკები", soon:"მალე", soonToast:"ეს პრაქტიკა მალე დაემატება.",
     pr_day:"დღის ჰოროსკოპი", pr_week:"კვირის ჰოროსკოპი", pr_month:"თვის ჰოროსკოპი", pr_tarot:"ტარო", pr_dream:"სიზმრები",
     pr_compat:"თავსებადობა", pr_numerology:"ნუმეროლოგია", pr_moon:"მთვარის რიტუალი", pr_sphere:"ჯადოსნური სფერო",
-    pr_advisor:"AI ასტროლოგი", pr_aura:"აურა", pr_coffee:"ყავაზე მკითხაობა"
+    pr_advisor:"AI ასტროლოგი", pr_aura:"აურა", pr_coffee:"ყავაზე მკითხაობა",
+    back:"ცა", numTitle:"ნუმეროლოგია", numSub:"შენი ბედისწერის რიცხვი და რას ნიშნავს ის.", master:"მასტერ-რიცხვი",
+    strengths:"ძლიერი მხარეები", challenges:"გამოწვევები", purpose:"დანიშნულება", personalYear:"პირადი წელი · {y}",
+    needDateNum:"ნუმეროლოგიისთვის შენი დაბადების თარიღი გვჭირდება. მიუთითე ის პროფილში.",
+    sphereTitle:"ჯადოსნური სფერო", sphereSub:"ჩაიფიქრე კითხვა, რომელსაც დიახ ან არა შეიძლება ეპასუხოს, და შეეხე სფეროს.",
+    spherePh:"შენი კითხვა (არასავალდებულო)", sphereBtn:"სფეროს კითხვა", tone_yes:"დიახ", tone_wait:"მოიცადე", tone_no:"არა",
+    sphereLeft:"დღის ჯილდოები: {u} / {l}", a_numerology:"ნუმეროლოგია", a_sphere:"ჯადოსნური სფერო"
   },
   en: {
     demo:"Demo mode", tHome:"Sky", tHoro:"Horoscope", tTarot:"Tarot", tDream:"Dreams", tProfile:"Profile",
@@ -494,7 +548,13 @@ const I18N = {
     practices:"Practices", soon:"Soon", soonToast:"This practice is coming soon.",
     pr_day:"Daily horoscope", pr_week:"Weekly horoscope", pr_month:"Monthly horoscope", pr_tarot:"Tarot", pr_dream:"Dreams",
     pr_compat:"Compatibility", pr_numerology:"Numerology", pr_moon:"Moon ritual", pr_sphere:"Magic sphere",
-    pr_advisor:"AI astrologer", pr_aura:"Aura", pr_coffee:"Coffee reading"
+    pr_advisor:"AI astrologer", pr_aura:"Aura", pr_coffee:"Coffee reading",
+    back:"Sky", numTitle:"Numerology", numSub:"Your life path number and what it means.", master:"Master number",
+    strengths:"Strengths", challenges:"Challenges", purpose:"Purpose", personalYear:"Personal year · {y}",
+    needDateNum:"Add your birth date in Profile to see your numerology.",
+    sphereTitle:"Magic sphere", sphereSub:"Think of a yes-or-no question and touch the sphere.",
+    spherePh:"Your question (optional)", sphereBtn:"Ask the sphere", tone_yes:"Yes", tone_wait:"Wait", tone_no:"No",
+    sphereLeft:"Rewards today: {u} / {l}", a_numerology:"Numerology", a_sphere:"Magic sphere"
   },
   ru: {
     demo:"Демо-режим", tHome:"Небо", tHoro:"Гороскоп", tTarot:"Таро", tDream:"Сны", tProfile:"Профиль",
@@ -525,7 +585,13 @@ const I18N = {
     practices:"Практики", soon:"Скоро", soonToast:"Эта практика скоро появится.",
     pr_day:"Гороскоп на день", pr_week:"Гороскоп на неделю", pr_month:"Гороскоп на месяц", pr_tarot:"Таро", pr_dream:"Сны",
     pr_compat:"Совместимость", pr_numerology:"Нумерология", pr_moon:"Ритуал Луны", pr_sphere:"Магический шар",
-    pr_advisor:"AI астролог", pr_aura:"Аура", pr_coffee:"Гадание на кофе"
+    pr_advisor:"AI астролог", pr_aura:"Аура", pr_coffee:"Гадание на кофе",
+    back:"Небо", numTitle:"Нумерология", numSub:"Твоё число судьбы и что оно значит.", master:"Мастер-число",
+    strengths:"Сильные стороны", challenges:"Испытания", purpose:"Предназначение", personalYear:"Личный год · {y}",
+    needDateNum:"Укажи дату рождения в профиле, чтобы увидеть нумерологию.",
+    sphereTitle:"Магический шар", sphereSub:"Задумай вопрос, на который можно ответить да или нет, и коснись шара.",
+    spherePh:"Твой вопрос (необязательно)", sphereBtn:"Спросить шар", tone_yes:"Да", tone_wait:"Подожди", tone_no:"Нет",
+    sphereLeft:"Награды сегодня: {u} / {l}", a_numerology:"Нумерология", a_sphere:"Магический шар"
   }
 };
 
@@ -800,8 +866,45 @@ const Demo = (() => {
     return { ...u, lang: S.lang, sign: sign && { id: sign, name: sname(sign), element: ELEMENT[sign] }, life_path: u.birth_date ? lifePath(u.birth_date) : null,
       needs_onboarding: !u.birth_date, referral_link: "https://t.me/astrogm2026bot/app?startapp=ref_777" }; };
   const reward = (n) => { db.user.coins += n; return { coins_earned: n, balance: db.user.coins }; };
-  const ECON = { daily_reward: 50, action_rewards: { horoscope_day: 20, horoscope_week: 20, horoscope_month: 20, tarot: 50, dream: 50 },
-    action_limits: { horoscope_day: 1, horoscope_week: 1, horoscope_month: 1, tarot: 3, dream: 3 } };
+  const ECON = { daily_reward: 50, action_rewards: { horoscope_day: 20, horoscope_week: 20, horoscope_month: 20, tarot: 50, dream: 50, numerology: 35, sphere: 25 },
+    action_limits: { horoscope_day: 1, horoscope_week: 1, horoscope_month: 1, tarot: 3, dream: 3, numerology: 1, sphere: 5 } };
+  const counts = {};
+  const limited = (key, n, limit) => { counts[key] = (counts[key] || 0) + 1; return counts[key] <= limit ? { ...reward(n), used_today: counts[key], daily_limit: limit }
+    : { coins_earned: 0, balance: db.user.coins, used_today: limit, daily_limit: limit }; };
+  const NUM = {
+    ka: { 1: ["ლიდერი", "დამოუკიდებლობა და ინიციატივა. შენ ხარ ის, ვინც პირველ ნაბიჯს დგამს.", ["გამბედაობა", "ნებისყოფა", "ორიგინალობა"], ["მოუთმენლობა", "სიჯიუტე"]],
+      2: ["დიპლომატი", "ჰარმონია და თანამშრომლობა. შენი ძალა სხვების გაგებაშია.", ["თანაგრძნობა", "ტაქტი", "ინტუიცია"], ["გადაწყვეტილების გაჭიანურება", "მგრძნობელობა კრიტიკაზე"]],
+      3: ["შემოქმედი", "თვითგამოხატვა და სიხარული. სიტყვა და ხელოვნება შენი ენაა.", ["შემოქმედებითობა", "ოპტიმიზმი", "კომუნიკაბელურობა"], ["გაფანტულობა", "ზედაპირულობა"]],
+      4: ["მშენებელი", "სტაბილურობა და შრომა. შენ ქმნი საფუძველს, რომელზეც სხვები დგანან.", ["საიმედოობა", "დისციპლინა", "პრაქტიკულობა"], ["სიხისტე", "ზედმეტი სიფრთხილე"]],
+      5: ["მოგზაური", "თავისუფლება და ცვლილება. ცხოვრება შენთვის თავგადასავალია.", ["ადაპტაცია", "ცნობისმოყვარეობა", "ენერგიულობა"], ["მოუსვენრობა", "ვალდებულებების შიში"]],
+      6: ["მზრუნველი", "სიყვარული და პასუხისმგებლობა. შენ ახლობლებს სითბოს და სიმშვიდეს აძლევ.", ["ერთგულება", "მზრუნველობა", "ჰარმონიის გრძნობა"], ["საკუთარი თავის დავიწყება", "კონტროლის სურვილი"]],
+      7: ["მაძიებელი", "სიბრძნე და შინაგანი სამყარო. შენ ეძებ ჭეშმარიტებას ზედაპირის მიღმა.", ["ანალიზი", "ინტუიცია", "სიღრმე"], ["ჩაკეტილობა", "ეჭვიანობა"]],
+      8: ["მმართველი", "ძალა და მატერიალური წარმატება. შენ იცი, როგორ აქციო იდეა რეალობად.", ["ამბიცია", "ორგანიზებულობა", "გამძლეობა"], ["მატერიალურზე ზედმეტი ფოკუსი", "სიმკაცრე"]],
+      9: ["ჰუმანისტი", "თანაგრძნობა და დასრულება. შენი გზა სხვების დახმარებაზე გადის.", ["გულუხვობა", "სიბრძნე", "იდეალიზმი"], ["წარსულზე მიჯაჭვულობა", "საკუთარი თავის დავიწყება"]],
+      11: ["შუქურა", "მასტერ-რიცხვი. სულიერი ხედვა და შთაგონება, რომელსაც სხვებს გადასცემ.", ["ინტუიცია", "შთაგონება", "სულიერება"], ["ნერვული დაძაბულობა", "საკუთარ თავში ეჭვი"]],
+      22: ["დიდი მშენებელი", "მასტერ-რიცხვი. დიდი ოცნებების რეალობად ქცევის უნარი.", ["ხედვა", "პრაქტიკულობა", "ლიდერობა"], ["ზეწოლა საკუთარ თავზე", "პერფექციონიზმი"]],
+      33: ["მასწავლებელი", "მასტერ-რიცხვი. უპირობო სიყვარული და სხვების განკურნება.", ["თანაგრძნობა", "სიბრძნე", "მსახურება"], ["თავგანწირვა", "გადაღლა"]] },
+    en: { 1: ["The Leader", "Independence and initiative. You are the one who takes the first step.", ["courage", "willpower", "originality"], ["impatience", "stubbornness"]],
+      2: ["The Diplomat", "Harmony and cooperation. Your strength lies in understanding others.", ["empathy", "tact", "intuition"], ["indecision", "sensitivity to criticism"]],
+      3: ["The Creator", "Self-expression and joy. Words and art are your language.", ["creativity", "optimism", "sociability"], ["scattered focus", "superficiality"]],
+      4: ["The Builder", "Stability and work. You lay the foundation others stand on.", ["reliability", "discipline", "practicality"], ["rigidity", "overcaution"]],
+      5: ["The Traveler", "Freedom and change. Life is an adventure to you.", ["adaptability", "curiosity", "energy"], ["restlessness", "fear of commitment"]],
+      6: ["The Nurturer", "Love and responsibility. You give warmth and calm to those close to you.", ["loyalty", "care", "sense of harmony"], ["self-neglect", "need for control"]],
+      7: ["The Seeker", "Wisdom and the inner world. You look for truth beneath the surface.", ["analysis", "intuition", "depth"], ["withdrawal", "suspicion"]],
+      8: ["The Ruler", "Power and material success. You know how to turn an idea into reality.", ["ambition", "organization", "resilience"], ["materialism", "harshness"]],
+      9: ["The Humanitarian", "Compassion and completion. Your path runs through helping others.", ["generosity", "wisdom", "idealism"], ["clinging to the past", "self-neglect"]],
+      11: ["The Beacon", "A master number. Spiritual vision and inspiration you pass on to others.", ["intuition", "inspiration", "spirituality"], ["nervous tension", "self-doubt"]],
+      22: ["The Master Builder", "A master number. The power to turn great dreams into reality.", ["vision", "practicality", "leadership"], ["self-pressure", "perfectionism"]],
+      33: ["The Teacher", "A master number. Unconditional love and healing others.", ["compassion", "wisdom", "service"], ["self-sacrifice", "exhaustion"]] } };
+  const PYEAR = {
+    ka: ["ახალი დასაწყისები", "პარტნიორობა და მოთმინება", "შემოქმედება და ურთიერთობები", "შრომა და საფუძველი", "ცვლილება და თავისუფლება",
+      "ოჯახი და პასუხისმგებლობა", "შინაგანი ძიება", "მიღწევები და ფინანსები", "დასრულება და განთავისუფლება"],
+    en: ["New beginnings", "Partnership and patience", "Creativity and connection", "Work and foundations", "Change and freedom",
+      "Family and responsibility", "Inner search", "Achievement and finance", "Completion and release"] };
+  const SPH = { ka: { yes: ["ვარსკვლავები გეუბნებიან: დიახ.", "უეჭველად ასე იქნება.", "ნიშნები ხელსაყრელია.", "დიახ, და უფრო მალე, ვიდრე ფიქრობ."],
+      wait: ["დრო ჯერ არ მოსულა.", "პასუხი ჯერ ნისლშია. ხვალ ისევ იკითხე.", "ეს შენზეა დამოკიდებული."], no: ["ამ ნაბიჯს მოერიდე.", "ვარსკვლავები სხვა გზას გიჩვენებენ."] },
+    en: { yes: ["The stars say yes.", "It is certain.", "The signs are favorable.", "Yes, and sooner than you think."],
+      wait: ["The time has not come yet.", "The answer is still in the mist. Ask again tomorrow.", "It depends on you."], no: ["Avoid this step.", "The stars point to another path."] } };
   const TX = {
     ka: { titles: ["ვარსკვლავები გზას გინათებენ", "მშვიდი ძალის დღე", "ახალი კარი იღება", "ნელა, მაგრამ დარწმუნებით"],
       summary: ["{s}, დღეს ენერგია შიგნიდან მოდის. ნაკლები ხმაური და მეტი ყურადღება დეტალებზე საუკეთესო შედეგს მოგიტანს.", "მთვარის ფაზა შენს მხარესაა. კარგი დროა, დაასრულო ის, რაც დიდი ხანია გადადებული გაქვს.", "დღე სწრაფად იცვლება, მაგრამ შენ სიმშვიდეს ინარჩუნებ. ენდე პირველ შთაბეჭდილებას."],
@@ -893,6 +996,24 @@ const Demo = (() => {
       if (body.spread === "daily") db.tarotToday = r; return { ...r, repeated: false, reward: reward(50) }; }
     if (p === "/api/dreams/analyze") { await wait(1700); const a = dream(body.text), id = Date.now();
       db.dreams.unshift({ id, created_at: new Date().toISOString(), text: body.text, ...a }); return { id, saved: true, analysis: a, reward: reward(50) }; }
+    if (p === "/api/numerology") { await wait(1200); const u = db.user; if (!u.birth_date) throw new ApiError(400, "needs_birth_date");
+      const L = ka() ? "ka" : "en", lp = lifePath(u.birth_date), year = new Date().getFullYear();
+      const [, m, d] = u.birth_date.split("-").map(Number); let py = String(d) + String(m) + String(year);
+      py = py.split("").reduce((a, c) => a + +c, 0); while (py > 9) py = String(py).split("").reduce((a, c) => a + +c, 0);
+      const [title, essence, strengths, challenges] = NUM[L][lp];
+      const reading = L === "ka" ? { title, essence, strengths, challenges,
+          purpose: `შენი ცხოვრებისეული გაკვეთილია, რომ ძლიერი მხარეები (${strengths.join(", ")}) სხვების სასიკეთოდაც გამოიყენო და გამოწვევებს შიშის გარეშე შეხედო.`,
+          love: "ურთიერთობაში ეძებ პარტნიორს, რომელიც შენს ბუნებას გაიგებს და პატივს სცემს.", career: `საუკეთესოდ იქ ვლინდები, სადაც შენი ${strengths[0]} ფასდება.`,
+          advice: "დღეს ერთი პატარა ნაბიჯი გადადგი შენი რიცხვის ენერგიის მიმართულებით." }
+        : { title, essence, strengths, challenges, purpose: `Your life lesson is to use your strengths (${strengths.join(", ")}) for others too, and to face your challenges without fear.`,
+          love: "In love you look for a partner who understands and respects your nature.", career: `You shine where your ${strengths[0]} is valued.`,
+          advice: "Take one small step today in the direction of your number's energy." };
+      const theme = PYEAR[L][py - 1];
+      const year_reading = { theme, text: L === "ka" ? `${year} წლის თემაა: ${theme.toLowerCase()}. ყურადღება მიაქციე შესაძლებლობებს, რომლებიც ამ მიმართულებით გამოჩნდება.` : `The theme of ${year} is ${theme.toLowerCase()}. Watch for opportunities that open in this direction.`,
+        advice: L === "ka" ? "დაისახე ერთი მიზანი, რომელიც ამ წლის ენერგიას შეესაბამება." : "Set one goal that fits this year's energy." };
+      return { life_path: lp, is_master: [11, 22, 33].includes(lp), personal_year: py, year, reading, year_reading, reward: limited("num", 35, 1) }; }
+    if (p === "/api/sphere") { await wait(300); const L = ka() ? "ka" : "en", r = Math.random(), tone = r < .42 ? "yes" : r < .75 ? "wait" : "no";
+      const list = SPH[L][tone]; return { answer: list[(Math.random() * list.length) | 0], tone, reward: limited("sphere", 25, 5) }; }
     if (p === "/api/dreams" && method === "GET") return { total: db.dreams.length, items: db.dreams };
     if (p.startsWith("/api/dreams/") && method === "DELETE") { const id = +p.split("/").pop(); db.dreams = db.dreams.filter((d) => d.id !== id); return { ok: true }; }
     throw new ApiError(404, "not_found");
@@ -912,14 +1033,17 @@ function loading(box, text) { const w = el("div", "loading"); w.append(el("div",
 const stars = (n) => { const s = el("span", "score"); s.setAttribute("aria-label", `${n}/5`); s.append("★".repeat(n)); const off = el("span", "off", "★".repeat(5 - n)); s.append(off); return s; };
 
 /* ═════════════ navigation ═════════════ */
-const VIEWS = { home: "#v-home", horo: "#v-horo", tarot: "#v-tarot", dream: "#v-dream", profile: "#v-profile" };
+const VIEWS = { home: "#v-home", horo: "#v-horo", tarot: "#v-tarot", dream: "#v-dream", profile: "#v-profile", num: "#v-num", sphere: "#v-sphere" };
+const SUB_VIEWS = ["num", "sphere"];
 function go(name) {
   if (!VIEWS[name]) return; S.view = name; haptic.tap();
   for (const [k, sel] of Object.entries(VIEWS)) $(sel).hidden = k !== name;
-  document.querySelectorAll(".tab").forEach((b) => { if (b.dataset.tab === name) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  const tab = SUB_VIEWS.includes(name) ? "home" : name;
+  document.querySelectorAll(".tab").forEach((b) => { if (b.dataset.tab === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  try { if (SUB_VIEWS.includes(name)) tg.BackButton.show(); else tg.BackButton.hide(); } catch {}
   scrollTo({ top: 0, behavior: "instant" });
   if (name === "home") Astro.redraw();
-  if (!S.loaded[name]) { S.loaded[name] = true; ({ home: loadHome, horo: loadHoro, tarot: loadTarot, dream: loadDreams, profile: loadProfile })[name](); }
+  if (!S.loaded[name]) { S.loaded[name] = true; ({ home: loadHome, horo: loadHoro, tarot: loadTarot, dream: loadDreams, profile: loadProfile, num: loadNum, sphere: loadSphere })[name](); }
   else if (name === "profile") loadProfile();
   store.set("astro.view", name);
 }
@@ -943,8 +1067,8 @@ async function loadHome() {
 }
 const PRACTICES = [
   ["day", 20, () => openHoro("day")], ["week", 20, () => openHoro("week")], ["month", 20, () => openHoro("month")],
-  ["tarot", 50, () => go("tarot")], ["dream", 50, () => go("dream")], ["compat", 100], ["numerology", 35],
-  ["moon", 70], ["sphere", 25], ["advisor", 50], ["aura", 60], ["coffee", 50]
+  ["tarot", 50, () => go("tarot")], ["dream", 50, () => go("dream")], ["compat", 100], ["numerology", 35, () => go("num")],
+  ["moon", 70], ["sphere", 25, () => go("sphere")], ["advisor", 50], ["aura", 60], ["coffee", 50]
 ];
 function renderPractices() {
   $("#practices").replaceChildren(...PRACTICES.map(([id, coins, open]) => {
@@ -1068,6 +1192,45 @@ async function loadJournal() {
   } catch (e) { box.replaceChildren(el("p", "empty", errText(e))); }
 }
 
+/* ═════════════ NUMEROLOGY ═════════════ */
+async function loadNum() {
+  const out = $("#numOut"); loading(out);
+  try { const r = await api("GET", "/api/numerology"), a = r.reading, y = r.year_reading, root = el("div", "reading");
+    const hero = el("div", "num-hero"); hero.append(imgNode(ICON.numerology), el("b", null, r.life_path)); if (r.is_master) hero.append(el("span", "master", t("master")));
+    const head = el("div", "view-head center"); head.append(el("span", "label", t("lifePath")), el("h2", null, a.title));
+    const pair = el("div", "pair"), sx = el("div"), cx = el("div", "dim");
+    const list = (items) => { const ul = el("ul"); items.forEach((i) => ul.append(el("li", null, i))); return ul; };
+    sx.append(el("span", "label", t("strengths")), list(a.strengths)); cx.append(el("span", "label", t("challenges")), list(a.challenges)); pair.append(sx, cx);
+    const block = (label, text) => { const w = el("div", "area"); w.append(el("span", "label", label), el("p", null, text)); return w; };
+    const year = el("div", "gift"); year.append(el("span", "label", t("personalYear", { y: r.year })), el("h3", null, `${r.personal_year} · ${y.theme}`), el("p", null, y.text), el("p", "muted", y.advice));
+    root.append(hero, head, el("p", null, a.essence), pair, block(t("purpose"), a.purpose), block(t("love"), a.love), block(t("career"), a.career), el("p", "advice", a.advice), year);
+    out.replaceChildren(root);
+  } catch (e) { S.loaded.num = false; out.replaceChildren(el("p", "empty", e.code === "needs_birth_date" ? t("needDateNum") : errText(e))); }
+}
+
+/* ═════════════ SPHERE ═════════════ */
+const SphereFx = (() => { const c = $("#sphereFx"), smoke = new Smoke(); let ctx, w, h;
+  startLoop(() => { if (!ctx) return; ctx.clearRect(0, 0, w, h); if (smoke.p.length) smoke.step(ctx); });
+  return { burst() { ({ ctx, w, h } = fitCanvas(c)); if (reduced) return; const a = c.getBoundingClientRect(), b = $("#ball").getBoundingClientRect();
+    smoke.emit(b.left - a.left + b.width / 2, b.top - a.top + b.height * .45, 34, b.width * .7, 1.2); } };
+})();
+function loadSphere() { $("#sphereLeft").textContent = ""; }
+async function askSphere() {
+  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), tone = $("#tone");
+  if (btn.disabled) return; btn.disabled = true; haptic.tap();
+  ans.classList.remove("show"); ans.textContent = ""; tone.hidden = true;
+  ball.classList.remove("charging"); void ball.offsetWidth; ball.classList.add("charging"); SphereFx.burst();
+  try { const q = $("#sphereQ").value.trim();
+    const [r] = await Promise.all([api("POST", "/api/sphere", { question: q || null }), wait(1400)]);
+    ans.textContent = r.answer; void ans.offsetWidth; ans.classList.add("show");
+    tone.textContent = t("tone_" + r.tone); tone.className = "tone " + r.tone; tone.hidden = false;
+    if (r.reward) $("#sphereLeft").textContent = t("sphereLeft", { u: r.reward.used_today, l: r.reward.daily_limit });
+  } catch (e) { showError(e); }
+  btn.disabled = false;
+}
+$("#sphereBtn").addEventListener("click", askSphere);
+$("#ball").addEventListener("click", askSphere);
+
 /* ═════════════ PROFILE ═════════════ */
 function loadProfile() {
   const u = S.user || {}, av = $("#avatar"); av.replaceChildren();
@@ -1079,12 +1242,12 @@ function loadProfile() {
   $("#refLink").value = u.referral_link || "";
   $("#langSeg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === S.lang)));
   const e = S.economy || {}, rows = [["a_daily", e.daily_reward || 50, 1], ["a_ref", 250, null]];
-  for (const k of ["horoscope_day", "horoscope_week", "horoscope_month", "tarot", "dream"]) if (e.action_rewards && e.action_rewards[k]) rows.push(["a_" + k, e.action_rewards[k], e.action_limits[k]]);
+  for (const k of ["horoscope_day", "horoscope_week", "horoscope_month", "tarot", "dream", "numerology", "sphere"]) if (e.action_rewards && e.action_rewards[k]) rows.push(["a_" + k, e.action_rewards[k], e.action_limits[k]]);
   $("#ledger").replaceChildren(...rows.map(([k, n, lim]) => { const tr = el("tr"), td = el("td", null, t(k)); if (lim) { td.append(" "); td.append(el("small", null, t("perDay", { n: lim }))); }
     tr.append(td, el("td", null, `+${n}`)); return tr; }));
 }
 $("#dateForm").addEventListener("submit", async (e) => { e.preventDefault(); const v = $("#birthInput").value; if (!v) return;
-  try { await api("PATCH", "/api/user/profile", { birth_date: v }); toast(t("saved")); S.sign = null; S.loaded.horo = false; S.loaded.home = false; loadProfile(); } catch (err) { showError(err); } });
+  try { await api("PATCH", "/api/user/profile", { birth_date: v }); toast(t("saved")); S.sign = null; S.loaded = { profile: true }; loadProfile(); } catch (err) { showError(err); } });
 $("#langSeg").addEventListener("click", async (e) => { const b = e.target.closest("button"); if (!b || b.dataset.lang === S.lang) return;
   S.lang = b.dataset.lang; store.set("astro.lang", S.lang); applyI18n(); S.loaded = { profile: true }; paintBacks(); loadProfile(); syncDrawBtn();
   try { await api("PATCH", "/api/user/profile", { lang: S.lang }); } catch {} });
@@ -1110,6 +1273,7 @@ async function boot() {
   const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
   S.lang = store.get("astro.lang") || (["ka", "ru", "en"].includes(tgLang) ? tgLang : "ka");
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
+  try { tg.BackButton.onClick(() => go("home")); } catch {}
   try { const r = await api("POST", "/api/auth/verify"); S.economy = r.economy; if (r.user && r.user.lang && !store.get("astro.lang")) { S.lang = r.user.lang; applyI18n(); } }
   catch (e) { showError(e); }
   setCoins((S.user && S.user.coins) || 0);

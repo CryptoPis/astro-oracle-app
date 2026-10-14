@@ -78,6 +78,11 @@ class MockProvider:
                             "tags": ["emotion", "change"]},
         P.EnergyAI: lambda: {"quote": "Today the universe rewards patience.",
                              "affirmation": "I welcome what is meant for me.", "focus": "Patience"},
+        P.NumerologyAI: lambda: {"title": "The Seeker", "essence": "Mock essence.",
+                                 "strengths": ["insight", "depth", "intuition"], "challenges": ["isolation", "doubt"],
+                                 "purpose": "Mock purpose.", "love": "Mock love.", "career": "Mock career.",
+                                 "advice": "Mock advice."},
+        P.PersonalYearAI: lambda: {"theme": "Inner search", "text": "Mock year text.", "advice": "Mock year advice."},
     }
 
     async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900):
