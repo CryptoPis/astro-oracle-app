@@ -1,0 +1,106 @@
+"""AI provider layer.
+
+- AsyncGroq instead of the legacy sync client. The old bot froze the event
+  loop for every user during each AI call.
+- JSON mode plus Pydantic validation, with one automatic repair retry.
+- Switchable provider: AI_PROVIDER=groq | mock. Add OpenAI or Claude by
+  implementing `complete_json` in another class.
+"""
+import json
+import logging
+from typing import Protocol, TypeVar
+
+from pydantic import BaseModel, ValidationError
+
+from app.ai import prompts as P
+from app.config import get_settings
+
+log = logging.getLogger(__name__)
+T = TypeVar("T", bound=BaseModel)
+
+
+class AIError(Exception):
+    pass
+
+
+class AIProvider(Protocol):
+    async def complete_json(self, system: str, user: str, schema: type[T], *,
+                            fast: bool = False, max_tokens: int = 900) -> T: ...
+
+
+class GroqProvider:
+    def __init__(self, api_key: str, text_model: str, fast_model: str, timeout: float):
+        from groq import AsyncGroq
+        self.client = AsyncGroq(api_key=api_key, timeout=timeout, max_retries=2)
+        self.text_model, self.fast_model = text_model, fast_model
+
+    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900):
+        model = self.fast_model if fast else self.text_model
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        last_err: Exception | None = None
+        for attempt in range(2):
+            raw = ""
+            try:
+                resp = await self.client.chat.completions.create(
+                    model=model, messages=messages, temperature=0.7 if attempt == 0 else 0.3,
+                    max_tokens=max_tokens, response_format={"type": "json_object"})
+                raw = resp.choices[0].message.content or ""
+                return schema.model_validate(json.loads(raw))
+            except (json.JSONDecodeError, ValidationError) as e:
+                last_err = e
+                log.warning("AI returned invalid JSON (attempt %s): %s", attempt + 1, e)
+                messages = messages[:2] + [
+                    {"role": "assistant", "content": raw[:4000]},
+                    {"role": "user", "content": f"That JSON was invalid: {str(e)[:500]}. "
+                                                "Return the corrected JSON object only."}]
+            except Exception as e:  # network, rate limit, model errors
+                log.exception("Groq call failed")
+                raise AIError(str(e)) from e
+        raise AIError(f"invalid AI output: {last_err}")
+
+
+class MockProvider:
+    """Offline provider for frontend work and tests. Never calls a network API."""
+
+    _DATA = {
+        P.HoroscopeAI: lambda: {
+            "title": "Stars align in your favor", "summary": "A balanced day with room to grow.",
+            "sections": [{"area": a, "title": a.title(), "text": f"Mock {a} text.", "score": 4}
+                         for a in ("love", "career", "health", "finance")],
+            "advice": "Trust the small signs.", "lucky_color": "Gold", "mood": "Hopeful"},
+        P.TarotAI: lambda: {"cards": [{"position": "today", "card_title": "Mock card",
+                                       "keywords": ["insight", "change", "courage"],
+                                       "interpretation": "Mock interpretation."}],
+                            "synthesis": "Mock synthesis.", "advice": "Mock advice."},
+        P.DreamAI: lambda: {"title": "The Silver River", "mood": "Calm",
+                            "symbols": [{"symbol": "Water", "meaning": "Emotions in motion."}],
+                            "interpretation": "Mock dream interpretation.", "advice": "Rest well.",
+                            "tags": ["emotion", "change"]},
+        P.EnergyAI: lambda: {"quote": "Today the universe rewards patience.",
+                             "affirmation": "I welcome what is meant for me.", "focus": "Patience"},
+    }
+
+    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900):
+        data = self._DATA[schema]()
+        if schema is P.TarotAI:  # mirror the requested positions
+            positions = [line.split("position=")[1].split(":")[0]
+                         for line in user.splitlines() if "position=" in line]
+            data["cards"] = [{**data["cards"][0], "position": p} for p in positions] or data["cards"]
+        return schema.model_validate(data)
+
+
+_provider: AIProvider | None = None
+
+
+def get_ai() -> AIProvider:
+    global _provider
+    if _provider is None:
+        s = get_settings()
+        if s.ai_provider == "mock":
+            _provider = MockProvider()
+        else:
+            if not s.groq_api_key:
+                raise RuntimeError("GROQ_API_KEY is not set (or set AI_PROVIDER=mock for offline dev)")
+            _provider = GroqProvider(s.groq_api_key, s.groq_text_model, s.groq_fast_model,
+                                     s.ai_timeout_seconds)
+    return _provider
