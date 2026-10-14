@@ -893,9 +893,12 @@ const RANGES = { Aries:[3,21,4,19], Taurus:[4,20,5,20], Gemini:[5,21,6,20], Canc
 const ELEMENT = { Aries:"fire", Leo:"fire", Sagittarius:"fire", Taurus:"earth", Virgo:"earth", Capricorn:"earth", Gemini:"air", Libra:"air", Aquarius:"air", Cancer:"water", Scorpio:"water", Pisces:"water" };
 /* Paintings per sign. Add more files (leo.webp, leo-2.webp …) and list them here; the app rotates them daily
    together with the drawn constellation. */
-const ART = { Aries: ["static/img/zodiac/aries.webp"], Taurus: ["static/img/zodiac/taurus.webp"], Gemini: [],  /* gemini.webp has English text baked in; waiting for a text-free version */
-  Cancer: ["static/img/zodiac/cancer.webp"], Leo: ["static/img/zodiac/leo.webp"], Virgo: [], Libra: ["static/img/zodiac/libra.webp"], Scorpio: [], Sagittarius: [], Capricorn: [], Aquarius: [],
-  Pisces: ["static/img/zodiac/pisces.webp"] };
+const ART = {
+  Aries: ["static/img/zodiac/aries.webp", "static/img/zodiac/aries-2.webp"], Taurus: ["static/img/zodiac/taurus.webp", "static/img/zodiac/taurus-2.webp"],
+  Gemini: ["static/img/zodiac/gemini.webp"], Cancer: ["static/img/zodiac/cancer.webp", "static/img/zodiac/cancer-2.webp"],
+  Leo: ["static/img/zodiac/leo.webp"], Virgo: ["static/img/zodiac/virgo.webp"], Libra: ["static/img/zodiac/libra.webp"],
+  Scorpio: ["static/img/zodiac/scorpio.webp"], Sagittarius: ["static/img/zodiac/sagittarius.webp"], Capricorn: ["static/img/zodiac/capricorn.webp"],
+  Aquarius: ["static/img/zodiac/aquarius.webp"], Pisces: ["static/img/zodiac/pisces.webp"] };
 const LOCALE = { ka:"ka-GE", en:"en-GB", ru:"ru-RU" };
 /* Own Georgian names: many phones and Telegram Desktop ship without Georgian locale data and fall back to English. */
 const KA_MONTHS = ["იანვარი","თებერვალი","მარტი","აპრილი","მაისი","ივნისი","ივლისი","აგვისტო","სექტემბერი","ოქტომბერი","ნოემბერი","დეკემბერი"];
@@ -966,11 +969,11 @@ function faceSvg(id, title) {
   <text x="60" y="114" text-anchor="middle" font-family="'Noto Sans Symbols','Segoe UI Symbol',serif" font-size="38" fill="#3b2d6b">${a.sym}︎</text>
   <text x="60" y="179" text-anchor="middle" font-family="Cormorant, 'Noto Serif Georgian', Georgia, serif" font-size="${size}" font-weight="600" fill="#3b2d6b">${name}</text></svg>`;
 }
-/* Illustrated deck (the Hierophant has no painting yet, so it uses the drawn face) */
+/* Illustrated deck: all 22 Major Arcana (the drawn face remains as a fallback if an image fails to load) */
 const BACK_IMG = "static/img/tarot/back.webp";
 const TAROT_IMG = {
   fool: "static/img/tarot/fool.webp", magician: "static/img/tarot/magician.webp", high_priestess: "static/img/tarot/high_priestess.webp",
-  empress: "static/img/tarot/empress.webp", emperor: "static/img/tarot/emperor.webp", lovers: "static/img/tarot/lovers.webp",
+  empress: "static/img/tarot/empress.webp", emperor: "static/img/tarot/emperor.webp", hierophant: "static/img/tarot/hierophant.webp", lovers: "static/img/tarot/lovers.webp",
   chariot: "static/img/tarot/chariot.webp", strength: "static/img/tarot/strength.webp", hermit: "static/img/tarot/hermit.webp",
   wheel_of_fortune: "static/img/tarot/wheel_of_fortune.webp", justice: "static/img/tarot/justice.webp", hanged_man: "static/img/tarot/hanged_man.webp",
   death: "static/img/tarot/death.webp", temperance: "static/img/tarot/temperance.webp", devil: "static/img/tarot/devil.webp",

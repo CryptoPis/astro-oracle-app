@@ -10,6 +10,8 @@
   kundli (sidereal Lahiri chart from real planetary positions via astronomy-engine, whole-sign houses, moon nakshatra,
   birth city geocoded with Open-Meteo).
 - Assets from the old React app: 21 tarot paintings, card back, 12 practice icons.
+- Art complete (2026-10-14): all 12 zodiac signs in the black & gold style, text-free (the app is multilingual);
+  Aries, Taurus, Cancer keep the earlier purple paintings as second variants; the Hierophant completes the 22-card deck.
 
 - Visual pass 2 (2026-10-14): "living art" cards that tilt with the phone (Telegram gyroscope) and change daily:
   paintings with slow camera drift, light sweep and gold dust, or a 3D constellation of the sign (real star pattern,
@@ -17,9 +19,7 @@
   tab bar, modern type. Tarot: pick cards from a fan, card collection (x / 22). Georgian dates without locale data.
 
 ## Next
-- Missing art (audit 2026-10-14, rule: no text in any image, the app is multilingual): required 7 — Virgo, Scorpio,
-  Sagittarius, Capricorn, Aquarius, Gemini (old one has English text, removed from the app) and the Hierophant;
-  recommended 3 — Aries, Taurus, Cancer redone in the black & gold style. Ready prompts: `docs/ART_PROMPTS.md`.
+- Art (optional): a second gold variant per sign for daily rotation (`<sign>-2`), Minor Arcana if the deck grows to 78.
 - Deploy (HTTPS host), register the Mini App in BotFather, test inside Telegram.
 - Feedback round on the design and texts.
 - Leaderboard and tasks (Telegram channel, X) from the legacy bot.
