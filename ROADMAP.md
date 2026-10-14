@@ -5,16 +5,17 @@
 - Mini App: sky (astrolabe, moon phase, energy, lucky numbers, daily gift), horoscope (12 signs, day/week/month),
   illustrated tarot (card of the day, three-card spread), dream interpreter + journal, profile (birth date, language, invite).
 - Numerology (life path + personal year, AI reading cached per number) and the magic sphere (server-side answer).
+- Moon ritual (cached per phase/day/language), compatibility (element + aspect score, AI reading per sign pair),
+  AI astrologer chat (8-turn context, 15 questions/day), aura and coffee photo readings (vision model, photo not stored),
+  kundli (sidereal Lahiri chart from real planetary positions via astronomy-engine, whole-sign houses, moon nakshatra,
+  birth city geocoded with Open-Meteo).
 - Assets from the old React app: 21 tarot paintings, card back, 12 practice icons.
 
-## Next (one at a time)
-| Practice | Backend | Notes |
-|---|---|---|
-| Moon ritual | `/api/moon/ritual` | cached per moon phase + language per day |
-| Compatibility | `/api/compatibility` | two birth dates, sun signs + elements |
-| AI astrologer | `/api/advisor` | chat with short history; strict daily quota |
-| Aura, coffee reading | `/api/vision/*` | photo upload (multipart) to a vision model; never send the bot token |
-| Kundli | later | needs a real ephemeris (Swiss Ephemeris / kerykeion) + birth time and place |
+## Next
+- Deploy (HTTPS host), register the Mini App in BotFather, test inside Telegram.
+- Feedback round on the design and texts.
+- Leaderboard and tasks (Telegram channel, X) from the legacy bot.
+- Kundli extras: navamsa (D9), current dasha periods.
 
 Missing art: 8 zodiac paintings (Leo → Pisces), the Hierophant tarot card.
 

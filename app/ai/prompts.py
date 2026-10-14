@@ -217,3 +217,185 @@ PERSONAL_YEAR_SCHEMA = """{
 def personal_year_prompt(lang: str, number: int, year: int) -> tuple[str, str]:
     task = f"Explain Personal Year Number {number} in numerology for the calendar year {year}."
     return _system(lang, task, PERSONAL_YEAR_SCHEMA), f"Personal Year: {number}\nYear: {year}"
+
+
+# ───────────────────────── Moon ritual ─────────────────────────
+class MoonRitualAI(BaseModel):
+    title: str
+    intention: str
+    steps: list[str] = Field(min_length=3, max_length=5)
+    affirmation: str
+    avoid: str
+
+
+MOON_SCHEMA = """{
+  "title": "2-5 word ritual name",
+  "intention": "1-2 sentences: what this moon phase is good for",
+  "steps": ["3-5 concrete, safe, simple ritual steps (candle, water, journaling, breath...)"],
+  "affirmation": "first-person affirmation, max 15 words",
+  "avoid": "one sentence: what to avoid during this phase"
+}"""
+
+
+def moon_ritual_prompt(lang: str, phase: str, illumination: int, day: str) -> tuple[str, str]:
+    task = "Create one specific, safe home ritual for today's moon phase. No fire hazards beyond a single candle."
+    return _system(lang, task, MOON_SCHEMA), f"Moon phase: {phase}\nIllumination: {illumination}%\nDate: {day}"
+
+
+# ───────────────────────── Compatibility ─────────────────────────
+class CompatArea(BaseModel):
+    area: Literal["love", "communication", "trust", "growth"]
+    score: int = 3
+    text: str
+
+    @field_validator("score", mode="before")
+    @classmethod
+    def _clamp(cls, v):
+        return _clamp_score(v)
+
+
+class CompatAI(BaseModel):
+    title: str
+    summary: str
+    areas: list[CompatArea] = Field(min_length=1)
+    strengths: list[str] = Field(default_factory=list, max_length=4)
+    challenges: list[str] = Field(default_factory=list, max_length=4)
+    advice: str
+
+
+COMPAT_SCHEMA = """{
+  "title": "short poetic name for this pairing",
+  "summary": "2-3 sentences on how these two signs meet",
+  "areas": [{"area": "love", "score": 1-5, "text": "1-2 sentences"},
+            {"area": "communication", ...}, {"area": "trust", ...}, {"area": "growth", ...}],
+  "strengths": ["2-3 short phrases"],
+  "challenges": ["2 short phrases"],
+  "advice": "one actionable sentence for the couple"
+}"""
+
+
+def compat_prompt(lang: str, sign_a: str, sign_b: str, percent: int) -> tuple[str, str]:
+    task = (f"Describe the romantic and personal compatibility of {sign_a} and {sign_b}. "
+            f"Exactly 4 areas in this order: love, communication, trust, growth. "
+            f"Stay consistent with an overall compatibility of {percent}%.")
+    return _system(lang, task, COMPAT_SCHEMA), f"Sign A: {sign_a}\nSign B: {sign_b}\nOverall: {percent}%"
+
+
+# ───────────────────────── AI astrologer ─────────────────────────
+class AdvisorAI(BaseModel):
+    answer: str
+    follow_ups: list[str] = Field(default_factory=list, max_length=3)
+
+
+ADVISOR_SCHEMA = """{
+  "answer": "the astrologer's reply, 3-7 sentences, personal and specific to the querent's chart data",
+  "follow_ups": ["2-3 short follow-up questions the user might ask next, in the user's voice"]
+}"""
+
+
+def advisor_prompt(lang: str, profile: str, history: list[dict], message: str) -> tuple[str, str]:
+    task = ("You are a warm, wise personal astrologer in a chat. Answer the latest message using the querent's "
+            "data. For health, legal or money decisions, add a gentle note to consult a professional. "
+            "If the message is unrelated to astrology or personal guidance, steer back kindly.")
+    convo = "\n".join(f"{m['role']}: <user_input>{m['text']}</user_input>" if m["role"] == "user"
+                      else f"{m['role']}: {m['text']}" for m in history)
+    user = f"Querent: {profile}\n\nConversation so far:\n{convo or '(none)'}\n\nLatest message: <user_input>{message}</user_input>"
+    return _system(lang, task, ADVISOR_SCHEMA), user
+
+
+# ───────────────────────── Photo readings ─────────────────────────
+class AuraColor(BaseModel):
+    name: str
+    hex: str = "#b9a7ff"
+    meaning: str
+
+    @field_validator("hex", mode="before")
+    @classmethod
+    def _hex(cls, v):
+        import re
+        v = str(v or "").strip()
+        return v if re.fullmatch(r"#[0-9a-fA-F]{6}", v) else "#b9a7ff"
+
+
+class AuraAI(BaseModel):
+    image_ok: bool = True
+    title: str = ""
+    colors: list[AuraColor] = Field(default_factory=list, max_length=3)
+    reading: str = ""
+    energy: str = ""
+    advice: str = ""
+
+
+AURA_SCHEMA = """{
+  "image_ok": true if the photo shows a person's face, upper body or hand; false otherwise,
+  "title": "2-5 word name for this aura",
+  "colors": [{"name": "color name", "hex": "#RRGGBB", "meaning": "1-2 sentences"}] (2-3 colors),
+  "reading": "3-5 sentences: the energy field and emotional state",
+  "energy": "one word for the energy level",
+  "advice": "one actionable sentence"
+}"""
+
+
+def aura_prompt(lang: str) -> tuple[str, str]:
+    task = ("Give an intuitive, playful aura reading inspired by the photo's light, colors, expression and mood. "
+            "Never comment on attractiveness, body, age, ethnicity or health, and never identify the person.")
+    return _system(lang, task, AURA_SCHEMA), "Read the aura in this photo."
+
+
+class CoffeeSymbol(BaseModel):
+    symbol: str
+    meaning: str
+
+
+class CoffeeAI(BaseModel):
+    image_ok: bool = True
+    title: str = ""
+    symbols: list[CoffeeSymbol] = Field(default_factory=list, max_length=5)
+    past: str = ""
+    present: str = ""
+    future: str = ""
+    advice: str = ""
+
+
+COFFEE_SCHEMA = """{
+  "image_ok": true if the photo shows a coffee cup or saucer with grounds; false otherwise,
+  "title": "2-5 word name for this reading",
+  "symbols": [{"symbol": "shape seen in the grounds", "meaning": "1-2 sentences"}] (2-4 symbols),
+  "past": "1-2 sentences", "present": "1-2 sentences", "future": "1-2 sentences",
+  "advice": "one actionable sentence"
+}"""
+
+
+def coffee_prompt(lang: str) -> tuple[str, str]:
+    task = "Read the coffee grounds in the photo in the traditional Georgian/Turkish style (tasseography)."
+    return _system(lang, task, COFFEE_SCHEMA), "Read my coffee cup."
+
+
+# ───────────────────────── Kundli ─────────────────────────
+class KundliAI(BaseModel):
+    title: str
+    overview: str
+    ascendant: str
+    moon: str
+    sun: str
+    strengths: list[str] = Field(default_factory=list, max_length=4)
+    challenges: list[str] = Field(default_factory=list, max_length=4)
+    advice: str
+
+
+KUNDLI_SCHEMA = """{
+  "title": "short poetic title for this chart",
+  "overview": "3-4 sentences: the overall picture of the chart",
+  "ascendant": "2 sentences about the lagna (or about the chart without a known birth time, if lagna is unknown)",
+  "moon": "2 sentences about the moon sign and nakshatra",
+  "sun": "2 sentences about the sun sign",
+  "strengths": ["3 short phrases"],
+  "challenges": ["2 short phrases"],
+  "advice": "one actionable sentence"
+}"""
+
+
+def kundli_prompt(lang: str, chart_text: str) -> tuple[str, str]:
+    task = ("Interpret this Vedic (sidereal, Lahiri) birth chart. Positions are computed astronomically; "
+            "do not invent other placements.")
+    return _system(lang, task, KUNDLI_SCHEMA), chart_text

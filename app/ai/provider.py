@@ -25,18 +25,23 @@ class AIError(Exception):
 
 class AIProvider(Protocol):
     async def complete_json(self, system: str, user: str, schema: type[T], *,
-                            fast: bool = False, max_tokens: int = 900) -> T: ...
+                            fast: bool = False, max_tokens: int = 900, image: bytes | None = None) -> T: ...
 
 
 class GroqProvider:
-    def __init__(self, api_key: str, text_model: str, fast_model: str, timeout: float):
+    def __init__(self, api_key: str, text_model: str, fast_model: str, vision_model: str, timeout: float):
         from groq import AsyncGroq
         self.client = AsyncGroq(api_key=api_key, timeout=timeout, max_retries=2)
-        self.text_model, self.fast_model = text_model, fast_model
+        self.text_model, self.fast_model, self.vision_model = text_model, fast_model, vision_model
 
-    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900):
-        model = self.fast_model if fast else self.text_model
-        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900, image=None):
+        model = self.vision_model if image else (self.fast_model if fast else self.text_model)
+        content = user
+        if image:  # sent inline as base64; never as a Telegram file URL (that would leak the bot token)
+            import base64
+            content = [{"type": "text", "text": user},
+                       {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(image).decode()}}]
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
         last_err: Exception | None = None
         for attempt in range(2):
             raw = ""
@@ -83,9 +88,26 @@ class MockProvider:
                                  "purpose": "Mock purpose.", "love": "Mock love.", "career": "Mock career.",
                                  "advice": "Mock advice."},
         P.PersonalYearAI: lambda: {"theme": "Inner search", "text": "Mock year text.", "advice": "Mock year advice."},
+        P.MoonRitualAI: lambda: {"title": "Silver water", "intention": "Mock intention.",
+                                 "steps": ["Light a candle.", "Pour a glass of water.", "Write one wish."],
+                                 "affirmation": "I grow with the moon.", "avoid": "Avoid haste."},
+        P.CompatAI: lambda: {"title": "Fire and air", "summary": "Mock summary.",
+                             "areas": [{"area": a, "score": 4, "text": f"Mock {a}."} for a in ("love", "communication", "trust", "growth")],
+                             "strengths": ["passion", "humor"], "challenges": ["impatience"], "advice": "Mock advice."},
+        P.AdvisorAI: lambda: {"answer": "Mock astrologer answer.", "follow_ups": ["What about love?", "And career?"]},
+        P.AuraAI: lambda: {"image_ok": True, "title": "Violet dawn",
+                           "colors": [{"name": "Violet", "hex": "#8b6cff", "meaning": "Intuition."},
+                                      {"name": "Gold", "hex": "#e2bd6a", "meaning": "Confidence."}],
+                           "reading": "Mock aura reading.", "energy": "Calm", "advice": "Mock advice."},
+        P.CoffeeAI: lambda: {"image_ok": True, "title": "The open road",
+                             "symbols": [{"symbol": "Bird", "meaning": "News."}, {"symbol": "Road", "meaning": "A journey."}],
+                             "past": "Mock past.", "present": "Mock present.", "future": "Mock future.", "advice": "Mock advice."},
+        P.KundliAI: lambda: {"title": "Mock chart", "overview": "Mock overview.", "ascendant": "Mock lagna.",
+                             "moon": "Mock moon.", "sun": "Mock sun.", "strengths": ["focus"], "challenges": ["doubt"],
+                             "advice": "Mock advice."},
     }
 
-    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900):
+    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900, image=None):
         data = self._DATA[schema]()
         if schema is P.TarotAI:  # mirror the requested positions
             positions = [line.split("position=")[1].split(":")[0]
@@ -107,5 +129,5 @@ def get_ai() -> AIProvider:
             if not s.groq_api_key:
                 raise RuntimeError("GROQ_API_KEY is not set (or set AI_PROVIDER=mock for offline dev)")
             _provider = GroqProvider(s.groq_api_key, s.groq_text_model, s.groq_fast_model,
-                                     s.ai_timeout_seconds)
+                                     s.groq_vision_model, s.ai_timeout_seconds)
     return _provider

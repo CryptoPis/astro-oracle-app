@@ -28,7 +28,7 @@ REWARD_LIMITS = {"horoscope_day": 1, "horoscope_week": 1, "horoscope_month": 1,
                  "compatibility": 1, "kundli": 1, "moon": 1, "numerology": 1, "sphere": 5}
 
 # Hard caps on paid AI calls per user per day (cost control, separate from coin rewards)
-AI_DAILY_CAPS = {"tarot": 10, "dream": 10, "advisor": 15, "horoscope": 40}
+AI_DAILY_CAPS = {"tarot": 10, "dream": 10, "advisor": 15, "horoscope": 40, "vision": 8, "compat": 10, "kundli": 5}
 
 
 def today_utc() -> date:

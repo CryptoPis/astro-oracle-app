@@ -234,6 +234,78 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .tone.yes { color: var(--gold); border-color: rgba(226,189,106,.5); }
 .center { text-align: center; }
 
+/* ── advisor banner ── */
+.oracle { display: grid; grid-template-columns: 72px 1fr auto; align-items: center; gap: 14px; width: 100%; text-align: left;
+  padding: 12px 16px 12px 12px; border-radius: 20px; border: 1px solid rgba(226,189,106,.3); color: var(--mist);
+  background: radial-gradient(120% 140% at 0% 50%, rgba(139,108,255,.22), transparent 60%), linear-gradient(160deg, rgba(43,35,96,.8), rgba(25,19,61,.8)); }
+.oracle img { width: 72px; height: 72px; }
+.oracle b { display: block; font: 600 1.3rem/1.15 var(--display); color: var(--ivory); }
+.oracle span { font-size: .88rem; color: var(--haze); }
+.oracle i { font-style: normal; color: var(--gold); font-size: 1.6rem; }
+
+/* ── moon ── */
+#moonCanvas { width: min(240px, 70%); aspect-ratio: 1 / 1; max-width: 100%; display: block; margin: 0 auto; }
+.facts { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: st; }
+.steps li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; counter-increment: st; }
+.steps li::before { content: counter(st); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font: 600 1rem var(--display); color: var(--gold); border: 1px solid rgba(226,189,106,.5); }
+
+/* ── compatibility ── */
+.duo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.duo .medal { width: 92px; height: 92px; font-size: 2.6rem; margin: 0 auto; }
+.duo figure { margin: 0; display: grid; justify-items: center; gap: 6px; text-align: center; }
+.duo figcaption { font-size: .88rem; color: var(--mist); }
+.pct { width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center; font: 600 1.7rem/1 var(--display); color: var(--ivory);
+  background: conic-gradient(var(--gold) calc(var(--p) * 1%), rgba(43,35,96,.9) 0); position: relative; font-variant-numeric: lining-nums; }
+.pct::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--void); }
+.pct span { position: relative; }
+.form-grid { display: grid; gap: 10px; }
+
+/* ── advisor chat ── */
+.chat { display: grid; gap: 12px; }
+.msg { max-width: 88%; padding: 11px 14px; border-radius: 18px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.me { justify-self: end; background: rgba(226,189,106,.14); border: 1px solid rgba(226,189,106,.3); color: var(--ivory); border-bottom-right-radius: 6px; }
+.msg.ai { justify-self: start; background: rgba(25,19,61,.85); border: 1px solid var(--veil); border-bottom-left-radius: 6px; }
+.msg.ai.typing { display: flex; align-items: center; gap: 10px; color: var(--haze); font-style: italic; }
+.msg.ai.typing .orb { width: 20px; height: 20px; }
+.chips.ask button { font: inherit; font-size: .86rem; padding: 7px 12px; border-radius: 99px; border: 1px solid rgba(226,189,106,.35); background: rgba(25,19,61,.7); color: var(--mist); text-align: left; }
+.composer { position: sticky; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 12px); display: flex; gap: 8px; padding: 8px; border-radius: 18px;
+  background: rgba(13,10,36,.92); border: 1px solid var(--veil); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.composer .field { border: 0; background: transparent; padding: 10px; min-height: 0; flex: 1; min-width: 0; resize: none; }
+.composer .btn { min-height: 44px; padding: 0 16px; }
+
+/* ── photo readings ── */
+.photo-pick { display: grid; justify-items: center; gap: 12px; padding: 18px; border-radius: 20px; border: 1px dashed rgba(226,189,106,.4); text-align: center; }
+.photo-pick img.preview { width: min(220px, 100%); aspect-ratio: 1 / 1; max-width: 100%; object-fit: cover; border-radius: 16px; }
+.photo-pick img.hero-ic { width: 120px; height: 120px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+.swatch { display: grid; justify-items: center; gap: 6px; width: 92px; text-align: center; font-size: .85rem; }
+.swatch i { width: 58px; height: 58px; border-radius: 50%; background: var(--c); box-shadow: 0 0 26px var(--c), inset 0 0 12px rgba(255,255,255,.35); }
+.timeline { display: grid; gap: 14px; }
+.timeline > div { display: grid; grid-template-columns: 92px 1fr; gap: 12px; }
+.timeline b { font: 600 1.05rem var(--display); color: var(--gold); }
+
+/* ── kundli ── */
+.rashi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(74px, auto)); max-width: 100%;
+  border: 1px solid rgba(226,189,106,.6); border-radius: 6px; background: rgba(13,10,36,.75); box-shadow: 0 0 40px rgba(139,108,255,.18); }
+.house { position: relative; border: 1px solid rgba(226,189,106,.28); padding: 4px 4px 6px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px 5px; min-width: 0; }
+.house .sg { position: absolute; right: 4px; bottom: 2px; font-size: .78rem; color: var(--haze); }
+.house b { font-size: .8rem; font-weight: 700; color: var(--ivory); white-space: nowrap; }
+.house b.r { color: var(--danger); }
+.house.lagna { background: linear-gradient(135deg, rgba(226,189,106,.16), transparent 55%); }
+.house.lagna::before { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.rashi .core { grid-column: 2 / 4; grid-row: 2 / 4; display: grid; place-content: center; text-align: center; gap: 4px; padding: 8px;
+  border: 1px solid rgba(226,189,106,.28); }
+.rashi .core b { font: 600 1.3rem var(--display); color: var(--gold); }
+.rashi .core span { font-size: .78rem; color: var(--haze); }
+.ptable { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ptable th { text-align: left; font-weight: 500; color: var(--haze); font-size: .8rem; padding: 6px 4px; border-bottom: 1px solid var(--veil); }
+.ptable td { padding: 7px 4px; border-bottom: 1px solid var(--veil); font-variant-numeric: tabular-nums; }
+.ptable-wrap { overflow-x: auto; }
+.note { font-size: .88rem; color: var(--haze); padding: 10px 14px; border-left: 2px solid var(--veil); }
+.note button { background: none; border: 0; padding: 0; color: var(--gold); text-decoration: underline; font-size: inherit; }
+
 /* ── profile ── */
 .me { display: grid; justify-items: center; gap: 8px; text-align: center; }
 .avatar { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font: 600 2.6rem var(--display); color: var(--gold);
@@ -327,6 +399,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
       </div>
       <div class="energy">
         <h2 data-i18n="practices"></h2>
+        <button class="oracle" data-go="advisor"><img src="static/img/icons/advisor.webp" alt=""><div><b data-i18n="advTitle"></b><span data-i18n="advBanner"></span></div><i aria-hidden="true">›</i></button>
         <div class="practices" id="practices"></div>
       </div>
       <div class="energy">
@@ -406,6 +479,62 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
       <p class="muted center" id="sphereLeft"></p>
     </section>
 
+    <!-- MOON RITUAL -->
+    <section class="view" id="v-moon" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="moonTitle"></h1><p class="muted" data-i18n="moonSub"></p></div>
+      <canvas id="moonCanvas" aria-hidden="true"></canvas>
+      <div id="moonOut"></div>
+    </section>
+
+    <!-- COMPATIBILITY -->
+    <section class="view" id="v-compat" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="compatTitle"></h1><p class="muted" data-i18n="compatSub"></p></div>
+      <div class="duo" id="duo"></div>
+      <form class="form-grid" id="compatForm">
+        <input class="field" id="partnerName" maxlength="40" autocomplete="off" data-i18n-ph="partnerName">
+        <label class="label" for="partnerDate" data-i18n="partnerDate"></label>
+        <input class="field" type="date" id="partnerDate" required>
+        <button class="btn wide" data-i18n="compatBtn"></button>
+      </form>
+      <div id="compatOut"></div>
+    </section>
+
+    <!-- AI ASTROLOGER -->
+    <section class="view" id="v-advisor" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="advTitle"></h1><p class="muted" data-i18n="advSub"></p></div>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <div class="chips ask" id="askChips"></div>
+      <p class="muted center" id="advLeft"></p>
+      <form class="composer" id="composer">
+        <textarea class="field" id="advInput" rows="1" maxlength="600" data-i18n-ph="advPh"></textarea>
+        <button class="btn" id="advSend" data-i18n="send"></button>
+      </form>
+    </section>
+
+    <!-- AURA / COFFEE -->
+    <section class="view" id="v-aura" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="auraTitle"></h1><p class="muted" data-i18n="auraSub"></p></div>
+      <div class="photo-pick" data-kind="aura"></div>
+      <div id="auraOut"></div>
+    </section>
+    <section class="view" id="v-coffee" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="coffeeTitle"></h1><p class="muted" data-i18n="coffeeSub"></p></div>
+      <div class="photo-pick" data-kind="coffee"></div>
+      <div id="coffeeOut"></div>
+    </section>
+
+    <!-- KUNDLI -->
+    <section class="view" id="v-kundli" hidden>
+      <button class="back-link" data-go="home"><span aria-hidden="true">‹</span><span data-i18n="back"></span></button>
+      <div class="view-head center"><h1 data-i18n="kundliTitle"></h1><p class="muted" data-i18n="kundliSub"></p></div>
+      <div id="kundliOut"></div>
+    </section>
+
     <!-- PROFILE -->
     <section class="view" id="v-profile" hidden>
       <div class="me">
@@ -419,8 +548,15 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <div><b id="stPath">–</b><span data-i18n="lifePath"></span></div>
       </div>
       <form class="form-row" id="dateForm">
+        <h2 data-i18n="birthData"></h2>
         <label class="label" for="birthInput" data-i18n="birthDate"></label>
-        <div class="inline"><input class="field" type="date" id="birthInput" required><button class="btn ghost" data-i18n="save"></button></div>
+        <input class="field" type="date" id="birthInput" required>
+        <label class="label" for="birthTime" data-i18n="birthTime"></label>
+        <input class="field" type="time" id="birthTime">
+        <label class="label" for="birthCity" data-i18n="birthCity"></label>
+        <input class="field" id="birthCity" maxlength="128" autocomplete="off" data-i18n-ph="birthCityPh">
+        <p class="muted" data-i18n="birthHint"></p>
+        <button class="btn ghost wide" data-i18n="save"></button>
       </form>
       <div class="form-row">
         <span class="label" data-i18n="language"></span>
@@ -510,7 +646,28 @@ const I18N = {
     needDateNum:"ნუმეროლოგიისთვის შენი დაბადების თარიღი გვჭირდება. მიუთითე ის პროფილში.",
     sphereTitle:"ჯადოსნური სფერო", sphereSub:"ჩაიფიქრე კითხვა, რომელსაც დიახ ან არა შეიძლება ეპასუხოს, და შეეხე სფეროს.",
     spherePh:"შენი კითხვა (არასავალდებულო)", sphereBtn:"სფეროს კითხვა", tone_yes:"დიახ", tone_wait:"მოიცადე", tone_no:"არა",
-    sphereLeft:"დღის ჯილდოები: {u} / {l}", a_numerology:"ნუმეროლოგია", a_sphere:"ჯადოსნური სფერო"
+    sphereLeft:"დღის ჯილდოები: {u} / {l}", a_numerology:"ნუმეროლოგია", a_sphere:"ჯადოსნური სფერო",
+    pr_kundli:"კუნდლი", a_compatibility:"თავსებადობა", a_moon:"მთვარის რიტუალი", a_advisor:"AI ასტროლოგი", a_aura:"აურა", a_coffee:"ყავაზე მკითხაობა", a_kundli:"კუნდლი",
+    moonTitle:"მთვარის რიტუალი", moonSub:"დღევანდელი ფაზა და მისთვის შექმნილი რიტუალი.", moonAge:"მთვარის ასაკი: {n} დღე",
+    ritual:"რიტუალი", affirmation:"აფირმაცია", avoid:"მოერიდე",
+    compatTitle:"თავსებადობა", compatSub:"შეადარე შენი ნიშანი პარტნიორის ნიშანს.", partnerName:"პარტნიორის სახელი (არასავალდებულო)",
+    partnerDate:"პარტნიორის დაბადების თარიღი", compatBtn:"თავსებადობის გაგება", you:"შენ", partner:"პარტნიორი",
+    communication:"კომუნიკაცია", trust:"ნდობა", growth:"ზრდა", needDateCompat:"თავსებადობისთვის შენი დაბადების თარიღიც გვჭირდება. მიუთითე ის პროფილში.",
+    advTitle:"AI ასტროლოგი", advSub:"დასვი ნებისმიერი კითხვა. პასუხი შენს ნიშანსა და დღევანდელ ცას ეფუძნება.",
+    advBanner:"ჰკითხე ვარსკვლავებს პირადად", advPh:"დაწერე კითხვა…", send:"გაგზავნა", advLeft:"დღეს დარჩენილი კითხვები: {n}",
+    advHello:"გამარჯობა. მე ვარ შენი ასტროლოგი. რაზე გინდა ვისაუბროთ: სიყვარულზე, საქმეზე თუ იმაზე, რაც დღეს გაწუხებს?",
+    q1:"რა მელის სიყვარულში?", q2:"როგორ გავაუმჯობესო ფინანსები?", q3:"რას მეუბნება დღევანდელი მთვარე?", q4:"რომელი მიმართულება ავირჩიო კარიერაში?",
+    auraTitle:"აურა", auraSub:"გადაიღე სელფი ან ხელის გული და გაიგე, რა ფერისაა შენი ენერგია.", auraHint:"სელფი ან ხელის გული, კარგ განათებაში.",
+    coffeeTitle:"ყავაზე მკითხაობა", coffeeSub:"ფინჯნის ნალექი შენს ისტორიას ყვება.", coffeeHint:"გადმოაბრუნე ფინჯანი, დაელოდე გაშრობას და გადაუღე ზემოდან.",
+    choosePhoto:"ფოტოს არჩევა", changePhoto:"სხვა ფოტო", readPhoto:"წაკითხვა", photoPrivacy:"ფოტო მხოლოდ წაკითხვისთვის გამოიყენება და არ ინახება.",
+    energyL:"ენერგია", e_photo:"ფოტო ამ კითხვას არ შეესაბამება. სცადე სხვა ფოტო.", e_large:"ფოტო ძალიან დიდია. აირჩიე 8 მბ-ზე ნაკლები.",
+    kundliTitle:"კუნდლი", kundliSub:"შენი ვედური დაბადების რუკა, გამოთვლილი პლანეტების რეალური მდებარეობით.",
+    rashi:"რაში", nakshatra:"ნაკშატრა", pada:"პადა", lagna:"ლაგნა", planet:"პლანეტა", signL:"ნიშანი", houseL:"სახლი", sunL:"მზე", moonL:"მთვარე",
+    noTime:"ლაგნისა და სახლებისთვის საჭიროა დაბადების დრო და ქალაქი.", toProfile:"მიუთითე პროფილში", cityNotFound:"ქალაქი „{c}“ ვერ ვიპოვე. შეამოწმე მართლწერა პროფილში.",
+    pl_sun:"მზე", pl_moon:"მთვარე", pl_mars:"მარსი", pl_mercury:"მერკური", pl_jupiter:"იუპიტერი", pl_venus:"ვენერა", pl_saturn:"სატურნი", pl_rahu:"რაჰუ", pl_ketu:"კეტუ",
+    ab_sun:"მზ", ab_moon:"მთ", ab_mars:"მა", ab_mercury:"მე", ab_jupiter:"იუ", ab_venus:"ვე", ab_saturn:"სა", ab_rahu:"რა", ab_ketu:"კე",
+    birthData:"დაბადების მონაცემები", birthTime:"დაბადების დრო (არასავალდებულო)", birthCity:"დაბადების ქალაქი (არასავალდებულო)", birthCityPh:"მაგ. თბილისი",
+    birthHint:"დრო და ქალაქი კუნდლისთვის გვჭირდება: ლაგნასა და სახლებს ზუსტად ისინი განსაზღვრავს."
   },
   en: {
     demo:"Demo mode", tHome:"Sky", tHoro:"Horoscope", tTarot:"Tarot", tDream:"Dreams", tProfile:"Profile",
@@ -547,7 +704,28 @@ const I18N = {
     needDateNum:"Add your birth date in Profile to see your numerology.",
     sphereTitle:"Magic sphere", sphereSub:"Think of a yes-or-no question and touch the sphere.",
     spherePh:"Your question (optional)", sphereBtn:"Ask the sphere", tone_yes:"Yes", tone_wait:"Wait", tone_no:"No",
-    sphereLeft:"Rewards today: {u} / {l}", a_numerology:"Numerology", a_sphere:"Magic sphere"
+    sphereLeft:"Rewards today: {u} / {l}", a_numerology:"Numerology", a_sphere:"Magic sphere",
+    pr_kundli:"Kundli", a_compatibility:"Compatibility", a_moon:"Moon ritual", a_advisor:"AI astrologer", a_aura:"Aura", a_coffee:"Coffee reading", a_kundli:"Kundli",
+    moonTitle:"Moon ritual", moonSub:"Today's phase and a ritual made for it.", moonAge:"Moon age: {n} days",
+    ritual:"Ritual", affirmation:"Affirmation", avoid:"Avoid",
+    compatTitle:"Compatibility", compatSub:"Compare your sign with your partner's.", partnerName:"Partner's name (optional)",
+    partnerDate:"Partner's birth date", compatBtn:"Check compatibility", you:"You", partner:"Partner",
+    communication:"Communication", trust:"Trust", growth:"Growth", needDateCompat:"Add your own birth date in Profile to check compatibility.",
+    advTitle:"AI astrologer", advSub:"Ask anything. Answers draw on your sign and today's sky.",
+    advBanner:"Ask the stars, personally", advPh:"Type a question…", send:"Send", advLeft:"Questions left today: {n}",
+    advHello:"Hello, I'm your astrologer. What would you like to talk about: love, work, or what's on your mind today?",
+    q1:"What awaits me in love?", q2:"How can I improve my finances?", q3:"What is today's moon telling me?", q4:"Which career direction should I choose?",
+    auraTitle:"Aura", auraSub:"Take a selfie or a photo of your palm to see the colors of your energy.", auraHint:"A selfie or your palm, in good light.",
+    coffeeTitle:"Coffee reading", coffeeSub:"The grounds in your cup tell your story.", coffeeHint:"Turn the cup over, let it dry, then photograph it from above.",
+    choosePhoto:"Choose photo", changePhoto:"Another photo", readPhoto:"Read", photoPrivacy:"The photo is used only for the reading and is not stored.",
+    energyL:"Energy", e_photo:"This photo doesn't fit the reading. Try another one.", e_large:"The photo is too large. Choose one under 8 MB.",
+    kundliTitle:"Kundli", kundliSub:"Your Vedic birth chart, computed from real planetary positions.",
+    rashi:"Rashi", nakshatra:"Nakshatra", pada:"pada", lagna:"Lagna", planet:"Planet", signL:"Sign", houseL:"House", sunL:"Sun", moonL:"Moon",
+    noTime:"The lagna and houses need your birth time and city.", toProfile:"Add them in Profile", cityNotFound:"Couldn't find the city “{c}”. Check the spelling in Profile.",
+    pl_sun:"Sun", pl_moon:"Moon", pl_mars:"Mars", pl_mercury:"Mercury", pl_jupiter:"Jupiter", pl_venus:"Venus", pl_saturn:"Saturn", pl_rahu:"Rahu", pl_ketu:"Ketu",
+    ab_sun:"Su", ab_moon:"Mo", ab_mars:"Ma", ab_mercury:"Me", ab_jupiter:"Ju", ab_venus:"Ve", ab_saturn:"Sa", ab_rahu:"Ra", ab_ketu:"Ke",
+    birthData:"Birth details", birthTime:"Birth time (optional)", birthCity:"Birth city (optional)", birthCityPh:"e.g. Tbilisi",
+    birthHint:"Time and city are used for your kundli: they fix the lagna and the houses."
   },
   ru: {
     demo:"Демо-режим", tHome:"Небо", tHoro:"Гороскоп", tTarot:"Таро", tDream:"Сны", tProfile:"Профиль",
@@ -584,7 +762,28 @@ const I18N = {
     needDateNum:"Укажи дату рождения в профиле, чтобы увидеть нумерологию.",
     sphereTitle:"Магический шар", sphereSub:"Задумай вопрос, на который можно ответить да или нет, и коснись шара.",
     spherePh:"Твой вопрос (необязательно)", sphereBtn:"Спросить шар", tone_yes:"Да", tone_wait:"Подожди", tone_no:"Нет",
-    sphereLeft:"Награды сегодня: {u} / {l}", a_numerology:"Нумерология", a_sphere:"Магический шар"
+    sphereLeft:"Награды сегодня: {u} / {l}", a_numerology:"Нумерология", a_sphere:"Магический шар",
+    pr_kundli:"Кундли", a_compatibility:"Совместимость", a_moon:"Ритуал Луны", a_advisor:"AI астролог", a_aura:"Аура", a_coffee:"Гадание на кофе", a_kundli:"Кундли",
+    moonTitle:"Ритуал Луны", moonSub:"Сегодняшняя фаза и ритуал для неё.", moonAge:"Возраст Луны: {n} дн.",
+    ritual:"Ритуал", affirmation:"Аффирмация", avoid:"Избегай",
+    compatTitle:"Совместимость", compatSub:"Сравни свой знак со знаком партнёра.", partnerName:"Имя партнёра (необязательно)",
+    partnerDate:"Дата рождения партнёра", compatBtn:"Узнать совместимость", you:"Ты", partner:"Партнёр",
+    communication:"Общение", trust:"Доверие", growth:"Рост", needDateCompat:"Укажи свою дату рождения в профиле, чтобы узнать совместимость.",
+    advTitle:"AI астролог", advSub:"Спроси что угодно. Ответ учитывает твой знак и сегодняшнее небо.",
+    advBanner:"Спроси звёзды лично", advPh:"Напиши вопрос…", send:"Отправить", advLeft:"Осталось вопросов сегодня: {n}",
+    advHello:"Здравствуй, я твой астролог. О чём поговорим: о любви, о делах или о том, что волнует тебя сегодня?",
+    q1:"Что меня ждёт в любви?", q2:"Как улучшить финансы?", q3:"Что говорит мне сегодняшняя Луна?", q4:"Какое направление в карьере выбрать?",
+    auraTitle:"Аура", auraSub:"Сделай селфи или фото ладони и узнай цвета своей энергии.", auraHint:"Селфи или ладонь при хорошем освещении.",
+    coffeeTitle:"Гадание на кофе", coffeeSub:"Гуща в чашке рассказывает твою историю.", coffeeHint:"Переверни чашку, дай гуще подсохнуть и сфотографируй сверху.",
+    choosePhoto:"Выбрать фото", changePhoto:"Другое фото", readPhoto:"Прочитать", photoPrivacy:"Фото используется только для чтения и не сохраняется.",
+    energyL:"Энергия", e_photo:"Это фото не подходит для чтения. Попробуй другое.", e_large:"Фото слишком большое. Выбери до 8 МБ.",
+    kundliTitle:"Кундли", kundliSub:"Твоя ведическая натальная карта по реальным положениям планет.",
+    rashi:"Раши", nakshatra:"Накшатра", pada:"пада", lagna:"Лагна", planet:"Планета", signL:"Знак", houseL:"Дом", sunL:"Солнце", moonL:"Луна",
+    noTime:"Для лагны и домов нужны время и город рождения.", toProfile:"Укажи их в профиле", cityNotFound:"Город «{c}» не найден. Проверь написание в профиле.",
+    pl_sun:"Солнце", pl_moon:"Луна", pl_mars:"Марс", pl_mercury:"Меркурий", pl_jupiter:"Юпитер", pl_venus:"Венера", pl_saturn:"Сатурн", pl_rahu:"Раху", pl_ketu:"Кету",
+    ab_sun:"Су", ab_moon:"Лу", ab_mars:"Ма", ab_mercury:"Ме", ab_jupiter:"Юп", ab_venus:"Ве", ab_saturn:"Са", ab_rahu:"Ра", ab_ketu:"Ке",
+    birthData:"Данные рождения", birthTime:"Время рождения (необязательно)", birthCity:"Город рождения (необязательно)", birthCityPh:"напр. Тбилиси",
+    birthHint:"Время и город нужны для кундли: они определяют лагну и дома."
   }
 };
 
@@ -695,7 +894,8 @@ const ICON = {
   day: "static/img/icons/hero_day.webp", week: "static/img/icons/hero_week.webp", month: "static/img/icons/hero_month.webp",
   tarot: "static/img/icons/tarot.webp", dream: "static/img/icons/dream.webp", compat: "static/img/icons/compat.webp",
   numerology: "static/img/icons/numerology.webp", moon: "static/img/icons/moon.webp", sphere: "static/img/icons/sphere.webp",
-  advisor: "static/img/icons/advisor.webp", aura: "static/img/icons/aura.webp", coffee: "static/img/icons/coffee.webp"
+  advisor: "static/img/icons/advisor.webp", aura: "static/img/icons/aura.webp", coffee: "static/img/icons/coffee.webp",
+  kundli: "static/img/icons/kundli.webp"
 };
 function imgNode(src) { const i = el("img"); i.src = src; i.alt = ""; i.decoding = "async"; i.onerror = () => { i.replaceWith(el("span")); }; return i; }
 const paintBacks = (root = document) => root.querySelectorAll("[data-back]").forEach((n) => { n.replaceChildren(imgNode(BACK_IMG)); });
@@ -752,16 +952,29 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && !r
     ctx.globalAlpha = 1; });
 })();
 
+/* moon disc with the real lit fraction; p = phase 0..1 (0 new, .5 full) */
+function drawMoon(ctx, cx, cy, mr, p) {
+  const shape = () => { const k = Math.cos(2 * Math.PI * p); ctx.beginPath();
+    if (p <= .5) { ctx.arc(cx, cy, mr, -Math.PI / 2, Math.PI / 2, false); ctx.ellipse(cx, cy, Math.abs(mr * k), mr, 0, Math.PI / 2, -Math.PI / 2, k > 0); }
+    else { ctx.arc(cx, cy, mr, Math.PI / 2, 3 * Math.PI / 2, false); ctx.ellipse(cx, cy, Math.abs(mr * k), mr, 0, -Math.PI / 2, Math.PI / 2, k > 0); }
+    ctx.closePath(); };
+  ctx.save(); ctx.shadowColor = "rgba(240,215,160,.55)"; ctx.shadowBlur = 40;
+  ctx.fillStyle = "#1c1546"; ctx.beginPath(); ctx.arc(cx, cy, mr, 0, 6.283); ctx.fill(); ctx.restore();
+  ctx.strokeStyle = "rgba(226,189,106,.35)"; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(cx, cy, mr, 0, 6.283); ctx.stroke();
+  if (p > .01 && p < .99) {
+    const lit = ctx.createRadialGradient(cx - mr * .3, cy - mr * .35, mr * .1, cx, cy, mr);
+    lit.addColorStop(0, "#fff7df"); lit.addColorStop(.7, "#ecd59c"); lit.addColorStop(1, "#c9a45a");
+    ctx.save(); ctx.fillStyle = lit; ctx.shadowColor = "rgba(250,225,165,.7)"; ctx.shadowBlur = 24; shape(); ctx.fill(); ctx.restore();
+    ctx.save(); shape(); ctx.clip(); ctx.fillStyle = "rgba(170,140,90,.18)";
+    [[-.3,-.2,.16],[.25,.15,.11],[-.05,.38,.08],[.32,-.3,.07]].forEach(([dx, dy, rr]) => { ctx.beginPath(); ctx.arc(cx + dx * mr, cy + dy * mr, rr * mr, 0, 6.283); ctx.fill(); });
+    ctx.restore();
+  }
+}
+
 /* astrolabe: rotating zodiac ring, live moon phase, rising smoke */
 const Astro = (() => {
   const c = $("#astrolabe"), smoke = new Smoke(); let ctx, w, h, frame = 0;
   const resize = () => ({ ctx, w, h } = fitCanvas(c));
-  function moonShape(cx, cy, r, p) {
-    const k = Math.cos(2 * Math.PI * p); ctx.beginPath();
-    if (p <= .5) { ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false); ctx.ellipse(cx, cy, Math.abs(r * k), r, 0, Math.PI / 2, -Math.PI / 2, k > 0); }
-    else { ctx.arc(cx, cy, r, Math.PI / 2, 3 * Math.PI / 2, false); ctx.ellipse(cx, cy, Math.abs(r * k), r, 0, -Math.PI / 2, Math.PI / 2, k > 0); }
-    ctx.closePath();
-  }
   function draw(ts) {
     if (S.view !== "home") return;
     if (!w) resize();
@@ -788,19 +1001,8 @@ const Astro = (() => {
       else { ctx.shadowBlur = 0; ctx.fillStyle = "rgba(226,189,106,.78)"; }
       ctx.fillText(g(s), 0, 1); ctx.restore(); });
     ctx.restore();
-    // moon
-    const mr = R * .36, m = S.moon || moonNow(), p = (m.age_days || 0) / 29.53;
-    ctx.save(); ctx.shadowColor = "rgba(240,215,160,.55)"; ctx.shadowBlur = 40;
-    ctx.fillStyle = "#1c1546"; ctx.beginPath(); ctx.arc(cx, cy, mr, 0, 6.283); ctx.fill(); ctx.restore();
-    ctx.strokeStyle = "rgba(226,189,106,.35)"; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(cx, cy, mr, 0, 6.283); ctx.stroke();
-    if (p > .01 && p < .99) {
-      const lit = ctx.createRadialGradient(cx - mr * .3, cy - mr * .35, mr * .1, cx, cy, mr);
-      lit.addColorStop(0, "#fff7df"); lit.addColorStop(.7, "#ecd59c"); lit.addColorStop(1, "#c9a45a");
-      ctx.save(); ctx.fillStyle = lit; ctx.shadowColor = "rgba(250,225,165,.7)"; ctx.shadowBlur = 24; moonShape(cx, cy, mr, p); ctx.fill(); ctx.restore();
-      ctx.save(); moonShape(cx, cy, mr, p); ctx.clip(); ctx.fillStyle = "rgba(170,140,90,.18)";
-      [[-.3,-.2,.16],[.25,.15,.11],[-.05,.38,.08],[.32,-.3,.07]].forEach(([dx, dy, rr]) => { ctx.beginPath(); ctx.arc(cx + dx * mr, cy + dy * mr, rr * mr, 0, 6.283); ctx.fill(); });
-      ctx.restore();
-    }
+    const m = S.moon || moonNow();
+    drawMoon(ctx, cx, cy, R * .36, (m.age_days || 0) / 29.53);
   }
   addEventListener("resize", () => { if (w) resize(); });
   return { start() { resize(); startLoop(draw); }, redraw() { resize(); if (reduced) draw(0); } };
@@ -824,8 +1026,9 @@ class ApiError extends Error { constructor(status, code, msg) { super(msg || cod
 async function realApi(method, path, body) {
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 45000);
   let res;
-  try { res = await fetch(path, { method, signal: ctrl.signal, headers: { "Content-Type": "application/json", Authorization: `tma ${tg.initData}` },
-    body: body === undefined ? undefined : JSON.stringify(body) }); }
+  const form = body instanceof FormData, headers = { Authorization: `tma ${tg.initData}` };
+  if (!form) headers["Content-Type"] = "application/json";
+  try { res = await fetch(path, { method, signal: ctrl.signal, headers, body: body === undefined ? undefined : form ? body : JSON.stringify(body) }); }
   catch { throw new ApiError(0, "network"); } finally { clearTimeout(timer); }
   let data = null; try { data = await res.json(); } catch {}
   if (!res.ok) { const d = data && data.detail; throw new ApiError(res.status, (d && d.code) || (res.status === 401 ? "unauthorized" : "error"), d && d.message); }
@@ -841,6 +1044,7 @@ async function api(method, path, body) {
 }
 
 function errText(e) { return e.code === "ai_unavailable" ? t("e_ai") : e.code === "daily_quota" ? t("e_quota")
+  : e.code === "bad_photo" ? t("e_photo") : e.code === "too_large" ? t("e_large") : e.code === "needs_birth_date" ? t("needDate")
   : e.status === 401 ? t("e_auth") : e.code === "network" ? t("e_net") : t("e_generic"); }
 
 /* ═════════════ demo backend (used outside Telegram) ═════════════ */
@@ -851,7 +1055,7 @@ const Demo = (() => {
   const pick = (arr, seed) => arr[hash(seed) % arr.length];
   const ka = () => S.lang === "ka";
   const db = { user: { telegram_id: 777, first_name: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) || (S.lang === "ka" ? "გიორგი" : "Giorgi"),
-    lang: S.lang, birth_date: "1993-07-29", coins: 1250, streak: 4, daily_reward_available: true }, tarotToday: null,
+    lang: S.lang, birth_date: "1993-07-29", birth_time: "09:30", birth_city: "Tbilisi", coins: 1250, streak: 4, daily_reward_available: true }, tarotToday: null,
     dreams: [{ id: 1, created_at: new Date(Date.now() - 864e5 * 2).toISOString(), text: "ვიყავი ძველ სახლში, სადაც ყველა კარი ღია იყო და ოთახებიდან წყლის ხმა ისმოდა.",
       title: "ძველი სახლის ოთახები", mood: "მშვიდი", symbols: [{ symbol: "სახლი", meaning: "შენი შინაგანი სამყარო. ოთახები ცხოვრების სხვადასხვა მხარეს ასახავს." }, { symbol: "ღია კარი", meaning: "ახალი შესაძლებლობები, რომლებსაც უკვე ხედავ, მაგრამ ჯერ არ შესულხარ." }],
       interpretation: "სიზმარი გეუბნება, რომ მზად ხარ ახალი ეტაპისთვის. წყლის ხმა ემოციებს ნიშნავს, რომლებიც თავისუფლად მოედინება.", advice: "გადადგი პირველი ნაბიჯი იმ კარისკენ, რომელიც ყველაზე მეტად გიზიდავს.", tags: ["სახლი", "ცვლილება"] }] };
@@ -859,8 +1063,10 @@ const Demo = (() => {
     return { ...u, lang: S.lang, sign: sign && { id: sign, name: sname(sign), element: ELEMENT[sign] }, life_path: u.birth_date ? lifePath(u.birth_date) : null,
       needs_onboarding: !u.birth_date, referral_link: "https://t.me/astrogm2026bot/app?startapp=ref_777" }; };
   const reward = (n) => { db.user.coins += n; return { coins_earned: n, balance: db.user.coins }; };
-  const ECON = { daily_reward: 50, action_rewards: { horoscope_day: 20, horoscope_week: 20, horoscope_month: 20, tarot: 50, dream: 50, numerology: 35, sphere: 25 },
-    action_limits: { horoscope_day: 1, horoscope_week: 1, horoscope_month: 1, tarot: 3, dream: 3, numerology: 1, sphere: 5 } };
+  const ECON = { daily_reward: 50, action_rewards: { horoscope_day: 20, horoscope_week: 20, horoscope_month: 20, tarot: 50, dream: 50, numerology: 35, sphere: 25,
+      compatibility: 100, moon: 70, advisor: 50, aura: 60, coffee: 50, kundli: 100 },
+    action_limits: { horoscope_day: 1, horoscope_week: 1, horoscope_month: 1, tarot: 3, dream: 3, numerology: 1, sphere: 5,
+      compatibility: 1, moon: 1, advisor: 3, aura: 2, coffee: 3, kundli: 1 } };
   const counts = {};
   const limited = (key, n, limit) => { counts[key] = (counts[key] || 0) + 1; return counts[key] <= limit ? { ...reward(n), used_today: counts[key], daily_limit: limit }
     : { coins_earned: 0, balance: db.user.coins, used_today: limit, daily_limit: limit }; };
@@ -1007,6 +1213,63 @@ const Demo = (() => {
       return { life_path: lp, is_master: [11, 22, 33].includes(lp), personal_year: py, year, reading, year_reading, reward: limited("num", 35, 1) }; }
     if (p === "/api/sphere") { await wait(300); const L = ka() ? "ka" : "en", r = Math.random(), tone = r < .42 ? "yes" : r < .75 ? "wait" : "no";
       const list = SPH[L][tone]; return { answer: list[(Math.random() * list.length) | 0], tone, reward: limited("sphere", 25, 5) }; }
+    if (p === "/api/moon/ritual") { await wait(1100); const L = ka() ? "ka" : "en";
+      return { moon: moonNow(), reward: limited("moon", 70, 1), ritual: L === "ka" ? { title: "ვერცხლის წყალი",
+          intention: "ეს ფაზა განზრახვების დროა. რასაც ახლა დათესავ, სავსემთვარეობისას გაიფურჩქნება.",
+          steps: ["აანთე ერთი თეთრი სანთელი და რამდენიმე წუთი მშვიდად ისუნთქე.", "ჭიქა წყალი ფანჯრის რაფაზე დადგი, სადაც მთვარის შუქი ეცემა.",
+            "ფურცელზე დაწერე ერთი სურვილი აწმყო დროში, თითქოს უკვე ახდა.", "ფურცელი ჭიქის ქვეშ დადე და დილით წყალი დალიე."],
+          affirmation: "მე ვიზრდები მთვარესთან ერთად და ჩემი სურვილები ძალას იკრებს.", avoid: "ჩხუბი და დიდი თანხების ხარჯვა." }
+        : { title: "Silver water", intention: "This phase is for intentions. What you plant now will bloom by the full moon.",
+          steps: ["Light one white candle and breathe calmly for a few minutes.", "Place a glass of water on a windowsill where moonlight falls.",
+            "Write one wish in the present tense, as if it has already come true.", "Put the paper under the glass and drink the water in the morning."],
+          affirmation: "I grow with the moon, and my wishes gather strength.", avoid: "Arguments and large spending." } }; }
+    if (p === "/api/compatibility") { await wait(1300); const me = profile().sign; if (!me) throw new ApiError(400, "needs_birth_date");
+      const other = signOf(body.partner_birth_date), L = ka() ? "ka" : "en", E = { fire: 0, earth: 1, air: 2, water: 3 }, e1 = ELEMENT[me.id], e2 = ELEMENT[other];
+      const base = e1 === e2 ? 84 : (E[e1] + E[e2] === 2 && e1 !== e2 && [e1, e2].includes("fire")) || [e1, e2].sort().join() === "earth,water" ? 80 : [e1, e2].sort().join() === "fire,water" ? 54 : 58;
+      const dist = Math.abs(SIGNS.indexOf(me.id) - SIGNS.indexOf(other)) % 12, asp = { 0: 2, 1: -4, 2: 6, 3: -8, 4: 9, 5: -5, 6: 3 }[Math.min(dist, 12 - dist)];
+      const pct = Math.max(35, Math.min(97, base + asp)), sc = (k) => Math.max(1, Math.min(5, Math.round(pct / 22) + (hash(me.id + other + k) % 3) - 1));
+      const el2 = (e) => t(e);
+      const reading = L === "ka" ? { title: `${el2(e1)} და ${el2(e2)}`, summary: `${sname(me.id)} და ${sname(other)} ერთმანეთს ${pct > 70 ? "ადვილად უგებენ" : "ერთმანეთისგან ბევრს სწავლობენ"}. ეს კავშირი ${pct > 70 ? "ბუნებრივ ჰარმონიაზე" : "მოთმინებასა და ერთმანეთის პატივისცემაზე"} დგას.`,
+          areas: [["love", "გრძნობები ღრმაა, მაგრამ ერთმანეთის ენის სწავლა სჭირდება."], ["communication", "საუბარი საუკეთესოდ მაშინ გამოგდით, როცა ერთმანეთს ბოლომდე უსმენთ."],
+            ["trust", "ნდობა ნელა, მაგრამ მყარად შენდება."], ["growth", "ერთად უფრო თამამი და მშვიდი ხდებით."]].map(([area, text]) => ({ area, text, score: sc(area) })),
+          strengths: ["ურთიერთშევსება", "საერთო მიზნები"], challenges: ["განსხვავებული ტემპი"], advice: "კვირაში ერთი საღამო მხოლოდ ერთმანეთს დაუთმეთ." }
+        : { title: `${el2(e1)} and ${el2(e2)}`, summary: `${sname(me.id)} and ${sname(other)} ${pct > 70 ? "understand each other easily" : "learn a lot from each other"}. This bond rests on ${pct > 70 ? "natural harmony" : "patience and mutual respect"}.`,
+          areas: [["love", "Feelings run deep, but each of you must learn the other's language."], ["communication", "Talks go best when you listen to the end."],
+            ["trust", "Trust builds slowly but firmly."], ["growth", "Together you grow bolder and calmer."]].map(([area, text]) => ({ area, text, score: sc(area) })),
+          strengths: ["complementary natures", "shared goals"], challenges: ["different pace"], advice: "Give one evening a week to each other only." };
+      return { you: { id: me.id, name: sname(me.id) }, partner: { id: other, name: body.partner_name || null }, percent: pct, reading, reward: limited("compat", 100, 1) }; }
+    if (p === "/api/advisor") { await wait(1600); const L = ka() ? "ka" : "en", low = body.message.toLowerCase();
+      const topic = /სიყვარულ|love|люб/.test(low) ? "love" : /ფულ|ფინანს|money|financ|деньг|финанс/.test(low) ? "money" : /ჯანმრ|health|здоров/.test(low) ? "health"
+        : /კარიერ|სამსახურ|career|work|карьер|работ/.test(low) ? "career" : "default";
+      const A = { love: { ka: "ვარსკვლავები გეუბნებიან, რომ სიყვარული მოდის მაშინ, როდესაც ყველაზე ნაკლებად ელოდები. გახსენი გული და ნება მიეცი სამყაროს, თავისი საქმე გააკეთოს. ვენერა ახლა შენს ნიშანს განსაკუთრებულ ყურადღებას უთმობს.", en: "The stars say love arrives when you least expect it. Open your heart and let the universe do its work. Venus is paying special attention to your sign right now." },
+        money: { ka: "ფინანსური ენერგია მოძრაობაშია. იუპიტერი სიუხვის სფეროს აახლებს. მომავალ თვეში ახალი შესაძლებლობა გამოჩნდება, ამიტომ ფხიზლად იყავი და ბიზნეს გადაწყვეტილებებში ინტუიციას ენდე. დიდი ფინანსური ნაბიჯის წინ სპეციალისტსაც გაესაუბრე.", en: "Financial energy is in motion. Jupiter refreshes the sphere of abundance. A new opportunity appears within a month, so stay alert and trust your intuition. Before a big financial step, talk to a specialist too." },
+        health: { ka: "სხეული სამყაროს ტაძარია და ახლა მასზე ზრუნვა განსაკუთრებით მნიშვნელოვანია. მარსი შენს სიცოცხლისუნარიანობას ამაღლებს. მიჰყევი ბუნებრივ რიტმს: ძილი, მოძრაობა, კვება. თუ რამე გაწუხებს, ექიმთან კონსულტაცია აუცილებელია.", en: "The body is the temple of the cosmos, and caring for it matters now. Mars lifts your vitality. Follow natural rhythms: sleep, movement, nourishment. If something worries you, see a doctor." },
+        career: { ka: "კარიერული ვარსკვლავები ხელსაყრელ პოზიციაში არიან. სატურნი გრძელვადიან წარმატებას გპირდება. ამ კვირაში ახალი პროექტი ან შეთავაზება შეიძლება გამოჩნდეს. შენი უნიკალური ნიჭი სამყაროს სჭირდება.", en: "Career stars are well placed. Saturn promises long-term success. A new project or offer may appear this week. The world needs your particular gift." },
+        default: { ka: "სამყარო შენზე ზრუნავს და გზაზე გეხმარება. ენდე პროცესს, ყველაფერს თავისი დრო აქვს. შენი სულის გზა ვარსკვლავებშია ჩაწერილი და ახლა ზუსტად იქ ხარ, სადაც უნდა იყო.", en: "The universe watches over you and helps you on your way. Trust the process; everything has its time. Your soul's path is written in the stars, and you are exactly where you need to be." } };
+      counts.adv = (counts.adv || 0) + 1;
+      return { answer: A[topic][L], follow_ups: L === "ka" ? ["რა უნდა გავითვალისწინო ამ კვირაში?", "რომელი დღეა ჩემთვის ყველაზე ხელსაყრელი?"] : ["What should I keep in mind this week?", "Which day is most favorable for me?"],
+        messages_left: Math.max(0, 15 - counts.adv), reward: limited("adv", 50, 3) }; }
+    if (p === "/api/vision/aura") { await wait(1800); const L = ka() ? "ka" : "en";
+      return { kind: "aura", reward: limited("aura", 60, 2), reading: L === "ka" ? { title: "იისფერი განთიადი",
+          colors: [{ name: "იისფერი", hex: "#8b6cff", meaning: "ინტუიცია და შინაგანი ხედვა. ახლა კარგად გრძნობ სხვების განწყობას." }, { name: "ოქროსფერი", hex: "#e2bd6a", meaning: "თავდაჯერებულობა და სითბო, რომელსაც გარშემომყოფები გრძნობენ." }, { name: "ფირუზისფერი", hex: "#3fb8a8", meaning: "სიმშვიდე და მზაობა ახალი ურთიერთობებისთვის." }],
+          reading: "შენი ენერგეტიკული ველი რბილი და ღიაა. იისფერი ზედა ფენა მიუთითებს, რომ ახლა ინტუიციით ხელმძღვანელობ, ოქროსფერი კი იმაზე, რომ ძალა გაქვს, გადაწყვეტილება ბოლომდე მიიყვანო.", energy: "მშვიდი", advice: "დღეს ერთი გადაწყვეტილება ინტუიციით მიიღე." }
+        : { title: "Violet dawn", colors: [{ name: "Violet", hex: "#8b6cff", meaning: "Intuition and inner sight. You read other people's moods easily now." }, { name: "Gold", hex: "#e2bd6a", meaning: "Confidence and warmth that others can feel." }, { name: "Turquoise", hex: "#3fb8a8", meaning: "Calm and openness to new connections." }],
+          reading: "Your energy field is soft and open. The violet layer shows you are led by intuition; the gold shows you have the strength to see a decision through.", energy: "Calm", advice: "Make one decision today by intuition." } }; }
+    if (p === "/api/vision/coffee") { await wait(1800); const L = ka() ? "ka" : "en";
+      return { kind: "coffee", reward: limited("coffee", 50, 3), reading: L === "ka" ? { title: "გზა მთებისკენ",
+          symbols: [{ symbol: "ჩიტი", meaning: "კარგი ამბავი, რომელიც მალე მოვა." }, { symbol: "გზა", meaning: "მოგზაურობა ან ახალი მიმართულება ცხოვრებაში." }, { symbol: "გული", meaning: "სიყვარული და ახლობელი ადამიანის მხარდაჭერა." }],
+          past: "წარსულში დაძაბული პერიოდი გქონდა, რომელმაც ძალა შეგმატა.", present: "ახლა არჩევანის წინ დგახარ და გული სწორ გზას გიჩვენებს.", future: "წინ მოგზაურობა და სასიამოვნო შეხვედრა გელოდება.", advice: "გაბედე და პირველი ნაბიჯი შენ გადადგი." }
+        : { title: "The road to the mountains", symbols: [{ symbol: "Bird", meaning: "Good news arriving soon." }, { symbol: "Road", meaning: "A journey or a new direction in life." }, { symbol: "Heart", meaning: "Love and support from someone close." }],
+          past: "You went through a tense period that made you stronger.", present: "You stand before a choice, and your heart shows the right way.", future: "A journey and a pleasant meeting lie ahead.", advice: "Be brave and take the first step yourself." } }; }
+    if (p === "/api/kundli") { await wait(1500); if (!db.user.birth_date) throw new ApiError(400, "needs_birth_date"); const L = ka() ? "ka" : "en";
+      const chart = {"planets":[{"id":"sun","lon":102.354,"sign":"Cancer","degree":12.35,"retro":false,"house":12},{"id":"moon","lon":231.468,"sign":"Scorpio","degree":21.47,"retro":false,"house":4},{"id":"mars","lon":147.642,"sign":"Leo","degree":27.64,"retro":false,"house":1},{"id":"mercury","lon":84.947,"sign":"Gemini","degree":24.95,"retro":false,"house":11},{"id":"jupiter","lon":165.583,"sign":"Virgo","degree":15.58,"retro":false,"house":2},{"id":"venus","lon":62.002,"sign":"Gemini","degree":2.0,"retro":false,"house":11},{"id":"saturn","lon":304.766,"sign":"Aquarius","degree":4.77,"retro":true,"house":7},{"id":"rahu","lon":225.578,"sign":"Scorpio","degree":15.58,"retro":true,"house":4},{"id":"ketu","lon":45.578,"sign":"Taurus","degree":15.58,"retro":true,"house":10}],"ascendant":{"sign":"Leo","degree":23.83,"lon":143.835},"moon_nakshatra":{"name":"Jyeshtha","pada":2},"ayanamsa":23.7633,"has_time":true,"has_place":true,"place":{"name":"Tbilisi, Georgia","lat":41.69,"lon":44.83,"tz":"Asia/Tbilisi"}};
+      const reading = L === "ka" ? { title: "ლომის გული, მორიელის სიღრმე", overview: "ლომის ლაგნა და პირველ სახლში მდგარი მარსი ძლიერ ნებას და ლიდერობის ბუნებრივ ნიჭს გაძლევს. მთვარე მორიელში ემოციურ სიღრმესა და ინტუიციას მატებს. იუპიტერი მეორე სახლში სიტყვისა და შემოსავლის კეთილ ენერგიაზე მიუთითებს.",
+          ascendant: "ლომის ლაგნა გხდის თვალსაჩინოს და გულუხვს. ადამიანები ბუნებრივად გენდობიან.", moon: "მთვარე მორიელში, ჯიეშთჰა ნაკშატრაში: ღრმა გრძნობები, დამცველის ინსტინქტი და ძლიერი ინტუიცია.", sun: "მზე კირჩხიბში, მეთორმეტე სახლში: შინაგანი სამყარო და მარტოობაში აღდგენის უნარი.",
+          strengths: ["ნებისყოფა", "ინტუიცია", "გულუხვობა"], challenges: ["სიჯიუტე", "ემოციური ჩაკეტვა"], advice: "ძალა გამოიყენე სხვების მხარდასაჭერად და არა მათ დასამორჩილებლად." }
+        : { title: "A lion's heart, a scorpion's depth", overview: "A Leo lagna with Mars in the first house gives strong will and a natural gift for leadership. The Moon in Scorpio adds emotional depth and intuition. Jupiter in the second house blesses speech and income.",
+          ascendant: "A Leo lagna makes you visible and generous; people trust you naturally.", moon: "Moon in Scorpio, Jyeshtha nakshatra: deep feelings, a protector's instinct and strong intuition.", sun: "Sun in Cancer in the twelfth house: a rich inner world and the ability to recover in solitude.",
+          strengths: ["willpower", "intuition", "generosity"], challenges: ["stubbornness", "emotional withdrawal"], advice: "Use your strength to support others, not to overrule them." };
+      return { chart, reading, city_not_found: false, reward: limited("kundli", 100, 1) }; }
     if (p === "/api/dreams" && method === "GET") return { total: db.dreams.length, items: db.dreams };
     if (p.startsWith("/api/dreams/") && method === "DELETE") { const id = +p.split("/").pop(); db.dreams = db.dreams.filter((d) => d.id !== id); return { ok: true }; }
     throw new ApiError(404, "not_found");
@@ -1026,8 +1289,9 @@ function loading(box, text) { const w = el("div", "loading"); w.append(el("div",
 const stars = (n) => { const s = el("span", "score"); s.setAttribute("aria-label", `${n}/5`); s.append("★".repeat(n)); const off = el("span", "off", "★".repeat(5 - n)); s.append(off); return s; };
 
 /* ═════════════ navigation ═════════════ */
-const VIEWS = { home: "#v-home", horo: "#v-horo", tarot: "#v-tarot", dream: "#v-dream", profile: "#v-profile", num: "#v-num", sphere: "#v-sphere" };
-const SUB_VIEWS = ["num", "sphere"];
+const VIEWS = { home: "#v-home", horo: "#v-horo", tarot: "#v-tarot", dream: "#v-dream", profile: "#v-profile", num: "#v-num", sphere: "#v-sphere",
+  moon: "#v-moon", compat: "#v-compat", advisor: "#v-advisor", aura: "#v-aura", coffee: "#v-coffee", kundli: "#v-kundli" };
+const SUB_VIEWS = ["num", "sphere", "moon", "compat", "advisor", "aura", "coffee", "kundli"];
 function go(name) {
   if (!VIEWS[name]) return; S.view = name; haptic.tap();
   for (const [k, sel] of Object.entries(VIEWS)) $(sel).hidden = k !== name;
@@ -1036,7 +1300,8 @@ function go(name) {
   try { if (SUB_VIEWS.includes(name)) tg.BackButton.show(); else tg.BackButton.hide(); } catch {}
   scrollTo({ top: 0, behavior: "instant" });
   if (name === "home") Astro.redraw();
-  if (!S.loaded[name]) { S.loaded[name] = true; ({ home: loadHome, horo: loadHoro, tarot: loadTarot, dream: loadDreams, profile: loadProfile, num: loadNum, sphere: loadSphere })[name](); }
+  if (!S.loaded[name]) { S.loaded[name] = true; ({ home: loadHome, horo: loadHoro, tarot: loadTarot, dream: loadDreams, profile: loadProfile, num: loadNum, sphere: loadSphere,
+    moon: loadMoon, compat: loadCompat, advisor: loadAdvisor, aura: () => setupPhoto("aura"), coffee: () => setupPhoto("coffee"), kundli: loadKundli })[name](); }
   else if (name === "profile") loadProfile();
   store.set("astro.view", name);
 }
@@ -1060,8 +1325,9 @@ async function loadHome() {
 }
 const PRACTICES = [
   ["day", 20, () => openHoro("day")], ["week", 20, () => openHoro("week")], ["month", 20, () => openHoro("month")],
-  ["tarot", 50, () => go("tarot")], ["dream", 50, () => go("dream")], ["compat", 100], ["numerology", 35, () => go("num")],
-  ["moon", 70], ["sphere", 25, () => go("sphere")], ["advisor", 50], ["aura", 60], ["coffee", 50]
+  ["tarot", 50, () => go("tarot")], ["dream", 50, () => go("dream")], ["compat", 100, () => go("compat")], ["numerology", 35, () => go("num")],
+  ["moon", 70, () => go("moon")], ["sphere", 25, () => go("sphere")], ["aura", 60, () => go("aura")], ["coffee", 50, () => go("coffee")],
+  ["kundli", 100, () => go("kundli")]
 ];
 function renderPractices() {
   $("#practices").replaceChildren(...PRACTICES.map(([id, coins, open]) => {
@@ -1224,6 +1490,129 @@ async function askSphere() {
 $("#sphereBtn").addEventListener("click", askSphere);
 $("#ball").addEventListener("click", askSphere);
 
+/* ═════════════ shared bits ═════════════ */
+const block = (label, text) => { const w = el("div", "area"); w.append(el("span", "label", label), el("p", null, text)); return w; };
+const bullets = (items) => { const ul = el("ul"); (items || []).forEach((i) => ul.append(el("li", null, i))); return ul; };
+function pairBlock(a, b) { const pair = el("div", "pair"), x = el("div"), y = el("div", "dim");
+  x.append(el("span", "label", t("strengths")), bullets(a)); y.append(el("span", "label", t("challenges")), bullets(b)); pair.append(x, y); return pair; }
+const needDateNote = (out) => { const n = el("p", "note"), b = el("button", null, t("toProfile")); b.type = "button"; b.addEventListener("click", () => go("profile"));
+  n.append(t("needDate") + " ", b); out.replaceChildren(n); };
+
+/* ═════════════ MOON RITUAL ═════════════ */
+async function loadMoon() {
+  const out = $("#moonOut"), c = $("#moonCanvas"); loading(out);
+  const paint = (m) => { const { ctx, w, h } = fitCanvas(c); ctx.clearRect(0, 0, w, h); drawMoon(ctx, w / 2, h / 2, Math.min(w, h) * .36, (m.age_days || 0) / 29.53); };
+  paint(moonNow());
+  try { const r = await api("GET", "/api/moon/ritual"), m = r.moon, ri = r.ritual; paint(m);
+    const root = el("div", "reading"), facts = el("div", "facts");
+    facts.append(el("span", "chip", MOON_NAMES[m.code] ? MOON_NAMES[m.code][S.lang] : m.name), el("span", "chip", t("illum", { n: m.illumination })), el("span", "chip", t("moonAge", { n: m.age_days })));
+    const steps = el("ol", "steps"); ri.steps.forEach((x) => steps.append(el("li", null, x)));
+    root.append(facts, el("h2", "center", ri.title), el("p", null, ri.intention), el("span", "label", t("ritual")), steps,
+      block(t("affirmation"), ri.affirmation), el("p", "note", `${t("avoid")}: ${ri.avoid}`));
+    out.replaceChildren(root);
+  } catch (e) { S.loaded.moon = false; out.replaceChildren(el("p", "empty", errText(e))); }
+}
+
+/* ═════════════ COMPATIBILITY ═════════════ */
+function duo(me, partner, pct) {
+  const fig = (sign, cap) => { const f = el("figure"); f.append(el("div", "medal sym", sign ? g(sign) : "?"), el("figcaption", null, cap)); return f; };
+  const mid = el("div", "pct"); mid.style.setProperty("--p", pct ?? 0); mid.append(el("span", null, pct == null ? "♡" : `${pct}%`));
+  $("#duo").replaceChildren(fig(me, `${t("you")}${me ? " · " + sname(me) : ""}`), mid, fig(partner && partner.id, partner ? `${partner.name || t("partner")} · ${sname(partner.id)}` : t("partner")));
+}
+function loadCompat() { const me = S.user && S.user.sign && S.user.sign.id; duo(me, null, null); $("#partnerDate").max = new Date().toISOString().slice(0, 10);
+  if (!me) needDateNote($("#compatOut")); }
+$("#compatForm").addEventListener("submit", async (e) => { e.preventDefault();
+  const d = $("#partnerDate").value, out = $("#compatOut"); if (!d) return; loading(out);
+  try { const r = await api("POST", "/api/compatibility", { partner_birth_date: d, partner_name: $("#partnerName").value.trim() || null }), a = r.reading;
+    duo(r.you.id, r.partner, r.percent); haptic.ok();
+    const root = el("div", "reading"), areas = el("div", "areas");
+    a.areas.forEach((x) => { const w = el("div", "area"), h = el("div", "area-head"); h.append(el("b", null, t(x.area)), stars(x.score)); w.append(h, el("p", null, x.text)); areas.append(w); });
+    root.append(el("h2", "center", a.title), el("p", null, a.summary), areas, pairBlock(a.strengths, a.challenges), el("p", "advice", a.advice));
+    out.replaceChildren(root);
+  } catch (err) { if (err.code === "needs_birth_date") needDateNote(out); else { out.replaceChildren(); showError(err); } } });
+
+/* ═════════════ AI ASTROLOGER ═════════════ */
+S.chat = [];
+function bubble(role, text) { const b = el("div", "msg " + (role === "user" ? "me" : "ai"), text); $("#chat").append(b); return b; }
+function askChips(list) { $("#askChips").replaceChildren(...list.map((q) => { const b = el("button", null, q); b.type = "button"; b.addEventListener("click", () => sendAdvisor(q)); return b; })); }
+function loadAdvisor() { if (!S.chat.length) { $("#chat").replaceChildren(); bubble("assistant", t("advHello")); askChips([t("q1"), t("q2"), t("q3"), t("q4")]); } }
+async function sendAdvisor(text) {
+  text = (text || "").trim(); const send = $("#advSend"); if (text.length < 2 || send.disabled) return;
+  send.disabled = true; $("#advInput").value = ""; askChips([]); bubble("user", text); haptic.tap();
+  const typing = el("div", "msg ai typing"); typing.append(el("div", "orb"), el("span", null, t("reading"))); $("#chat").append(typing); typing.scrollIntoView({ block: "end", behavior: "smooth" });
+  try { const r = await api("POST", "/api/advisor", { message: text, history: S.chat.slice(-8) });
+    typing.remove(); const b = bubble("assistant", r.answer); S.chat.push({ role: "user", text }, { role: "assistant", text: r.answer.slice(0, 1500) });
+    askChips(r.follow_ups || []); if (r.messages_left != null) $("#advLeft").textContent = t("advLeft", { n: r.messages_left });
+    b.scrollIntoView({ block: "start", behavior: "smooth" });
+  } catch (e) { typing.remove(); showError(e); }
+  send.disabled = false;
+}
+$("#composer").addEventListener("submit", (e) => { e.preventDefault(); sendAdvisor($("#advInput").value); });
+$("#advInput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAdvisor(e.target.value); } });
+
+/* ═════════════ AURA & COFFEE ═════════════ */
+async function shrink(file) {   // resize on the phone before upload: faster and lighter
+  try { const bmp = await createImageBitmap(file), k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise((res) => c.toBlob((b) => res(b || file), "image/jpeg", .88)); } catch { return file; }
+}
+function setupPhoto(kind) {
+  const box = document.querySelector(`.photo-pick[data-kind="${kind}"]`), out = $(`#${kind}Out`);
+  const input = el("input"); input.type = "file"; input.accept = "image/*"; input.hidden = true; input.id = kind + "File";
+  const preview = imgNode(ICON[kind]); preview.className = "hero-ic";
+  const pick = el("button", "btn ghost", t("choosePhoto")), read = el("button", "btn wide", t("readPhoto")); pick.type = read.type = "button"; read.hidden = true;
+  box.replaceChildren(preview, el("p", "muted", t(kind + "Hint")), input, pick, read, el("p", "muted", t("photoPrivacy")));
+  let file = null;
+  pick.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => { file = input.files && input.files[0]; if (!file) return;
+    preview.src = URL.createObjectURL(file); preview.className = "preview"; pick.textContent = t("changePhoto"); read.hidden = false; out.replaceChildren(); });
+  read.addEventListener("click", async () => { if (!file) return; read.disabled = true; loading(out);
+    try { const fd = new FormData(); fd.append("file", await shrink(file), "photo.jpg");
+      const r = await api("POST", `/api/vision/${kind}`, fd); out.replaceChildren(kind === "aura" ? auraView(r.reading) : coffeeView(r.reading)); haptic.ok();
+    } catch (e) { out.replaceChildren(); showError(e); }
+    read.disabled = false; });
+}
+function auraView(a) { const root = el("div", "reading"), sw = el("div", "swatches");
+  a.colors.forEach((c) => { const w = el("div", "swatch"), dot = el("i"); dot.style.setProperty("--c", c.hex); w.append(dot, el("b", null, c.name)); sw.append(w); });
+  const meanings = el("div", "areas"); a.colors.forEach((c) => meanings.append(block(c.name, c.meaning)));
+  root.append(el("h2", "center", a.title), sw, el("p", null, a.reading), meanings);
+  if (a.energy) { const ch = el("div", "chips"); ch.append(el("span", "chip", `${t("energyL")}: ${a.energy}`)); root.append(ch); }
+  root.append(el("p", "advice", a.advice)); return root; }
+function coffeeView(a) { const root = el("div", "reading"), syms = el("div", "symbols"), tl = el("div", "timeline");
+  a.symbols.forEach((x) => { const r = el("div", "symbol"), d = el("div"); d.append(el("b", null, x.symbol), el("p", null, x.meaning)); r.append(el("span", "sym", "✦"), d); syms.append(r); });
+  [["past", a.past], ["present", a.present], ["future", a.future]].forEach(([k, v]) => { const row = el("div"); row.append(el("b", null, t(k)), el("p", null, v)); tl.append(row); });
+  root.append(el("h2", "center", a.title), el("span", "label", t("symbols")), syms, tl, el("p", "advice", a.advice)); return root; }
+
+/* ═════════════ KUNDLI ═════════════ */
+const RASHI_LAYOUT = [["Pisces", 1, 1], ["Aries", 1, 2], ["Taurus", 1, 3], ["Gemini", 1, 4], ["Cancer", 2, 4], ["Leo", 3, 4],
+  ["Virgo", 4, 4], ["Libra", 4, 3], ["Scorpio", 4, 2], ["Sagittarius", 4, 1], ["Capricorn", 3, 1], ["Aquarius", 2, 1]];
+async function loadKundli() {
+  const out = $("#kundliOut"); loading(out);
+  try { const r = await api("GET", "/api/kundli"), c = r.chart, a = r.reading, root = el("div", "reading");
+    const grid = el("div", "rashi"); grid.setAttribute("role", "img"); grid.setAttribute("aria-label", t("rashi"));
+    for (const [sign, row, col] of RASHI_LAYOUT) {
+      const cell = el("div", "house" + (c.ascendant && c.ascendant.sign === sign ? " lagna" : "")); cell.style.gridRow = row; cell.style.gridColumn = col;
+      c.planets.filter((p) => p.sign === sign).forEach((p) => { const b = el("b", p.retro && !["rahu", "ketu"].includes(p.id) ? "r" : "", t("ab_" + p.id)); b.title = t("pl_" + p.id); cell.append(b); });
+      if (c.ascendant && c.ascendant.sign === sign) cell.append(el("b", null, t("lagna").slice(0, 3)));
+      cell.append(el("span", "sg sym", g(sign))); grid.append(cell); }
+    const core = el("div", "core"), moon = c.planets.find((p) => p.id === "moon");
+    core.append(el("b", null, t("rashi")), el("span", null, `${t("nakshatra")}: ${c.moon_nakshatra.name}, ${t("pada")} ${c.moon_nakshatra.pada}`));
+    if (c.place) core.append(el("span", null, c.place.name)); grid.append(core);
+    root.append(grid);
+    if (r.city_not_found) root.append(el("p", "note", t("cityNotFound", { c: (S.user && S.user.birth_city) || "" })));
+    else if (!c.ascendant) { const n = el("p", "note"), b = el("button", null, t("toProfile")); b.type = "button"; b.addEventListener("click", () => go("profile")); n.append(t("noTime") + " ", b); root.append(n); }
+    const tbl = el("table", "ptable"), head = el("tr"); [t("planet"), t("signL"), "°", t("houseL")].forEach((h) => head.append(el("th", null, h)));
+    const tb = el("tbody"); if (c.ascendant) { const tr = el("tr"); tr.append(el("td", null, t("lagna")), el("td", null, `${g(c.ascendant.sign)} ${sname(c.ascendant.sign)}`), el("td", null, c.ascendant.degree.toFixed(1)), el("td", null, "1")); tb.append(tr); }
+    c.planets.forEach((p) => { const tr = el("tr"); tr.append(el("td", null, t("pl_" + p.id) + (p.retro && !["rahu", "ketu"].includes(p.id) ? " ℞" : "")),
+      el("td", null, `${g(p.sign)} ${sname(p.sign)}`), el("td", null, p.degree.toFixed(1)), el("td", null, p.house ?? "–")); tb.append(tr); });
+    const thead = el("thead"); thead.append(head); tbl.append(thead, tb); const wrap = el("div", "ptable-wrap"); wrap.append(tbl);
+    root.append(wrap, el("h2", null, a.title), el("p", null, a.overview), block(t("lagna"), a.ascendant), block(t("moonL"), a.moon), block(t("sunL"), a.sun),
+      pairBlock(a.strengths, a.challenges), el("p", "advice", a.advice));
+    out.replaceChildren(root);
+  } catch (e) { S.loaded.kundli = false; if (e.code === "needs_birth_date") needDateNote(out); else out.replaceChildren(el("p", "empty", errText(e))); }
+}
+
 /* ═════════════ PROFILE ═════════════ */
 function loadProfile() {
   const u = S.user || {}, av = $("#avatar"); av.replaceChildren();
@@ -1232,15 +1621,16 @@ function loadProfile() {
   $("#meSign").textContent = u.sign ? `${g(u.sign.id)} ${sname(u.sign.id)} · ${t("element")}: ${t(u.sign.element || ELEMENT[u.sign.id])}` : "";
   setCoins(u.coins || 0); $("#stStreak").textContent = u.streak || 0; $("#stPath").textContent = u.life_path ?? "–";
   $("#birthInput").value = u.birth_date || ""; $("#birthInput").max = new Date().toISOString().slice(0, 10);
+  $("#birthTime").value = u.birth_time || ""; $("#birthCity").value = u.birth_city || "";
   $("#refLink").value = u.referral_link || "";
   $("#langSeg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === S.lang)));
   const e = S.economy || {}, rows = [["a_daily", e.daily_reward || 50, 1], ["a_ref", 250, null]];
-  for (const k of ["horoscope_day", "horoscope_week", "horoscope_month", "tarot", "dream", "numerology", "sphere"]) if (e.action_rewards && e.action_rewards[k]) rows.push(["a_" + k, e.action_rewards[k], e.action_limits[k]]);
+  for (const k of ["horoscope_day", "horoscope_week", "horoscope_month", "tarot", "dream", "numerology", "sphere", "compatibility", "moon", "advisor", "aura", "coffee", "kundli"]) if (e.action_rewards && e.action_rewards[k]) rows.push(["a_" + k, e.action_rewards[k], e.action_limits[k]]);
   $("#ledger").replaceChildren(...rows.map(([k, n, lim]) => { const tr = el("tr"), td = el("td", null, t(k)); if (lim) { td.append(" "); td.append(el("small", null, t("perDay", { n: lim }))); }
     tr.append(td, el("td", null, `+${n}`)); return tr; }));
 }
 $("#dateForm").addEventListener("submit", async (e) => { e.preventDefault(); const v = $("#birthInput").value; if (!v) return;
-  try { await api("PATCH", "/api/user/profile", { birth_date: v }); toast(t("saved")); S.sign = null; S.loaded = { profile: true }; loadProfile(); } catch (err) { showError(err); } });
+  try { await api("PATCH", "/api/user/profile", { birth_date: v, birth_time: $("#birthTime").value || null, birth_city: $("#birthCity").value.trim() || null }); toast(t("saved")); S.sign = null; S.loaded = { profile: true }; loadProfile(); } catch (err) { showError(err); } });
 $("#langSeg").addEventListener("click", async (e) => { const b = e.target.closest("button"); if (!b || b.dataset.lang === S.lang) return;
   S.lang = b.dataset.lang; store.set("astro.lang", S.lang); applyI18n(); S.loaded = { profile: true }; paintBacks(); loadProfile(); syncDrawBtn();
   try { await api("PATCH", "/api/user/profile", { lang: S.lang }); } catch {} });

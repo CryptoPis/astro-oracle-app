@@ -38,7 +38,10 @@ async def get_profile(user: User = Depends(current_user)):
 @user_router.patch("/profile")
 async def update_profile(body: ProfileUpdate, user: User = Depends(current_user),
                          session: AsyncSession = Depends(get_session)):
-    for field_name, value in body.model_dump(exclude_unset=True).items():
+    changes = body.model_dump(exclude_unset=True)
+    if "birth_city" in changes and changes["birth_city"] != user.birth_city:
+        user.birth_lat = user.birth_lon = user.birth_tz = None  # re-geocoded on the next chart request
+    for field_name, value in changes.items():
         setattr(user, field_name, value)
     await session.commit()
     await session.refresh(user)

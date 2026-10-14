@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.ai.provider import AIError
-from app.api import dreams, horoscope, practices, tarot, user
+from app.api import dreams, horoscope, kundli, practices, practices2, tarot, user
 from app.config import get_settings
 from app.db import init_models
 
@@ -87,7 +87,7 @@ async def ai_error_handler(_: Request, exc: AIError):
         "code": "ai_unavailable", "message": "The stars are clouded right now. Please try again in a moment."}})
 
 
-for r in (user.auth_router, user.user_router, horoscope.router, tarot.router, dreams.router, practices.router):
+for r in (user.auth_router, user.user_router, horoscope.router, tarot.router, dreams.router, practices.router, practices2.router, kundli.router):
     app.include_router(r)
 
 

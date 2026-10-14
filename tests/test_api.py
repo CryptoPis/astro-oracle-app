@@ -139,3 +139,69 @@ def test_personal_year():
     from datetime import date
     from app.core.astro import personal_year_number
     assert personal_year_number(date(1990, 8, 15), 2026) == 6  # 1+5+8+2+0+2+6 = 24 -> 6
+
+
+def _png(color=(120, 80, 200)) -> bytes:
+    import io
+    from PIL import Image
+    buf = io.BytesIO(); Image.new("RGB", (64, 64), color).save(buf, "PNG"); return buf.getvalue()
+
+
+def test_moon_ritual(client):
+    r = client.get("/api/moon/ritual", headers=auth(100)).json()
+    assert r["moon"]["code"] and len(r["ritual"]["steps"]) >= 3 and r["reward"]["coins_earned"] == 70
+    assert client.get("/api/moon/ritual", headers=auth(100)).json()["reward"]["coins_earned"] == 0
+
+
+def test_compatibility(client):
+    from app.api.practices2 import compat_percent
+    assert compat_percent("Aries", "Leo") > compat_percent("Aries", "Cancer")
+    r = client.post("/api/compatibility", headers=auth(100), json={"partner_birth_date": "1992-03-25", "partner_name": "Nino"}).json()
+    assert r["you"]["id"] == "Leo" and r["partner"]["id"] == "Aries" and r["partner"]["name"] == "Nino"
+    assert 35 <= r["percent"] <= 97 and len(r["reading"]["areas"]) == 4 and r["reward"]["coins_earned"] == 100
+    assert client.post("/api/compatibility", headers=auth(200), json={"partner_birth_date": "1992-03-25"}).status_code == 400
+
+
+def test_advisor(client):
+    r = client.post("/api/advisor", headers=auth(100), json={"message": "What awaits me in love?",
+          "history": [{"role": "user", "text": "Hi"}, {"role": "assistant", "text": "Hello"}]}).json()
+    assert r["answer"] and r["follow_ups"] and r["reward"]["coins_earned"] == 50 and r["messages_left"] == 14
+    assert client.post("/api/advisor", headers=auth(100), json={"message": "x"}).status_code == 422
+
+
+def test_vision(client, monkeypatch):
+    r = client.post("/api/vision/aura", headers=auth(100), files={"file": ("me.png", _png(), "image/png")}).json()
+    assert r["reading"]["colors"][0]["hex"].startswith("#") and r["reward"]["coins_earned"] == 60
+    c = client.post("/api/vision/coffee", headers=auth(100), files={"file": ("cup.png", _png(), "image/png")}).json()
+    assert c["reading"]["symbols"] and c["reward"]["coins_earned"] == 50
+    bad = client.post("/api/vision/aura", headers=auth(100), files={"file": ("x.png", b"not an image", "image/png")})
+    assert bad.status_code == 422 and bad.json()["detail"]["code"] == "bad_photo"
+    assert client.post("/api/vision/palm", headers=auth(100), files={"file": ("x.png", _png(), "image/png")}).status_code == 422
+    from app.ai import provider, prompts as P
+
+    class NotACup:
+        async def complete_json(self, system, user, schema, **k):
+            return schema.model_validate({"image_ok": False})
+    monkeypatch.setattr(provider, "_provider", NotACup())
+    r2 = client.post("/api/vision/coffee", headers=auth(100), files={"file": ("dog.png", _png(), "image/png")})
+    assert r2.status_code == 422 and r2.json()["detail"]["code"] == "bad_photo"
+
+
+def test_kundli(client, monkeypatch):
+    from app.core.chart import Place
+    from app.api import kundli as K
+
+    async def fake_geo(session, city):
+        return Place("Tbilisi, Georgia", 41.72, 44.78, "Asia/Tbilisi") if city.lower() == "tbilisi" else None
+    monkeypatch.setattr(K, "geocode", fake_geo)
+    r = client.get("/api/kundli", headers=auth(100)).json()  # no time/place yet: no lagna
+    assert r["chart"]["ascendant"] is None and len(r["chart"]["planets"]) == 9 and r["reward"]["coins_earned"] == 100
+    sun = next(p for p in r["chart"]["planets"] if p["id"] == "sun")
+    assert sun["sign"] == "Cancer"  # sidereal sun on 15 Aug is in Cancer
+    client.patch("/api/user/profile", headers=auth(100), json={"birth_time": "08:00", "birth_city": "Tbilisi"})
+    r = client.get("/api/kundli", headers=auth(100)).json()
+    assert r["chart"]["ascendant"]["sign"] == "Leo" and r["chart"]["place"]["tz"] == "Asia/Tbilisi"
+    assert all(p["house"] for p in r["chart"]["planets"]) and r["reward"]["coins_earned"] == 0
+    client.patch("/api/user/profile", headers=auth(100), json={"birth_city": "Nowhere-xyz"})
+    r = client.get("/api/kundli", headers=auth(100)).json()
+    assert r["city_not_found"] and r["chart"]["ascendant"] is None

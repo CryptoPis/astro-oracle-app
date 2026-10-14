@@ -61,6 +61,11 @@ Run a **single** process/worker (bot dispatcher + scheduler + SQLite). Scaling o
 | POST | /api/dreams/analyze | `{text, save}` → structured analysis, saved to journal |
 | GET / DELETE | /api/dreams, /api/dreams/{id} | dream journal |
 | GET | /api/numerology | life path + personal year readings (cached per number/lang), +35 $AST once a day |
+| GET | /api/moon/ritual | today's phase + ritual (cached per phase/day/lang), +70 $AST once a day |
+| POST | /api/compatibility | `{partner_birth_date, partner_name?}` → percent + reading, +100 $AST once a day |
+| POST | /api/advisor | `{message, history[≤8]}` → `{answer, follow_ups, messages_left}`, 15 questions a day |
+| POST | /api/vision/aura, /api/vision/coffee | multipart `file` (≤8 MB) → reading; the photo is re-encoded, sent to the vision model inline and never stored |
+| GET | /api/kundli | sidereal chart (Lahiri, whole-sign houses, nakshatra) + AI reading; birth time/city in profile enable the lagna |
 | POST | /api/sphere | `{question?}` → `{answer, tone: yes\|wait\|no}`, +25 $AST up to 5× a day |
 
 Errors: `{"detail": {"code": "...", "message": "..."}}`. Codes: `daily_quota` (429), `ai_unavailable` (503), `needs_birth_date`, `bad_sign` (400), `already_claimed` (409).
@@ -71,4 +76,6 @@ Errors: `{"detail": {"code": "...", "message": "..."}}`. Codes: `daily_quota` (4
 - Practice icons (12) in `static/img/icons/`.
 
 ## Not yet ported from the legacy bot
-Advisor chat, aura & coffee (vision → needs an upload endpoint), compatibility, kundli (needs a real ephemeris), moon ritual, numerology reading, magic sphere, leaderboard, tasks, admin cashout review. The economy constants for all of them already exist in `services/economy.py`.
+Leaderboard, tasks (channel/X), admin cashout review. Mining (tap-to-earn) is parked; see ROADMAP.md.
+
+Birth cities are geocoded with the free Open-Meteo geocoding API (no key); results are cached in the database.
