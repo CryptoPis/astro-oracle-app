@@ -22,7 +22,7 @@ async def verify(init: InitData = Depends(require_init_data),
     await session.commit()
     if user.is_blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "account blocked")
-    return {"ok": True, **flags, "user": serialize_profile(user),
+    return {"ok": True, **flags, "user": {**serialize_profile(user), **await economy.streak_state(session, user)},
             "moon": astro.moon_phase(user.lang),
             "economy": {"daily_reward": economy.DAILY_LOGIN_REWARD,
                         "streak_rewards": economy.STREAK_REWARDS,
@@ -31,8 +31,8 @@ async def verify(init: InitData = Depends(require_init_data),
 
 
 @user_router.get("/profile")
-async def get_profile(user: User = Depends(current_user)):
-    return {"user": serialize_profile(user)}
+async def get_profile(user: User = Depends(current_user), session: AsyncSession = Depends(get_session)):
+    return {"user": {**serialize_profile(user), **await economy.streak_state(session, user)}}
 
 
 @user_router.patch("/profile")

@@ -61,6 +61,9 @@
    URL: იგივე მისამართი → **short name: `app`**.
    ამის შემდეგ იმუშავებს მეგობრის მოწვევის ბმულები: `t.me/astrogm2026bot/app?startapp=ref_...`
 3. ბოტის მენიუს ღილაკს („🔮 Open“) სერვერი თავად აყენებს.
+4. **სახელის შესწორება:** Telegram აპლიკაციის თავზე ამჟამად წერს „AI Astrologer“, აპლიკაციაში კი ბრენდი არის „Astro Oracle“.
+   @BotFather → `/myapps` → აირჩიე აპლიკაცია → **Edit Title** → ჩაწერე `Astro Oracle`.
+   (სურვილისამებრ: `/mybots` → @astrogm2026bot → **Edit Bot** → **Edit Name** → `Astro Oracle`.)
 
 ---
 

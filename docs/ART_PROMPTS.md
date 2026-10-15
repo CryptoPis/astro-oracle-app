@@ -170,3 +170,66 @@ Make it a different composition from the first version: a different pose and ang
 თუ არა, არაუშავს: სურათს ვნახავ და თავად მივხვდები, რომელია.
 
 **შემდეგ ყველაფერს მე ვაკეთებ:** სურათს ვჭრი და ვაპატარავებ, ჩავსვამ აპლიკაციაში, პრევიუს ვაახლებ და GitHub-ზე ვტვირთავ.
+
+---
+
+## 8. პლანეტები: „ცა ახლა“ ბარათისთვის (სურვილისამებრ, კვადრატი 1:1)
+აპლიკაციაში პლანეტები ახლა კოდით არის დახატული (ოქროს წვრილი ხაზებით) და მუშაობს სურათების გარეშეც.
+ეს 8 სურათი დიდ ბარათებს (დღის პლანეტა, პლანეტის ფანჯარა) უფრო მდიდარს გახდის. ChatGPT-ში ისევ **ლომის სურათი მიამაგრე** სტილის ნიმუშად.
+ფაილების სახელები: `planet-sun`, `planet-moon`, `planet-mercury`, `planet-venus`, `planet-mars`, `planet-jupiter`, `planet-saturn`, `planet-ring`.
+
+### `planet-sun`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: the Sun as a radiant golden disc with an engraved serene face, long alternating straight and wavy rays, a fine halo of gold dust, warm light filling the circle.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-moon`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: a large crescent Moon engraved in silver and gold, craters drawn with fine hatching, the dark side faintly visible, soft lavender glow, a few tiny stars inside the curve.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-mercury`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: the small planet Mercury as a silvery engraved sphere close to a bright edge of sunlight, two delicate winged motifs on either side of the sphere, swift curved motion lines in gold.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-venus`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: the planet Venus as a luminous pearl-and-rose-gold sphere with soft clouds engraved on it, framed by a garland of roses and a seashell motif, gentle warm glow.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-mars`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: the planet Mars as a deep red-gold sphere with engraved canyons and polar cap, a red ember glow around it, two small moons, crossed spear and shield ornaments behind the sphere.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-jupiter`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: the giant planet Jupiter as a majestic banded sphere in amber, cream and gold, the great storm spot engraved, four tiny moons in a row, an oak-leaf and lightning-bolt ornament around it.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-saturn`
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, a large ornate gold circle in the center, small constellations and scattered stars.
+SUBJECT in the circle: the planet Saturn as a pale golden sphere with wide engraved rings tilted across it, the front of the rings in bright gold and the back in shadow, an hourglass motif faintly drawn behind it.
+Absolutely no text: no letters, no words, no numbers.
+```
+
+### `planet-ring` (ცის ბორბლის ფონი)
+```
+Create a square 1:1 image in exactly the same style as the attached Leo image: black background with fine gold engraving, glowing gold line art, small constellations and scattered stars.
+SUBJECT: an empty ornate astrolabe ring seen from above: three concentric gold circles, twelve equal sectors marked only by small engraved stars and dots, fine tick marks around the outer edge, a four-point star in the center, lots of empty dark space inside the ring.
+Absolutely no text: no letters, no words, no numbers.
+```
