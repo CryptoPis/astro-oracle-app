@@ -48,7 +48,9 @@
    | `DATABASE_URL` | Neon-ის სტრიქონი (ნაბიჯი 1.3) |
    | `ADMIN_IDS` | შენი Telegram ID (ნაბიჯი 0.3) |
 5. **Apply**. პირველი აწყობა დაახლოებით 3-5 წუთს გრძელდება. ბოლოს ლოგში გამოჩნდება `Webhook set to https://...` და `Your service is live 🎉`.
-6. დააკოპირე სერვისის მისამართი (ზემოთ წერია), მაგ.: `https://astro-oracle.onrender.com`.
+6. დააკოპირე სერვისის მისამართი (ზემოთ წერია), მაგ.: `<YOUR-RENDER-URL>`.
+   > ⚠️ ამ ფაილში `<YOUR-RENDER-URL>` ნიშნავს **შენი** სერვისის მისამართს (`https://….onrender.com`, Render-ის გვერდზე ზემოთ წერია).
+   > ადრე აქ მაგალითად ეწერა `astro-oracle.onrender.com`, მაგრამ ეს მისამართი სხვის საიტს ეკუთვნის: არ გამოიყენო.
 
 ამის შემდეგ GitHub-ზე ყოველი ახალი ცვლილება Render-ზე ავტომატურად აიტვირთება.
 
@@ -56,7 +58,7 @@
 
 ## 3. BotFather: მინი აპლიკაციის რეგისტრაცია
 1. @BotFather → `/mybots` → @astrogm2026bot → **Bot Settings** → **Configure Mini App** → **Enable Mini App** → ჩასვი Render-ის მისამართი, ბოლოში `/`-ით:
-   `https://astro-oracle.onrender.com/`
+   `<YOUR-RENDER-URL>/`
 2. @BotFather → `/newapp` → აირჩიე @astrogm2026bot → სახელი: `Astro Oracle` → აღწერა → ფოტო (640×360, ლოგო) → GIF-ზე `/empty` →
    URL: იგივე მისამართი → **short name: `app`**.
    ამის შემდეგ იმუშავებს მეგობრის მოწვევის ბმულები: `t.me/astrogm2026bot/app?startapp=ref_...`
@@ -90,11 +92,11 @@ Render-ის უფასო სერვერს 15 წუთის უმო
 1. https://cron-job.org → **Sign up** → **Create cronjob**.
 2. **Job 1: სერვერის ფხიზლად შენახვა**
    - Title: `astro keep-alive`
-   - URL: `https://astro-oracle.onrender.com/healthz`
+   - URL: `<YOUR-RENDER-URL>/healthz`
    - Schedule: **Every 10 minutes**
 3. **Job 2: დილის ჰოროსკოპი**
    - Title: `astro morning`
-   - URL: `https://astro-oracle.onrender.com/cron/morning?key=CRON_SECRET`
+   - URL: `<YOUR-RENDER-URL>/cron/morning?key=CRON_SECRET`
      **CRON_SECRET** აიღე Render → სერვისი → **Environment** → `CRON_SECRET` → 👁 (Render-მა ის თავად შექმნა).
    - Schedule: **Every day at 09:00**, Time zone: **Asia/Tbilisi**
    - ეს Job ყველა მომხმარებელს დილის ჰოროსკოპს უგზავნის და დღის ყველა ნიშნის ჰოროსკოპს წინასწარ ამზადებს, რომ აპლიკაციაში მყისიერად გაიხსნას.
