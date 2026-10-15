@@ -10,6 +10,7 @@ For each scenario it records, with the CPU throttled 4x:
   style recalcs / layouts per second              from CDP Performance.getMetrics
   main-thread ms per second spent in Paint, style (UpdateLayoutTree), Layout, scripts, and
   raster/composite work                           from a Chrome trace
+Scrolling: real touch gestures on the phone (CDP Input.synthesizeScrollGesture), the mouse wheel on desktop.
 Results go to dist/perf-<label>.json and a summary is printed.
 """
 import argparse
@@ -102,8 +103,13 @@ def measure(page, cdp, action):
     return res
 
 
-def scroll_for(page, seconds, step=60):
+def scroll_for(page, seconds, step=60, cdp=None):
     w, h = page.viewport_size["width"], page.viewport_size["height"]
+    if cdp is not None:   # phone: real touch scroll gestures (a wheel on an emulated phone barely fires scroll events)
+        for i in range(int(seconds / 1.25)):
+            cdp.send("Input.synthesizeScrollGesture", {"x": w / 2, "y": h / 2, "yDistance": -900 if i % 2 == 0 else 900,
+                                                         "speed": 900, "gestureSourceType": "touch", "preventFling": True})
+        return
     page.mouse.move(w / 2, h / 2)
     ticks = int(seconds * 1000 / 50)
     for i in range(ticks):
@@ -136,10 +142,11 @@ def run(label, tier, inject=None, only=None):
             cdp.send("Emulation.setCPUThrottlingRate", {"rate": 4})
             r = {}
             r["home_idle"] = measure(page, cdp, lambda: page.wait_for_timeout(SECONDS * 1000))
-            r["home_scroll"] = measure(page, cdp, lambda: scroll_for(page, SECONDS))
+            touch = cdp if mobile else None
+            r["home_scroll"] = measure(page, cdp, lambda: scroll_for(page, SECONDS, cdp=touch))
             page.evaluate("document.querySelector('[data-tab=tarot]').click()")
             page.wait_for_timeout(1500)
-            r["tarot_scroll"] = measure(page, cdp, lambda: scroll_for(page, SECONDS))
+            r["tarot_scroll"] = measure(page, cdp, lambda: scroll_for(page, SECONDS, cdp=touch))
             page.evaluate("document.querySelector('[data-tab=home]').click()")
             r["errors"] = errors
             results[name] = r

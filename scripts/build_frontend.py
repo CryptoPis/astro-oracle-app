@@ -37,6 +37,9 @@ def main() -> None:
         print("built static/index.html")
         return
     preview = re.sub(r"(static/img/[\w/.-]+\.webp)", inline, src).replace("<!--BODY-->", "")
+    # without a charset a page served over HTTP is read as Windows-1252 (Georgian and ♌ become mojibake)
+    preview = ('<!doctype html>\n<meta charset="utf-8">\n'
+               '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' + preview)
     (ROOT / "dist").mkdir(exist_ok=True)
     (ROOT / "dist" / "preview.html").write_text(preview, encoding="utf-8")
     print("built static/index.html and dist/preview.html")
