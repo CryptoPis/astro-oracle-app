@@ -101,3 +101,24 @@ Chosen once at boot (`PERF` in `frontend/app.html`), visible as `<html data-tier
     python -m scripts.perf_probe --label after            # both devices
     python -m scripts.perf_probe --only phone --tier full  # force a tier
     python -m scripts.screenshots                         # every screen, ka/en/ru, phone + desktop
+
+---
+
+# Visual fix 2 (2026-10-15, branch `visual-fix-2`)
+
+Reported from a real Android phone in Telegram (the phone ran the `main` build, without visual pass 3).
+Each cause was confirmed in Playwright on the `main` build before fixing, with `scripts/ui_audit.py`
+(390×844 phone, overflow measured against the device width; idle restyles with the CPU 4x).
+
+| bug | confirmed on `main` | cause | after |
+|---|---|---|---|
+| fields overflow on the right (dream text, profile fields, sphere, advisor) | dream textarea and all 4 profile fields end at **398 px** on a 390 px screen; mobile Chrome then widens the layout viewport to 398 | `.field { width: 100% }` + padding + border with the default `content-box`, plus the default 8 px body margin | global `box-sizing: border-box`, `body { margin: 0 }` (visual pass 3); audit: no element past 390 px on any screen, ka/en/ru, phone + desktop |
+| rail cards lose frame/title/chip, only the icon floats | idle home restyles **653 ms/s** (33 full recalcs/s) from `--tx/--ty` on `:root`; every `.pcard` had `perspective() rotateX/Y` from those variables | 3D-transformed items inside an `overflow-x: auto` scroll-snap container: Android WebView drops their paint (could not reproduce the drop itself in desktop Chrome; the restyle storm and the 3D transforms are confirmed) | rail cards are flat (no tilt, no perspective) with `contain: paint`; tilt only on the hero card, written on it only when the value changes; idle restyles **0**; audit: all 12 cards in all 3 rails show frame + title + chip in every language |
+| reward chips too small, coin pill cramped | `.74rem`, 10% gold on dark | | chips `.82rem` bold, brighter, with a gold coin, `nowrap`; coin pill `nowrap`, never shrinks; the brand text gives way; audit with 12,500 and 1,250,000 |
+| tab bar hides the end of the content | | 28 px of space under content for a ~74 px bar | fade above the bar + 44 px extra, safe-area aware |
+| Telegram Desktop flicker/jank | see the first part of this file | | performance tier, one scroller, loops paused, cold-start splash (visual pass 3) |
+
+Performance with the new live-sky section (CPU 4x): phone 59.8 FPS idle and scrolling, 0 long tasks, busy
+189 ms/s idle; desktop 59.9 FPS, 0 long tasks; phone with the full tier forced 60 FPS, 0 long tasks.
+The sky wheel is a static SVG drawn once per data refresh; only the planet-of-the-day halo animates
+(opacity/transform, paused in the lite tier).

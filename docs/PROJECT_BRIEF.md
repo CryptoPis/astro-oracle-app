@@ -7,7 +7,8 @@ English, Russian. Owner: CryptoPis. Code: github.com/CryptoPis/astro-oracle-app 
 SQLite locally); Groq for AI with automatic model fallback (`openai/gpt-oss-120b`, fast `openai/gpt-oss-20b`, vision
 `qwen/qwen3.8-27b`; Groq retired the Llama models in 2026); astronomy-engine for real planetary positions (no AstroAPI).
 Hosting: Render (render.yaml blueprint) + Neon + cron-job.org (keep-alive and /cron/morning). Guide: `docs/DEPLOY.md`.
-Admin self-check: `/diag` in the bot. Frontend: one file `frontend/app.html` (no framework) → `python -m scripts.build_frontend` builds
+Admin self-check: `/diag` in the bot. Dev checks: `scripts/perf_probe.py` (FPS, long tasks), `scripts/ui_audit.py`
+(overflow, rail cards), `scripts/screenshots.py` (every screen in ka/en/ru). Frontend: one file `frontend/app.html` (no framework) → `python -m scripts.build_frontend` builds
 `static/index.html` (served at `/`) and `dist/preview.html` (browser preview with demo data).
 
 **Security rules.** Every API call is authenticated with Telegram `initData` (HMAC-SHA256), never trust the client.
@@ -16,7 +17,9 @@ points; every change goes through the `coin_transactions` ledger; rewards are pa
 
 **Practices built.** Daily energy + lucky numbers, daily gift with streaks, horoscope (12 signs, day/week/month),
 tarot (card of the day, three-card spread, collection), dreams + journal, numerology, magic sphere, moon ritual,
-compatibility, AI astrologer chat, aura and coffee photo readings, kundli (sidereal chart).
+compatibility, AI astrologer chat, aura and coffee photo readings, kundli (sidereal chart, navamsa, dasha),
+live sky (real planet positions now, planet of the day, retrogrades; meanings are static text, no AI), weekly
+sky report, streak freeze (one missed day per week), share-to-story cards.
 
 **Design.** Night sky indigo `#0d0a24`, violet `#8b6cff`, gold `#e2bd6a`. Identity "celestial engraving" (visual
 pass 3): translucent night surfaces with a 1px gold hairline that fades around the shape, engraved corners and an

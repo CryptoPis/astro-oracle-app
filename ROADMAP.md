@@ -33,8 +33,17 @@
   arrival, constellation veil, coin count-up with sparks, ink reveal of the oracle's words, tarot glow/flare/gold
   dust, collection cards light up, skeleton shimmer. Screenshots: `scripts/screenshots.py`.
 
+- Visual fix 2 (2026-10-15, branch `visual-fix-2`, on top of visual pass 3): fixes from the first real-phone test
+  (fields overflowing, rail cards losing their frame on Android, small reward chips, content hidden by the tab bar).
+  New: **live sky** (`GET /api/sky`, real planet positions, zodiac wheel, planet sheet with meanings in ka/en/ru,
+  planet of the day, retrograde banner), **weekly sky report** (Sunday/Monday), **streak freeze** (one missed day
+  per week forgiven, stored in `action_counters`), **share to story** (canvas card, `POST /api/share/image`,
+  Telegram `shareToStory`). Planet art prompts in `docs/ART_PROMPTS.md` §8. Audit: `scripts/ui_audit.py`.
+
 ## Next
-- Visual pass 3: test on a real phone and in Telegram Desktop, then merge `visual-pass-3` into `main`.
+- Test `visual-fix-2` on a real phone and in Telegram Desktop, then merge it (it contains visual pass 3) into `main`.
+- BotFather: rename the Mini App title to "Astro Oracle" (see `docs/DEPLOY.md` §3.4).
+- Art (optional): the 8 planet images from `docs/ART_PROMPTS.md` §8.
 - Art (optional): a second gold variant per sign for daily rotation (`<sign>-2`), Minor Arcana if the deck grows to 78.
 - Deploy following `docs/DEPLOY.md` (Neon + Render + cron-job.org), register the Mini App in BotFather, run `/diag`.
 - Feedback round on the design and texts.
