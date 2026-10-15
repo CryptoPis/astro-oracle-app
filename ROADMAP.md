@@ -25,7 +25,16 @@
 - Kundli extras (2026-10-14): navamsa (D9) chart with a D1/D9 switch, Vimshottari dasha timeline (mahadashas,
   sub-periods of the current one); the AI reading covers both and refreshes when the antardasha changes.
 
+- Visual pass 3 (2026-10-15, branch `visual-pass-3`): found the cause of flicker and stutter in Telegram Desktop
+  with a Chrome profile (`scripts/perf_probe.py`, `docs/PERF_NOTES.md`): the tilt effect restyled the whole page
+  every frame. Now 60 FPS and no long tasks on a 4x slowed CPU (was ~20 FPS). Performance tier (full/lite), one
+  scroll container, loops pause while scrolling/hidden/off screen, cold-start splash with retries. New look
+  "celestial engraving": gold hairline surfaces, engraved corners and rules, sliding tab lens, staggered view
+  arrival, constellation veil, coin count-up with sparks, ink reveal of the oracle's words, tarot glow/flare/gold
+  dust, collection cards light up, skeleton shimmer. Screenshots: `scripts/screenshots.py`.
+
 ## Next
+- Visual pass 3: test on a real phone and in Telegram Desktop, then merge `visual-pass-3` into `main`.
 - Art (optional): a second gold variant per sign for daily rotation (`<sign>-2`), Minor Arcana if the deck grows to 78.
 - Deploy following `docs/DEPLOY.md` (Neon + Render + cron-job.org), register the Mini App in BotFather, run `/diag`.
 - Feedback round on the design and texts.

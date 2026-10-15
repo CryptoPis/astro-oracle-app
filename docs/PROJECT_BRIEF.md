@@ -18,9 +18,15 @@ points; every change goes through the `coin_transactions` ledger; rewards are pa
 tarot (card of the day, three-card spread, collection), dreams + journal, numerology, magic sphere, moon ritual,
 compatibility, AI astrologer chat, aura and coffee photo readings, kundli (sidereal chart).
 
-**Design.** Night sky indigo `#0d0a24`, violet `#8b6cff`, gold `#e2bd6a`. Living art cards (tilt with the phone,
-change daily), swipeable rails, floating tab bar. Fonts: Jost/Manrope (UI), Noto Sans Georgian, Cormorant for the
-oracle's voice. Zodiac art: all 12 signs in one black & gold engraved style, no text in any image (the app
+**Design.** Night sky indigo `#0d0a24`, violet `#8b6cff`, gold `#e2bd6a`. Identity "celestial engraving" (visual
+pass 3): translucent night surfaces with a 1px gold hairline that fades around the shape, engraved corners and an
+engraved rule with a four-point star under titles, gold ingot buttons. Motion language: one easing curve
+`cubic-bezier(.22,.8,.24,1)`, a spring only for arrival/reward, durations 180/320/600 ms; views arrive with a
+staggered fade-up, a gold lens slides along the tab bar, the oracle's words surface like ink. Living art cards (tilt
+with the phone, change daily), swipeable rails, floating tab bar. Fonts: Jost/Manrope (UI), Noto Sans Georgian,
+Cormorant for the oracle's voice (upright in Georgian: Georgian has no true italic). Performance tier `full`/`lite`
+(desktop clients and weak phones get `lite`: no blur, still pictures); measure with `scripts/perf_probe.py`, see
+`docs/PERF_NOTES.md`. Zodiac art: all 12 signs in one black & gold engraved style, no text in any image (the app
 is multilingual); Aries, Taurus, Cancer also keep earlier purple paintings as daily variants. Tarot: full 22-card deck. Art style and prompts: `docs/ART_PROMPTS.md`.
 
 **Status / next.** See `ROADMAP.md` (done, next, parked mining, ideas inbox: voice, monetization with Telegram Stars,

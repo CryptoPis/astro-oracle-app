@@ -50,6 +50,54 @@ Contributing costs (smaller, but real):
 - Five `backdrop-filter` surfaces over constantly changing content (GPU cost, flicker in desktop webviews).
 - Not a problem, contrary to the first suspicion: `drawMoon()` runs once per screen, not per frame.
 
-## After
+## Before vs after (same probe, CPU 4x)
 
-(filled in below once the fixes landed)
+"Before" re-measured with the final probe (touch scroll gestures on the phone) so the rows compare like with like.
+This machine has 4 CPU cores, so the phone emulation lands in the **lite** tier; the full tier is measured separately.
+
+| device | scenario | FPS before → after | p95 ms | janky frames | long tasks | busy ms/s | style ms/s | paints/s |
+|---|---|---|---|---|---|---|---|---|
+| phone | home idle | 21.5 → **60.0** | 66.7 → 16.8 | 77 → 0 | 55 → **0** | 994 → **181** | 582 → 0 | 58 → 0 |
+| phone | home scroll | 18.4 → **59.8** | 83.5 → 16.8 | 51 → 0 | 31 → **0** | 927 → **223** | 507 → 0 | 53 → 0 |
+| phone | tarot scroll | 46.2 → **59.8** | 33.4 → 16.8 | 17 → 0 | 1 → 0 | 903 → **336** | 444 → 92 | 86 → 0 |
+| desktop | home idle | 19.3 → **59.9** | 66.8 → 16.8 | 83 → 0 | 62 → **0** | 990 → **206** | 586 → 0 | 55 → 0 |
+| desktop | home scroll | 17.9 → **59.9** | 83.4 → 16.8 | 253 → 0 | 33 → **0** | 655 → **148** | 365 → 9 | 45 → 0 |
+| desktop | tarot scroll | 40.6 → **58.3** | 33.4 → 16.8 | 39 → 2 | 0 → 0 | 614 → **125** | 307 → 13 | 55 → 11 |
+
+Phone with the **full** tier forced (`--tier full`: idle sway, 3D tilt, twinkling sky layers, 60 fps canvases):
+home idle 59.9 FPS, 0 long tasks, busy 489 ms/s; home scroll 59.8 FPS, 0 long tasks; tarot scroll 59.9 FPS.
+The full tier is only chosen for phones with more than 4 cores and more than 3 GB of memory, which have that headroom.
+
+## What changed
+
+| problem | fix |
+|---|---|
+| `--tx/--ty` written on `<html>` every frame | written only on the visible tilt hosts (hero card, rails, sign card), only when the value moved by > 0.004; lite tier: no idle sway, so nothing is written while idle |
+| tilted practice cards had `transition: transform` (restarted on every tilt frame) | no transition on the tilt transform; press feedback uses the separate `scale` property |
+| page (body) scrolling under fixed layers | one dedicated `#scroller` (`overscroll-behavior: contain`, `contain: layout paint`); `html, body` never scroll |
+| loops ran while scrolling / hidden / off screen | one rAF scheduler: per-loop frame rate, nothing runs while scrolling or hidden, loops unregister when idle; CSS animations of off-screen elements paused via IntersectionObserver (`data-off`) and during scroll (`.scrolling`) |
+| full-screen sky redrawn every frame | stars painted once per size into 3 canvases (1 on lite); only their opacity animates |
+| astrolabe redrawn every frame with `shadowBlur` | drawn once (glow included), rotated by a CSS animation; static on lite |
+| per-frame radial gradients and `shadowBlur` in living art | pre-rendered glow sprites, halo stroke instead of `shadowBlur` |
+| smoke canvases cleared every frame while empty | canvas layers animate only while particles live, clear once, stop |
+| light sweep animated `background-position` + `mix-blend-mode` | sweep moves by `transform`; blend modes removed |
+| 5 `backdrop-filter` surfaces | only the tab bar keeps a blur, and only on the full tier; everything else is a solid translucent surface with a gold hairline |
+| cold start: up to 45 s of an empty screen | splash "the sky is waking" from the first paint, explanation after 3.5 s, retries with backoff (15/25/30/30 s timeouts), retry button |
+| splash SVG kept animating after fade-out | `display: none` after the fade |
+
+## Performance tier
+
+Chosen once at boot (`PERF` in `frontend/app.html`), visible as `<html data-tier="…">`:
+- **lite**: Telegram Desktop / macOS / Web clients, any device with ≤ 4 cores or ≤ 3 GB memory, or
+  `prefers-reduced-motion`. No backdrop blur, half the stars, still fog, still paintings (no Ken Burns, no sweep),
+  static astrolabe, canvases at 24–30 fps, no idle sway, no constellation veil, opacity-only reveals.
+- **full**: everything else (capable phones): all effects at 60 fps.
+- Override for testing: `?tier=lite` / `?tier=full`, or `localStorage["astro.tier"]`.
+
+## Reproduce
+
+    pip install playwright
+    python -m scripts.build_frontend
+    python -m scripts.perf_probe --label after            # both devices
+    python -m scripts.perf_probe --only phone --tier full  # force a tier
+    python -m scripts.screenshots                         # every screen, ka/en/ru, phone + desktop
