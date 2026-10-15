@@ -8,7 +8,7 @@ Fixes vs. the legacy bot:
 """
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import case, or_, select, update
+from sqlalchemy import case, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import ActionCounter, CoinTransaction, User
@@ -99,18 +99,44 @@ async def grant_action_reward(session: AsyncSession, user_id: int, action: str) 
     return {"coins_earned": granted, "used_today": used, "daily_limit": limit, "balance": balance}
 
 
+# Soft streak: one missed day per ISO week is forgiven automatically (a "freeze"). The use is recorded as an
+# action_counters row (action "streak_freeze", day = Monday of the week), so no table changes are needed.
+FREEZE_ACTION = "streak_freeze"
+
+
+def week_start(d: date) -> date:
+    return d - timedelta(days=d.weekday())
+
+
+async def freeze_used_this_week(session: AsyncSession, user_id: int, today: date | None = None) -> bool:
+    used = await session.scalar(select(ActionCounter.count).where(
+        ActionCounter.user_id == user_id, ActionCounter.action == FREEZE_ACTION,
+        ActionCounter.day == week_start(today or today_utc())))
+    return bool(used)
+
+
 async def claim_daily(session: AsyncSession, user_id: int) -> dict | None:
-    """Returns None if already claimed today. Streak continues if the last claim was yesterday."""
+    """Returns None if already claimed today. Streak continues if the last claim was yesterday, or the day
+    before yesterday when this week's freeze is still unused (the freeze is then spent)."""
     today = today_utc()
     yesterday = today - timedelta(days=1)
+    two_days_ago = today - timedelta(days=2)
+    last = await session.scalar(select(User.last_daily_claim).where(User.telegram_id == user_id))
+    use_freeze = last == two_days_ago and not await freeze_used_this_week(session, user_id, today)
+    continues = [yesterday, two_days_ago] if use_freeze else [yesterday]
     res = await session.execute(
         update(User)
         .where(User.telegram_id == user_id,
                or_(User.last_daily_claim.is_(None), User.last_daily_claim < today))
-        .values(streak=case((User.last_daily_claim == yesterday, User.streak + 1), else_=1),
+        .values(streak=case((User.last_daily_claim.in_(continues), User.streak + 1), else_=1),
                 last_daily_claim=today))
     if res.rowcount != 1:
         return None
+    if use_freeze:
+        insert = _insert(session)
+        await session.execute(insert(ActionCounter)
+                              .values(user_id=user_id, action=FREEZE_ACTION, day=week_start(today), count=1)
+                              .on_conflict_do_nothing(index_elements=["user_id", "action", "day"]))
     streak = await session.scalar(select(User.streak).where(User.telegram_id == user_id))
     streak_bonus = STREAK_REWARDS.get(streak, 0)
     await credit(session, user_id, DAILY_LOGIN_REWARD, "daily_bonus")
@@ -118,11 +144,29 @@ async def claim_daily(session: AsyncSession, user_id: int) -> dict | None:
         await credit(session, user_id, streak_bonus, f"streak_{streak}")
     balance = await session.scalar(select(User.astro_coins).where(User.telegram_id == user_id))
     return {"coins_earned": DAILY_LOGIN_REWARD + streak_bonus, "base": DAILY_LOGIN_REWARD,
-            "streak_bonus": streak_bonus, "streak": streak, "balance": balance}
+            "streak_bonus": streak_bonus, "streak": streak, "balance": balance, "freeze_used": use_freeze}
 
 
 def daily_available(user: User) -> bool:
     return user.last_daily_claim is None or user.last_daily_claim < today_utc()
+
+
+async def streak_state(session: AsyncSession, user: User) -> dict:
+    """Streak as the UI should show it, with the weekly freeze taken into account.
+    freeze.ready: this week's freeze is unused; freeze.saving: a day was missed and the next claim will be saved."""
+    today = today_utc()
+    ready = not await freeze_used_this_week(session, user.telegram_id, today)
+    saving = ready and user.last_daily_claim == today - timedelta(days=2)
+    streak = user.streak if saving else effective_streak(user)
+    return {"streak": streak, "streak_freeze": {"ready": ready, "saving": saving}}
+
+
+async def practices_this_week(session: AsyncSession, user_id: int) -> int:
+    """How many rewarded practices the user did in the last 7 days (from the reward counters)."""
+    total = await session.scalar(select(func.coalesce(func.sum(ActionCounter.count), 0)).where(
+        ActionCounter.user_id == user_id, ActionCounter.action.like("reward:%"),
+        ActionCounter.day >= today_utc() - timedelta(days=6)))
+    return int(total or 0)
 
 
 def effective_streak(user: User) -> int:

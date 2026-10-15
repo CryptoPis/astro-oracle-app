@@ -285,3 +285,95 @@ def test_navamsa_and_dasha():
     assert c["moon_nakshatra"]["name"] == "Rohini" and d["mahadashas"][0]["lord"] == "moon"  # Rohini is ruled by the Moon
     assert d["mahadashas"][0]["start"] == "1990-08-15" and d["mahadashas"][0]["end"].startswith("1994-10")
     assert d["current"] == {"maha": "jupiter", "maha_end": "2035-10-22", "antar": "ketu", "antar_end": "2027-09-04"}
+
+
+def _db(fn):
+    """Runs fn(session) on a separate engine (the app's pool lives in the TestClient's event loop)."""
+    import asyncio
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+    from app.db import engine as app_engine
+
+    async def go():
+        eng = create_async_engine(app_engine.url)
+        try:
+            async with async_sessionmaker(eng, class_=AsyncSession)() as s:
+                out = await fn(s)
+                await s.commit()
+                return out
+        finally:
+            await eng.dispose()
+    return asyncio.run(go())
+
+
+def test_sky(client):
+    r = client.get("/api/sky", headers=auth(300))
+    assert r.status_code == 200
+    d = r.json()
+    ids = [p["id"] for p in d["planets"]]
+    assert ids == ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"]
+    for p in d["planets"]:
+        assert 0 <= p["lon"] < 360 and 0 <= p["degree"] < 30 and p["sign"] in ("Aries", "Taurus", "Gemini", "Cancer", "Leo",
+            "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces")
+    assert not next(p for p in d["planets"] if p["id"] == "sun")["retro"]
+    assert d["planet_of_day"] in ids and set(d["retrograde"]) <= set(ids)
+    assert 0 <= d["moon"]["phase"] < 1 and 0 <= d["moon"]["illumination"] <= 100
+    assert d["week"] == {"practices": 0, "streak": 0, "freeze_ready": True}
+    assert client.get("/api/sky").status_code == 401
+
+
+def test_sky_positions_known_date():
+    from datetime import datetime, timezone
+    from app.api.sky import sky_at
+    d = sky_at(datetime(2024, 4, 8, 18, 0, tzinfo=timezone.utc))   # total solar eclipse: Sun and Moon together in Aries
+    sun, moon, mercury = (next(p for p in d["planets"] if p["id"] == k) for k in ("sun", "moon", "mercury"))
+    assert sun["sign"] == "Aries" and moon["sign"] == "Aries" and abs(sun["lon"] - moon["lon"]) < 1.5
+    assert mercury["retro"] is True                                   # Mercury was retrograde (1-25 April 2024)
+    assert d["moon"]["phase"] < 0.01 or d["moon"]["phase"] > 0.99    # new moon
+    assert d["planet_of_day"] == "moon"                               # a Monday
+
+
+def test_streak_freeze(client):
+    from datetime import timedelta
+    from sqlalchemy import update
+    from app.models import User
+    from app.services.economy import today_utc
+    uid = 400
+    client.post("/api/auth/verify", headers=auth(uid))
+
+    def set_claim(days_ago, streak):
+        async def fn(s):
+            await s.execute(update(User).where(User.telegram_id == uid)
+                            .values(last_daily_claim=today_utc() - timedelta(days=days_ago), streak=streak))
+        _db(fn)
+
+    set_claim(2, 5)   # missed yesterday
+    p = client.get("/api/user/profile", headers=auth(uid)).json()["user"]
+    assert p["streak"] == 5 and p["streak_freeze"] == {"ready": True, "saving": True}
+    r = client.post("/api/user/daily-reward", headers=auth(uid)).json()["reward"]
+    assert r["streak"] == 6 and r["freeze_used"] is True
+    p = client.get("/api/user/profile", headers=auth(uid)).json()["user"]
+    assert p["streak_freeze"] == {"ready": False, "saving": False}
+
+    set_claim(2, 6)   # a second miss in the same week is not forgiven
+    p = client.get("/api/user/profile", headers=auth(uid)).json()["user"]
+    assert p["streak"] == 0 and p["streak_freeze"]["saving"] is False
+    r = client.post("/api/user/daily-reward", headers=auth(uid)).json()["reward"]
+    assert r["streak"] == 1 and r["freeze_used"] is False
+
+    set_claim(1, 3)   # a normal day never spends anything
+    r = client.post("/api/user/daily-reward", headers=auth(uid)).json()["reward"]
+    assert r["streak"] == 4 and r["freeze_used"] is False
+
+
+def test_share_image(client):
+    png = _png()
+    r = client.post("/api/share/image", headers=auth(100), files={"file": ("story.png", png, "image/png")})
+    assert r.status_code == 200
+    url = r.json()["url"]
+    assert url.startswith("https://astro.test/share/") and url.endswith(".png")
+    img = client.get(url.replace("https://astro.test", ""))
+    assert img.status_code == 200 and img.content == png and img.headers["content-type"] == "image/png"
+    bad = client.post("/api/share/image", headers=auth(100), files={"file": ("x.png", b"<svg/>", "image/png")})
+    assert bad.status_code == 415
+    assert client.post("/api/share/image", files={"file": ("x.png", png, "image/png")}).status_code == 401
+    assert client.get("/share/nope.png").status_code == 404
