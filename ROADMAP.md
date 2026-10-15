@@ -39,9 +39,11 @@
   planet of the day, retrograde banner), **weekly sky report** (Sunday/Monday), **streak freeze** (one missed day
   per week forgiven, stored in `action_counters`), **share to story** (canvas card, `POST /api/share/image`,
   Telegram `shareToStory`). Planet art prompts in `docs/ART_PROMPTS.md` §8. Audit: `scripts/ui_audit.py`.
+- Deployed 2026-10-15: `visual-fix-2` (with visual pass 3 and kundli D9/dasha) merged into `main` and live on Render;
+  rollback tag `backup-before-visual-fix-2` = the previous production version (7548bf2).
 
 ## Next
-- Test `visual-fix-2` on a real phone and in Telegram Desktop, then merge it (it contains visual pass 3) into `main`.
+- Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
 - BotFather: rename the Mini App title to "Astro Oracle" (see `docs/DEPLOY.md` §3.4).
 - Art (optional): the 8 planet images from `docs/ART_PROMPTS.md` §8.
 - Art (optional): a second gold variant per sign for daily rotation (`<sign>-2`), Minor Arcana if the deck grows to 78.
