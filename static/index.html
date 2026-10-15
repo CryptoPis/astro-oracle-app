@@ -615,6 +615,87 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .sheet img { box-shadow: 0 0 0 1px rgba(226,189,106,.5), 0 0 0 10px rgba(226,189,106,.06), 0 0 70px rgba(226,189,106,.3); }
 .sheet form { padding: 20px; border-radius: 22px; background: var(--surf) padding-box, var(--hair) border-box; border: 1px solid transparent; box-shadow: var(--inner); }
 
+
+/* ═════════ live sky ═════════ */
+.sky-sec { display: grid; gap: 14px; }
+.retro { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; padding: 12px 16px; border-radius: 18px; border: 1px solid transparent;
+  background: linear-gradient(120deg, rgba(217,83,58,.18), rgba(40,30,90,.6)) padding-box, linear-gradient(150deg, rgba(255,150,110,.7), rgba(226,189,106,.1) 50%, rgba(217,83,58,.4)) border-box; }
+.retro .rx { grid-row: span 2; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 600 1.15rem var(--glyph); color: #ffb08a;
+  border: 1px solid rgba(255,150,110,.55); box-shadow: 0 0 16px rgba(217,83,58,.35); }
+.retro b { font: 600 1rem var(--display); color: var(--ivory); }
+.retro p { font-size: .88rem; color: var(--mist); }
+.retro small { grid-column: 2; font-size: .78rem; color: var(--haze); }
+.potd { position: relative; display: grid; grid-template-columns: 84px 1fr; gap: 14px; align-items: center; width: 100%; padding: 14px 16px 14px 12px; border-radius: 22px; text-align: left;
+  border: 1px solid transparent; background: radial-gradient(90% 140% at 0% 50%, color-mix(in srgb, var(--pc, #e2bd6a) 26%, transparent), transparent 62%) padding-box, var(--surf) padding-box, var(--hair) border-box;
+  box-shadow: var(--inner); color: var(--mist); }
+.potd .orbit { position: relative; width: 84px; height: 84px; display: grid; place-items: center; isolation: isolate; }
+.potd .orbit::before { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: -1;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--pc, #e2bd6a) 55%, transparent), transparent); animation: breathe-soft 4.5s ease-in-out infinite; }
+.potd .orbit::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; border: 1px dashed rgba(226,189,106,.35); animation: spin 40s linear infinite; }
+[data-tier="lite"] .potd .orbit::before, [data-tier="lite"] .potd .orbit::after { animation: none; }
+.potd .orbit svg { width: 70px; height: 70px; }
+.potd .label { display: block; }
+.potd h3 { margin: 2px 0 4px; }
+.potd p { font: italic 500 1.08rem/1.35 var(--oracle); color: var(--ivory); }
+:lang(ka) .potd p { font-style: normal; font-size: 1rem; }
+.wheel-wrap { position: relative; width: min(340px, 100%); margin: 0 auto; aspect-ratio: 1 / 1; }
+#wheel { width: 100%; height: 100%; display: block; overflow: visible; }
+#wheel .wr { fill: none; stroke: rgba(226,189,106,.55); stroke-width: .8; }
+#wheel .wr.d { stroke-dasharray: 1.5 3; stroke-opacity: .6; }
+#wheel .tk { stroke: rgba(226,189,106,.45); stroke-width: .6; }
+#wheel .sp { stroke: rgba(226,189,106,.22); stroke-width: .6; }
+#wheel .gl { font: 13px var(--glyph); fill: rgba(240,210,142,.85); text-anchor: middle; dominant-baseline: central; }
+#wheel .lead { stroke: rgba(240,210,142,.4); stroke-width: .6; }
+#wheel .dot { fill: #fbe7b3; }
+#wheel .pl { cursor: pointer; outline: none; }
+#wheel .pl .ring { fill: none; stroke: transparent; stroke-width: 1.2; transition: stroke var(--t2) var(--ease); }
+#wheel .pl:hover .ring, #wheel .pl:focus-visible .ring, #wheel .pl.today .ring { stroke: rgba(240,210,142,.8); }
+#wheel .core { fill: #e2bd6a; }
+.pl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+.pl-chip { display: grid; justify-items: center; gap: 2px; padding: 8px 4px 9px; border-radius: 16px; border: 1px solid transparent; color: var(--mist);
+  background: var(--surf) padding-box, var(--hair) border-box; transition: transform var(--t1) var(--ease); }
+.pl-chip:active { transform: scale(.95); }
+.pl-chip svg { width: 34px; height: 34px; }
+.pl-chip b { font: 500 .82rem/1.15 var(--display); color: var(--ivory); }
+.pl-chip span { font-size: .74rem; color: var(--haze); white-space: nowrap; }
+.pl-chip i { font-style: normal; color: #ffb08a; }
+.hint { font-size: .8rem; color: var(--haze); text-align: center; }
+
+/* bottom sheet */
+.bs-back { position: fixed; inset: 0; z-index: 35; background: rgba(5,3,18,.62); opacity: 0; transition: opacity var(--t2) var(--ease); }
+.bs-back.on { opacity: 1; }
+.bsheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 36; max-width: 560px; margin: 0 auto; max-height: 84vh; overflow-y: auto; overscroll-behavior: contain;
+  padding: 10px max(20px, env(safe-area-inset-left, 0px)) calc(26px + env(safe-area-inset-bottom, 0px)); border-radius: 28px 28px 0 0;
+  border: 1px solid transparent; border-bottom: 0; background: linear-gradient(180deg, #251c5c, #100b2e) padding-box, var(--hair) border-box;
+  box-shadow: 0 -24px 60px rgba(0,0,0,.6); transform: translateY(105%); transition: transform 420ms var(--ease); }
+.bsheet.on { transform: none; }
+.bs-grip { width: 42px; height: 4px; border-radius: 4px; background: rgba(226,189,106,.4); margin: 0 auto 6px; }
+.bs-x { position: absolute; right: 12px; top: 10px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(226,189,106,.3); background: rgba(13,10,36,.6);
+  color: var(--gold); font-size: 1.2rem; line-height: 1; }
+.planet-sheet { display: grid; gap: 12px; justify-items: center; text-align: center; padding-top: 6px; }
+.planet-sheet .big { width: 112px; height: 112px; }
+.planet-sheet .where { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; color: var(--mist); }
+.planet-sheet .where b { color: var(--gold); font-weight: 600; }
+.badge { font-size: .76rem; padding: 3px 9px; border-radius: 99px; color: #ffb08a; border: 1px solid rgba(255,150,110,.5); }
+.planet-sheet p { max-width: 42ch; }
+.planet-sheet .chips { justify-content: center; }
+
+/* weekly report */
+.report { display: grid; gap: 12px; padding: 18px; border-radius: 24px; border: 1px solid transparent; position: relative;
+  background: radial-gradient(100% 80% at 100% 0%, rgba(139,108,255,.22), transparent 60%) padding-box, var(--surf) padding-box, var(--hair) border-box; box-shadow: var(--inner); }
+.report .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.report .rows div { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: rgba(13,10,36,.45); border: 1px solid rgba(226,189,106,.14); }
+.report .rows span { font-size: .76rem; color: var(--haze); }
+.report .rows b { font: 600 1.05rem var(--display); color: var(--ivory); }
+.report p { font: italic 500 1.08rem/1.35 var(--oracle); color: var(--ivory); }
+:lang(ka) .report p { font-style: normal; font-size: 1rem; }
+
+/* streak freeze */
+.frz { display: flex; gap: 8px; align-items: flex-start; font-size: .84rem; color: #bfe3ff; }
+.frz svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+.frz.off { color: var(--haze); }
+.share-btn { justify-self: center; }
+
 /* paused while the user scrolls, or while the element is off screen */
 .scrolling .la-img, .scrolling .la-shine::before, .scrolling .fog, .scrolling #astrolabe, .scrolling .pcard img, .scrolling .fan .fc,
 .scrolling #sky canvas, .scrolling .oracle img, [data-off] *, [data-off] { animation-play-state: paused !important; }
@@ -693,9 +774,19 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <p class="focus" id="focus"></p>
         <p class="affirm" id="affirm"></p>
       </div>
+      <div class="sec sky-sec" id="skySec" hidden>
+        <div class="sec-head"><h2 data-i18n="skyNow"></h2><span id="skyAt"></span></div>
+        <div class="retro" id="retro" hidden></div>
+        <button class="potd" id="potd" type="button"></button>
+        <div class="wheel-wrap"><svg id="wheel" viewBox="0 0 320 320" role="group"></svg></div>
+        <p class="hint" data-i18n="tapPlanet"></p>
+        <div class="pl-list" id="plList"></div>
+      </div>
+      <div class="report" id="report" hidden></div>
       <div class="gift" id="gift">
         <div class="gift-top"><h3 data-i18n="giftTitle"></h3><span class="muted" id="streakText"></span></div>
         <div class="pips" id="pips" aria-hidden="true"></div>
+        <p class="frz" id="frz" hidden></p>
         <button class="btn wide" id="giftBtn"></button>
       </div>
       <div class="sec"><div class="sec-head"><h2 data-i18n="secToday"></h2></div><div class="rail" id="railToday"></div></div>
@@ -897,6 +988,13 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 
 <div id="toast" role="status" aria-live="polite"></div>
 
+<div class="bs-back" id="bsBack" hidden></div>
+<section class="bsheet" id="bsheet" role="dialog" aria-modal="true" hidden>
+  <div class="bs-grip" aria-hidden="true"></div>
+  <button class="bs-x" id="bsClose" type="button">×</button>
+  <div id="bsBody"></div>
+</section>
+
 <div class="sheet" id="onboard" hidden>
   <img src="static/img/logo.webp" alt="">
   <h1 data-i18n="obTitle"></h1>
@@ -974,6 +1072,33 @@ const I18N = {
     rashi:"რაში", nakshatra:"ნაკშატრა", pada:"პადა", lagna:"ლაგნა", planet:"პლანეტა", signL:"ნიშანი", houseL:"სახლი", sunL:"მზე", moonL:"მთვარე",
     noTime:"ლაგნისა და სახლებისთვის საჭიროა დაბადების დრო და ქალაქი.", toProfile:"მიუთითე პროფილში", cityNotFound:"ქალაქი „{c}“ ვერ ვიპოვე. შეამოწმე მართლწერა პროფილში.",
     pl_sun:"მზე", pl_moon:"მთვარე", pl_mars:"მარსი", pl_mercury:"მერკური", pl_jupiter:"იუპიტერი", pl_venus:"ვენერა", pl_saturn:"სატურნი", pl_rahu:"რაჰუ", pl_ketu:"კეტუ",
+    skyNow:"ცა ახლა", skyAt:"{t}-ის მდგომარეობით", potd:"დღის პლანეტა", todayIn:"დღეს: {s} {d}°", retroL:"რეტროგრადული", retroTitle:"{p} რეტროგრადულია",
+    alsoRetro:"ასევე რეტროგრადულია: {l}", meaningL:"რას ნიშნავს", close:"დახურვა", tapPlanet:"შეეხე პლანეტას, რომ გაიგო მისი მნიშვნელობა",
+    pm_sun:"მზე შენი არსია: ვინ ხარ, რა გაძლევს ძალას და საით მიდიხარ. მისი ნიშანი აჩვენებს, რა სინათლით ანათებს ახლა სამყარო.",
+    pm_moon:"მთვარე ემოციებია: განწყობა, ინტუიცია და ის, რაც უსაფრთხოების განცდას გაძლევს. ის ნიშანს ორ-სამ დღეში ცვლის, ამიტომ ცის ყველაზე სწრაფი ამინდია.",
+    pm_mercury:"მერკური კომუნიკაციაა: საუბრები, წერილები, გზები და აზროვნება. ის გვიჩვენებს, როგორ ვფიქრობთ და როგორ ვუსმენთ ერთმანეთს.",
+    pm_venus:"ვენერა სიყვარული და ღირებულებებია: ურთიერთობები, სილამაზე, სიამოვნება და ფული. ის გვიჩვენებს, რას ვაფასებთ და რა გვიზიდავს.",
+    pm_mars:"მარსი ენერგია და მოქმედებაა: ნება, სიმამაცე, ვნება და ბრძოლა. ის გვიჩვენებს, სად გვაქვს ძალა, რომ წინ წავიდეთ.",
+    pm_jupiter:"იუპიტერი იღბალი და ზრდაა: შესაძლებლობები, სიბრძნე, მოგზაურობა და რწმენა. სადაც ის დგას, იქ ყველაფერი ფართოვდება.",
+    pm_saturn:"სატურნი დისციპლინაა: დრო, პასუხისმგებლობა, საზღვრები და მოთმინება. ის ნელა გვასწავლის, მაგრამ მისი გაკვეთილები დიდხანს რჩება.",
+    pk_sun:"არსი, ძალა, მიზანი", pk_moon:"ემოციები, ინტუიცია, სახლი", pk_mercury:"საუბარი, აზრი, გზა", pk_venus:"სიყვარული, სილამაზე, ფასეულობები",
+    pk_mars:"ენერგია, მოქმედება, სიმამაცე", pk_jupiter:"იღბალი, ზრდა, სიბრძნე", pk_saturn:"დისციპლინა, დრო, მოთმინება",
+    pt_sun:"დღეს გამოჩნდი: გააკეთე ის, რითაც ამაყობ, და ნუ დაიმალები.", pt_moon:"მოუსმინე გრძნობებს და აჩუქე თავს მშვიდი საღამო.",
+    pt_mercury:"დაწერე ის წერილი ან დარეკე ის ზარი. სიტყვები დღეს ადვილად პოულობენ გზას.", pt_venus:"გააკეთე რამე ლამაზი შენთვის ან ძვირფასი ადამიანისთვის.",
+    pt_mars:"დაიწყე ის, რასაც დიდხანს აჭიანურებდი. პირველი ნაბიჯი ყველაზე ძლიერია.", pt_jupiter:"უთხარი „კი“ ახალ შესაძლებლობას და გაუზიარე იღბალი სხვებს.",
+    pt_saturn:"დაასრულე ერთი საქმე ბოლომდე. მოთმინება დღეს შენი ძალაა.",
+    rx_mercury:"გადაამოწმე წერილები, ბილეთები და გეგმები. კარგი დროა დაუმთავრებელ საქმეებთან დასაბრუნებლად.",
+    rx_venus:"ნუ იჩქარებ დიდ ხარჯებსა და ახალ ურთიერთობებში. გადახედე, რას აფასებ სინამდვილეში.",
+    rx_mars:"ენერგია შიგნით მიედინება: დაგეგმე, სანამ იმოქმედებ, და აარიდე თავი ზედმეტ კამათს.",
+    rx_jupiter:"ზრდა ახლა შინაგანია: სწავლა და ფიქრი უფრო მეტს მოგცემს, ვიდრე ახალი რისკი.",
+    rx_saturn:"დროა გადახედო ძველ ვალდებულებებს და გამართო საზღვრები.",
+    frzReady:"სერიის დაცვა მზადაა: ერთი გამოტოვებული დღე ამ კვირაში სერიას არ გაანულებს.",
+    frzSaving:"გუშინ გამოტოვე, მაგრამ დაცვა სერიას შეგინარჩუნებს. აიღე დღევანდელი საჩუქარი.",
+    frzUsed:"ამ კვირის დაცვა გამოყენებულია. ახალი ორშაბათს გამოჩნდება.", frzToast:"სერია გადარჩა!",
+    repTitle:"კვირის ცის ანგარიში", repMoonL:"მთვარე", repRetroL:"რეტროგრადული", repNone:"არცერთი", repStreakL:"შენი სერია", repDays:"{n} დღე",
+    repDoneL:"პრაქტიკა 7 დღეში", repWax:"მთვარე იზრდება: კარგი კვირაა დასაწყებად და ახალი ჩანაფიქრებისთვის.",
+    repWane:"მთვარე კლებულობს: კარგი კვირაა დასასრულებლად და ზედმეტისგან გასათავისუფლებლად.",
+    shareStory:"ისტორიაში გაზიარება", shareMaking:"ბარათს ვამზადებ…", shareSaved:"სურათი შენახულია",
     ab_sun:"მზ", ab_moon:"მთ", ab_mars:"მა", ab_mercury:"მე", ab_jupiter:"იუ", ab_venus:"ვე", ab_saturn:"სა", ab_rahu:"რა", ab_ketu:"კე",
     birthData:"დაბადების მონაცემები", birthTime:"დაბადების დრო (არასავალდებულო)", birthCity:"დაბადების ქალაქი (არასავალდებულო)", birthCityPh:"მაგ. თბილისი",
     birthHint:"დრო და ქალაქი კუნდლისთვის გვჭირდება: ლაგნასა და სახლებს ზუსტად ისინი განსაზღვრავს."
@@ -1036,6 +1161,33 @@ const I18N = {
     rashi:"Rashi", nakshatra:"Nakshatra", pada:"pada", lagna:"Lagna", planet:"Planet", signL:"Sign", houseL:"House", sunL:"Sun", moonL:"Moon",
     noTime:"The lagna and houses need your birth time and city.", toProfile:"Add them in Profile", cityNotFound:"Couldn't find the city “{c}”. Check the spelling in Profile.",
     pl_sun:"Sun", pl_moon:"Moon", pl_mars:"Mars", pl_mercury:"Mercury", pl_jupiter:"Jupiter", pl_venus:"Venus", pl_saturn:"Saturn", pl_rahu:"Rahu", pl_ketu:"Ketu",
+    skyNow:"Sky now", skyAt:"as of {t}", potd:"Planet of the day", todayIn:"Today: {s} {d}°", retroL:"retrograde", retroTitle:"{p} is retrograde",
+    alsoRetro:"Also retrograde: {l}", meaningL:"What it means", close:"Close", tapPlanet:"Tap a planet to learn what it means",
+    pm_sun:"The Sun is your core: who you are, what gives you strength and where you are heading. Its sign shows the light the whole world shines with right now.",
+    pm_moon:"The Moon is emotion: mood, intuition and what makes you feel safe. It changes sign every two or three days, the fastest weather in the sky.",
+    pm_mercury:"Mercury is communication: conversations, messages, travel and thinking. It shows how we think and how we listen to each other.",
+    pm_venus:"Venus is love and values: relationships, beauty, pleasure and money. It shows what we treasure and what attracts us.",
+    pm_mars:"Mars is energy and action: will, courage, passion and drive. It shows where we find the strength to move forward.",
+    pm_jupiter:"Jupiter is luck and growth: opportunity, wisdom, travel and faith. Wherever it stands, things expand.",
+    pm_saturn:"Saturn is discipline: time, responsibility, boundaries and patience. It teaches slowly, but its lessons last.",
+    pk_sun:"identity, vitality, purpose", pk_moon:"emotions, intuition, home", pk_mercury:"talk, mind, travel", pk_venus:"love, beauty, values",
+    pk_mars:"energy, action, courage", pk_jupiter:"luck, growth, wisdom", pk_saturn:"discipline, time, patience",
+    pt_sun:"Today, be seen: do the thing you are proud of and don't hide.", pt_moon:"Listen to your feelings and give yourself a quiet evening.",
+    pt_mercury:"Send that message or make that call. Words find their way easily today.", pt_venus:"Do something beautiful for yourself or someone you love.",
+    pt_mars:"Start what you have been putting off. The first step is the strongest.", pt_jupiter:"Say yes to a new opportunity and share your luck.",
+    pt_saturn:"Finish one task completely. Patience is your strength today.",
+    rx_mercury:"Double-check messages, tickets and plans. A good time to return to unfinished things.",
+    rx_venus:"Don't rush big purchases or new romances. Revisit what you truly value.",
+    rx_mars:"Energy turns inward: plan before you act and avoid needless fights.",
+    rx_jupiter:"Growth turns inward: learning and reflection give more than new risks.",
+    rx_saturn:"Time to review old commitments and set your boundaries right.",
+    frzReady:"Streak freeze ready: one missed day this week won't reset your streak.",
+    frzSaving:"You missed yesterday, but the freeze keeps your streak. Claim today's gift.",
+    frzUsed:"This week's freeze is used. A new one comes on Monday.", frzToast:"Streak saved!",
+    repTitle:"Weekly sky report", repMoonL:"Moon", repRetroL:"Retrograde", repNone:"none", repStreakL:"Your streak", repDays:"{n} days",
+    repDoneL:"Practices in 7 days", repWax:"The Moon is growing: a good week to begin and plant new intentions.",
+    repWane:"The Moon is waning: a good week to finish things and let go of what's extra.",
+    shareStory:"Share to story", shareMaking:"Preparing the card…", shareSaved:"Image saved",
     ab_sun:"Su", ab_moon:"Mo", ab_mars:"Ma", ab_mercury:"Me", ab_jupiter:"Ju", ab_venus:"Ve", ab_saturn:"Sa", ab_rahu:"Ra", ab_ketu:"Ke",
     birthData:"Birth details", birthTime:"Birth time (optional)", birthCity:"Birth city (optional)", birthCityPh:"e.g. Tbilisi",
     birthHint:"Time and city are used for your kundli: they fix the lagna and the houses."
@@ -1098,6 +1250,33 @@ const I18N = {
     rashi:"Раши", nakshatra:"Накшатра", pada:"пада", lagna:"Лагна", planet:"Планета", signL:"Знак", houseL:"Дом", sunL:"Солнце", moonL:"Луна",
     noTime:"Для лагны и домов нужны время и город рождения.", toProfile:"Укажи их в профиле", cityNotFound:"Город «{c}» не найден. Проверь написание в профиле.",
     pl_sun:"Солнце", pl_moon:"Луна", pl_mars:"Марс", pl_mercury:"Меркурий", pl_jupiter:"Юпитер", pl_venus:"Венера", pl_saturn:"Сатурн", pl_rahu:"Раху", pl_ketu:"Кету",
+    skyNow:"Небо сейчас", skyAt:"на {t}", potd:"Планета дня", todayIn:"Сегодня: {s} {d}°", retroL:"ретроградный", retroTitle:"{p} в ретрограде",
+    alsoRetro:"Также в ретрограде: {l}", meaningL:"Что означает", close:"Закрыть", tapPlanet:"Нажми на планету, чтобы узнать её значение",
+    pm_sun:"Солнце — это твоя суть: кто ты, что даёт тебе силу и куда ты идёшь. Его знак показывает, каким светом сейчас светит мир.",
+    pm_moon:"Луна — это эмоции: настроение, интуиция и то, что даёт чувство безопасности. Она меняет знак каждые два-три дня: это самая быстрая погода на небе.",
+    pm_mercury:"Меркурий — это общение: разговоры, сообщения, поездки и мышление. Он показывает, как мы думаем и как слушаем друг друга.",
+    pm_venus:"Венера — это любовь и ценности: отношения, красота, удовольствие и деньги. Она показывает, что мы ценим и что нас притягивает.",
+    pm_mars:"Марс — это энергия и действие: воля, смелость, страсть и напор. Он показывает, где у нас есть сила идти вперёд.",
+    pm_jupiter:"Юпитер — это удача и рост: возможности, мудрость, путешествия и вера. Там, где он стоит, всё расширяется.",
+    pm_saturn:"Сатурн — это дисциплина: время, ответственность, границы и терпение. Он учит медленно, но его уроки остаются надолго.",
+    pk_sun:"суть, сила, цель", pk_moon:"эмоции, интуиция, дом", pk_mercury:"общение, разум, дорога", pk_venus:"любовь, красота, ценности",
+    pk_mars:"энергия, действие, смелость", pk_jupiter:"удача, рост, мудрость", pk_saturn:"дисциплина, время, терпение",
+    pt_sun:"Сегодня будь заметным: сделай то, чем гордишься, и не прячься.", pt_moon:"Прислушайся к чувствам и подари себе тихий вечер.",
+    pt_mercury:"Напиши то сообщение или позвони. Слова сегодня легко находят дорогу.", pt_venus:"Сделай что-то красивое для себя или для близкого человека.",
+    pt_mars:"Начни то, что давно откладывал. Первый шаг самый сильный.", pt_jupiter:"Скажи «да» новой возможности и поделись удачей с другими.",
+    pt_saturn:"Доведи одно дело до конца. Терпение сегодня твоя сила.",
+    rx_mercury:"Перепроверь сообщения, билеты и планы. Хорошее время вернуться к незаконченному.",
+    rx_venus:"Не спеши с крупными покупками и новыми романами. Пересмотри, что ты действительно ценишь.",
+    rx_mars:"Энергия уходит внутрь: планируй, прежде чем действовать, и избегай лишних споров.",
+    rx_jupiter:"Рост сейчас внутренний: учёба и размышления дадут больше, чем новый риск.",
+    rx_saturn:"Время пересмотреть старые обязательства и выстроить границы.",
+    frzReady:"Заморозка серии готова: один пропущенный день на этой неделе не обнулит серию.",
+    frzSaving:"Вчера ты пропустил день, но заморозка сохранит серию. Забери сегодняшний подарок.",
+    frzUsed:"Заморозка на этой неделе использована. Новая появится в понедельник.", frzToast:"Серия спасена!",
+    repTitle:"Небесный отчёт недели", repMoonL:"Луна", repRetroL:"Ретроградные", repNone:"нет", repStreakL:"Твоя серия", repDays:"{n} дн.",
+    repDoneL:"Практик за 7 дней", repWax:"Луна растёт: хорошая неделя, чтобы начинать и загадывать новое.",
+    repWane:"Луна убывает: хорошая неделя, чтобы завершать дела и отпускать лишнее.",
+    shareStory:"Поделиться в истории", shareMaking:"Готовлю карточку…", shareSaved:"Изображение сохранено",
     ab_sun:"Су", ab_moon:"Лу", ab_mars:"Ма", ab_mercury:"Ме", ab_jupiter:"Юп", ab_venus:"Ве", ab_saturn:"Са", ab_rahu:"Ра", ab_ketu:"Ке",
     birthData:"Данные рождения", birthTime:"Время рождения (необязательно)", birthCity:"Город рождения (необязательно)", birthCityPh:"напр. Тбилиси",
     birthHint:"Время и город нужны для кундли: они определяют лагну и дома."
@@ -1597,7 +1776,8 @@ const Demo = (() => {
       interpretation: "სიზმარი გეუბნება, რომ მზად ხარ ახალი ეტაპისთვის. წყლის ხმა ემოციებს ნიშნავს, რომლებიც თავისუფლად მოედინება.", advice: "გადადგი პირველი ნაბიჯი იმ კარისკენ, რომელიც ყველაზე მეტად გიზიდავს.", tags: ["სახლი", "ცვლილება"] }] };
   const profile = () => { const u = db.user, sign = u.birth_date ? signOf(u.birth_date) : null;
     return { ...u, lang: S.lang, sign: sign && { id: sign, name: sname(sign), element: ELEMENT[sign] }, life_path: u.birth_date ? lifePath(u.birth_date) : null,
-      needs_onboarding: !u.birth_date, referral_link: "https://t.me/astrogm2026bot/app?startapp=ref_777" }; };
+      needs_onboarding: !u.birth_date, referral_link: "https://t.me/astrogm2026bot/app?startapp=ref_777",
+      streak_freeze: { ready: !db.frozen, saving: !db.frozen && new URLSearchParams(location.search).has("missed") && u.daily_reward_available } }; };
   const reward = (n) => { db.user.coins += n; return { coins_earned: n, balance: db.user.coins }; };
   const ECON = { daily_reward: 50, action_rewards: { horoscope_day: 20, horoscope_week: 20, horoscope_month: 20, tarot: 50, dream: 50, numerology: 35, sphere: 25,
       compatibility: 100, moon: 70, advisor: 50, aura: 60, coffee: 50, kundli: 100 },
@@ -1722,7 +1902,8 @@ const Demo = (() => {
     if (p === "/api/user/profile" && method === "PATCH") { Object.assign(db.user, body); await wait(250); return { user: profile() }; }
     if (p === "/api/user/daily-reward") { await wait(400);
       if (!db.user.daily_reward_available) throw new ApiError(409, "already_claimed");
-      db.user.daily_reward_available = false; db.user.streak += 1; const r = reward(50); return { ok: true, reward: { ...r, streak: db.user.streak } }; }
+      const fz = !db.frozen && new URLSearchParams(location.search).has("missed"); if (fz) db.frozen = true;
+      db.user.daily_reward_available = false; db.user.streak += 1; const r = reward(50); return { ok: true, reward: { ...r, streak: db.user.streak, freeze_used: fz } }; }
     if (p === "/api/daily/energy") { await wait(500); const T = tx(), d = todayIso(), sign = profile().sign;
       const nums = []; let h = hash("777" + d); while (nums.length < 3) { const n = (h % 49) + 1; if (!nums.includes(n)) nums.push(n); h = hash(String(h)); }
       return { date: d, sign, moon: moonNow(), lucky_numbers: nums.sort((a, b) => a - b), quote: pick(T.quotes, d), affirmation: pick(T.affirm, d + "a"), focus: pick(T.focus, d + "f") }; }
@@ -1820,6 +2001,11 @@ const Demo = (() => {
           navamsa: "In the navamsa the Moon sits in its own sign: steady feelings, with family as a source of strength.", dasha: "You are in the Venus mahadasha and the Saturn antardasha: a time of love and beauty that also asks for patience and work.",
           strengths: ["willpower", "intuition", "generosity"], challenges: ["stubbornness", "emotional withdrawal"], advice: "Use your strength to support others, not to overrule them." };
       return { chart, reading, city_not_found: false, reward: limited("kundli", 100, 1) }; }
+    if (p === "/api/sky") { await wait(300); const m = moonNow();   // sample positions; the real ones come from the server
+      const pl = [["sun", 201.6], ["moon", 268.4], ["mercury", 214.2, true], ["venus", 175.9], ["mars", 252.3], ["jupiter", 113.7], ["saturn", 359.1, true]]
+        .map(([id, lon, retro]) => ({ id, lon, sign: SIGNS[Math.floor(lon / 30)], degree: +(lon % 30).toFixed(1), retro: !!retro }));
+      return { at: new Date(Math.floor(Date.now() / 36e5) * 36e5).toISOString(), planets: pl, moon: { code: m.code, illumination: m.illumination, age_days: m.age_days, phase: m.age_days / 29.53 },
+        planet_of_day: DAY_RULER[new Date().getDay()], retrograde: pl.filter((x) => x.retro).map((x) => x.id), week: { practices: 9, streak: db.user.streak, freeze_ready: !db.frozen } }; }
     if (p === "/api/dreams" && method === "GET") return { total: db.dreams.length, items: db.dreams };
     if (p.startsWith("/api/dreams/") && method === "DELETE") { const id = +p.split("/").pop(); db.dreams = db.dreams.filter((d) => d.id !== id); return { ok: true }; }
     throw new ApiError(404, "not_found");
@@ -1913,6 +2099,7 @@ async function loadHome() {
   const card = $("#heroCard"); card.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[sign]]); if (card._sign !== sign) { card.querySelectorAll(".la-stage, .la-dots").forEach((n) => n.remove()); livingArt(card, sign); card._sign = sign; }
   $("#heroHoro").onclick = (e) => { e.stopPropagation(); S.sign = own || sign; openHoro("day"); };
   renderGift(); renderPractices();
+  api("GET", "/api/sky").then(renderSky).then(() => renderReport(S.sky)).catch(() => { $("#skySec").hidden = true; });
   try { const e = await api("GET", "/api/daily/energy");
     if (e.moon) { S.moon = { ...S.moon, ...e.moon, name: MOON_NAMES[e.moon.code] ? MOON_NAMES[e.moon.code][S.lang] : e.moon.name }; }
     $("#quote").textContent = e.quote; $("#affirm").textContent = e.affirmation;
@@ -1945,10 +2132,14 @@ function renderGift() {
   $("#streakText").textContent = t("streak", { n: streak });
   $("#pips").replaceChildren(...Array.from({ length: 7 }, (_, i) => { const p = el("i"); if (i < streak % 7 || (streak && streak % 7 === 0)) p.className = "on"; return p; }));
   btn.disabled = !avail; btn.textContent = avail ? t("giftBtn", { n: (S.economy && S.economy.daily_reward) || 50 }) : t("giftDone");
+  const f = u.streak_freeze, frz = $("#frz"); frz.hidden = !f;
+  if (f) { frz.className = "frz" + (f.ready ? "" : " off"); frz.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2.5L15 4M9 20l3-2.5 3 2.5"/></svg>'; frz.append(t(f.saving && avail ? "frzSaving" : f.ready ? "frzReady" : "frzUsed")); }
 }
 $("#giftBtn").addEventListener("click", async () => {
   const b = $("#giftBtn"); b.disabled = true;
-  try { const r = await api("POST", "/api/user/daily-reward"); S.user.daily_reward_available = false; S.user.streak = r.reward.streak; }
+  try { const r = await api("POST", "/api/user/daily-reward"); S.user.daily_reward_available = false; S.user.streak = r.reward.streak;
+    if (S.user.streak_freeze) S.user.streak_freeze = { ready: S.user.streak_freeze.ready && !r.reward.freeze_used, saving: false };
+    if (r.reward.freeze_used) setTimeout(() => toast(t("frzToast")), 2700); }
   catch (e) { if (e.code === "already_claimed") S.user.daily_reward_available = false; else { showError(e); b.disabled = false; return; } }
   renderGift();
 });
@@ -1980,7 +2171,9 @@ function renderHoro(out, r) {
   const areas = el("div", "areas");
   for (const a of h.sections) { const w = el("div", "area"), head = el("div", "area-head"); head.append(el("b", null, t(a.area)), stars(a.score)); w.append(head, el("p", null, a.text)); areas.append(w); }
   const chips = el("div", "chips"); chips.append(el("span", "chip", `${t("luckyColor")}: ${h.lucky_color}`), el("span", "chip", `${t("mood")}: ${h.mood}`));
-  root.append(areas, chips, el("p", "advice", h.advice)); out.replaceChildren(root);
+  root.append(areas, chips, el("p", "advice", h.advice), shareButton("horoscope", { label: `${t("p" + S.period[0].toUpperCase() + S.period.slice(1))} · ${t("horoTitle")}`,
+    images: [(ART[s] || [])[0]].filter(Boolean), title: sname(s), subtitle: h.title, text: h.advice }));
+  out.replaceChildren(root);
 }
 
 /* ═════════════ TAROT ═════════════ */
@@ -2045,7 +2238,10 @@ function renderTarotText(out, r) {
     if (c.reversed) h.append(el("small", null, t("reversed"))); const chips = el("div", "chips"); (c.keywords || []).forEach((k) => chips.append(el("span", "chip", k)));
     w.append(el("span", "label", t(c.position) || c.position), h, chips, el("p", null, c.interpretation)); return w; });
   const synth = el("div", "card-read"); synth.append(el("span", "label", t("message")), el("p", "synth", r.synthesis));
-  out.replaceChildren(...items, synth, el("p", "advice", r.advice));
+  const one = r.cards.length === 1, c0 = r.cards[0];
+  out.replaceChildren(...items, synth, el("p", "advice", r.advice), shareButton("tarot", { label: one ? t("cardOfDay") : t("message"), shape: "card",
+    images: r.cards.map((c) => TAROT_IMG[c.id]).filter(Boolean), title: one ? (c0.title || c0.name) : r.cards.map((c) => c.title || c.name).join(" · "),
+    subtitle: one ? (c0.keywords || []).join(" · ") : "", text: r.synthesis || r.advice }));
 }
 
 /* ═════════════ DREAMS ═════════════ */
@@ -2117,6 +2313,197 @@ async function askSphere() {
 }
 $("#sphereBtn").addEventListener("click", askSphere);
 $("#ball").addEventListener("click", askSphere);
+
+
+/* ═════════════ LIVE SKY ═════════════
+   Real positions from /api/sky (astronomy-engine on the server, tropical zodiac like the horoscopes).
+   Planet icons are drawn here as engraved gold SVG: no image files, no text inside the art. */
+const PLANET_IDS = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"];
+const DAY_RULER = ["sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn"];   // by Date.getDay()
+const PLANET_TINT = { sun: ["#fff3c4", "#e2bd6a"], moon: ["#f4ecd8", "#b9a7ff"], mercury: ["#eef2f8", "#97a3c2"], venus: ["#fdf0da", "#e8b98a"],
+  mars: ["#ffb08a", "#d9533a"], jupiter: ["#f6e2bd", "#c9955a"], saturn: ["#f4e6bd", "#c8a160"] };
+let svgUid = 0;
+/* lit part of a disc of radius r for phase p (0 new, .5 full): outer half-circle + terminator half-ellipse */
+function moonPath(cx, cy, r, p) {
+  const k = Math.cos(2 * Math.PI * p), rx = Math.abs(r * k).toFixed(2), top = `${cx} ${cy - r}`, bot = `${cx} ${cy + r}`;
+  return p <= .5 ? `M${top} A${r} ${r} 0 0 1 ${bot} A${rx} ${r} 0 0 ${k > 0 ? 0 : 1} ${top}Z`
+    : `M${top} A${r} ${r} 0 0 0 ${bot} A${rx} ${r} 0 0 ${k > 0 ? 1 : 0} ${top}Z`;
+}
+/* inner markup of a 40×40 planet icon */
+function planetArt(id, phase = .5) {
+  const u = "pg" + (++svgUid), [hi, lo] = PLANET_TINT[id];
+  let out = `<defs><radialGradient id="${u}" cx="36%" cy="32%" r="72%"><stop offset="0" stop-color="${hi}"/><stop offset="1" stop-color="${lo}"/></radialGradient>
+    <radialGradient id="${u}h"><stop offset="0" stop-color="${lo}" stop-opacity=".5"/><stop offset="1" stop-color="${lo}" stop-opacity="0"/></radialGradient>
+    <clipPath id="${u}c"><circle cx="20" cy="20" r="8.5"/></clipPath></defs>
+    <circle cx="20" cy="20" r="19.5" fill="url(#${u}h)"/>
+    <circle cx="20" cy="20" r="${id === "sun" ? 16.5 : 12.5}" fill="none" stroke="#e2bd6a" stroke-width=".55" stroke-opacity=".75"/>`;
+  if (id === "sun") {
+    out += `<g stroke="#e2bd6a" stroke-width=".9" stroke-linecap="round">` + Array.from({ length: 16 }, (_, i) => { const a = i * Math.PI / 8, c = Math.cos(a), s = Math.sin(a), L = i % 2 ? 12.4 : 14.8;
+      return `<line x1="${(20 + c * 9.6).toFixed(2)}" y1="${(20 + s * 9.6).toFixed(2)}" x2="${(20 + c * L).toFixed(2)}" y2="${(20 + s * L).toFixed(2)}"/>`; }).join("") + `</g>
+      <circle cx="20" cy="20" r="7.6" fill="url(#${u})"/><circle cx="20" cy="20" r="1.5" fill="#7a5520"/>`;
+  } else if (id === "moon") {
+    out += `<circle cx="20" cy="20" r="9" fill="#1c1546" stroke="#e2bd6a" stroke-width=".5" stroke-opacity=".7"/><path d="${moonPath(20, 20, 9, phase)}" fill="url(#${u})"/>`;
+  } else if (id === "saturn") {
+    out += `<path d="M6.5 23 A13.6 4.4 -16 0 1 33.5 17" fill="none" stroke="#c8a160" stroke-width="1.1"/><circle cx="20" cy="20" r="7.4" fill="url(#${u})"/>
+      <path d="M33.5 17 A13.6 4.4 -16 0 1 6.5 23" fill="none" stroke="#f0d28e" stroke-width="1.4"/>`;
+  } else if (id === "jupiter") {
+    out += `<circle cx="20" cy="20" r="8.5" fill="url(#${u})"/><g clip-path="url(#${u}c)" stroke="#8a5a2c" stroke-opacity=".5">
+      <line x1="10" y1="16.5" x2="30" y2="16.5" stroke-width="1.4"/><line x1="10" y1="20.5" x2="30" y2="20.5" stroke-width=".8"/><line x1="10" y1="24" x2="30" y2="24" stroke-width="1.1"/></g>
+      <ellipse cx="23.2" cy="22.6" rx="1.7" ry="1" fill="#a0522d" fill-opacity=".65"/>`;
+  } else {
+    const r = id === "mercury" ? 5.6 : id === "venus" ? 7.2 : 6.6;
+    out += `<circle cx="20" cy="20" r="${r}" fill="url(#${u})"/>` + (id === "mars" ? `<circle cx="17.6" cy="18.2" r="1.2" fill="#8c2a17" fill-opacity=".5"/><circle cx="22.2" cy="22.4" r=".8" fill="#8c2a17" fill-opacity=".45"/>` : "");
+  }
+  return out + `<circle cx="32" cy="8.5" r=".7" fill="#f0d28e"/><circle cx="8" cy="31.5" r=".55" fill="#f0d28e"/>`;
+}
+const planetSvg = (id, phase) => `<svg viewBox="0 0 40 40" aria-hidden="true">${planetArt(id, phase)}</svg>`;
+const pname = (id) => t("pl_" + id);
+
+function renderSky(r) {
+  S.sky = r; const sec = $("#skySec"); sec.hidden = false;
+  const at = new Date(r.at); $("#skyAt").textContent = t("skyAt", { t: `${String(at.getHours()).padStart(2, "0")}:00` });
+  const P = Object.fromEntries(r.planets.map((p) => [p.id, p])), phase = r.moon ? r.moon.phase : .5;
+  // retrograde banner (Mercury first, it matters most in daily life)
+  const rx = ["mercury", "venus", "mars", "jupiter", "saturn"].filter((id) => P[id] && P[id].retro), ban = $("#retro");
+  ban.hidden = !rx.length;
+  if (rx.length) { ban.replaceChildren(el("span", "rx", "℞"), el("b", null, t("retroTitle", { p: pname(rx[0]) })), el("p", null, t("rx_" + rx[0])));
+    if (rx.length > 1) ban.append(el("small", null, t("alsoRetro", { l: rx.slice(1).map(pname).join(", ") }))); }
+  // planet of the day: the traditional ruler of today's weekday (local time)
+  const pid = DAY_RULER[new Date().getDay()], pd = $("#potd"), p0 = P[pid];
+  pd.style.setProperty("--pc", PLANET_TINT[pid][1]);
+  const orbit = el("div", "orbit"); orbit.innerHTML = planetSvg(pid, phase);
+  const txt = el("div"); txt.append(el("span", "label", t("potd")), el("h3", null, `${pname(pid)} · ${g(p0.sign)} ${sname(p0.sign)}`), el("p", null, t("pt_" + pid)));
+  pd.replaceChildren(orbit, txt); pd.onclick = () => openPlanet(pid);
+  renderWheel(r.planets, phase, pid);
+  $("#plList").replaceChildren(...PLANET_IDS.filter((id) => P[id]).map((id) => { const p = P[id], b = el("button", "pl-chip"); b.type = "button";
+    b.innerHTML = planetSvg(id, phase); const where = el("span", null, `${g(p.sign)} ${Math.floor(p.degree)}°`); if (p.retro) where.append(" ", el("i", null, "℞"));
+    b.append(el("b", null, pname(id)), where); b.setAttribute("aria-label", `${pname(id)}: ${sname(p.sign)} ${Math.floor(p.degree)}°`);
+    b.addEventListener("click", () => openPlanet(id)); return b; }));
+}
+
+/* the zodiac wheel: Aries at nine o'clock, signs counter-clockwise as in a chart; planets sit at their real longitude */
+function renderWheel(planets, phase, today) {
+  const c = 160, R1 = 152, R2 = 126, R3 = 102, rad = Math.PI / 180;
+  const at = (lon, r) => [+(c - r * Math.cos(lon * rad)).toFixed(2), +(c + r * Math.sin(lon * rad)).toFixed(2)];
+  let svg = `<circle class="wr" cx="${c}" cy="${c}" r="${R1}"/><circle class="wr" cx="${c}" cy="${c}" r="${R2}"/><circle class="wr d" cx="${c}" cy="${c}" r="${R3}"/>`;
+  for (let d = 0; d < 360; d += 5) { const [x1, y1] = at(d, R1), [x2, y2] = at(d, d % 30 ? R1 - 4 : R1 - 9); svg += `<line class="tk" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`; }
+  SIGNS.forEach((s, i) => { const [x1, y1] = at(i * 30, R2), [x2, y2] = at(i * 30, R3), [gx, gy] = at(i * 30 + 15, (R1 + R2) / 2);
+    svg += `<line class="sp" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><text class="gl" x="${gx}" y="${gy}">${GLYPH[s]}&#xFE0E;</text>`; });
+  // place planets; neighbours closer than 11° alternate between two radii so the icons don't overlap
+  const sorted = [...planets].sort((a, b) => a.lon - b.lon); let prev = null, lane = 0;
+  for (const p of sorted) { lane = prev != null && Math.abs(p.lon - prev) < 24 ? (lane + 1) % 2 : 0; prev = p.lon; p._r = lane ? 54 : 80; }
+  for (const p of sorted) { const [dx, dy] = at(p.lon, R3), [px, py] = at(p.lon, p._r), sz = p.id === "sun" || p.id === "saturn" ? 34 : 30;
+    svg += `<line class="lead" x1="${dx}" y1="${dy}" x2="${px}" y2="${py}"/><circle class="dot" cx="${dx}" cy="${dy}" r="1.6"/>
+      <g class="pl${p.id === today ? " today" : ""}" data-id="${p.id}" tabindex="0" role="button" aria-label="${pname(p.id)}: ${sname(p.sign)} ${Math.floor(p.degree)}°">
+      <circle class="ring" cx="${px}" cy="${py}" r="${sz / 2 + 3}"/><svg x="${px - sz / 2}" y="${py - sz / 2}" width="${sz}" height="${sz}" viewBox="0 0 40 40">${planetArt(p.id, phase)}</svg></g>`; }
+  svg += `<path class="core" d="M160 150 162.6 157.4 170 160 162.6 162.6 160 170 157.4 162.6 150 160 157.4 157.4Z"/><circle class="wr" cx="${c}" cy="${c}" r="20"/>`;
+  const w = $("#wheel"); w.innerHTML = svg; w.setAttribute("aria-label", t("skyNow"));
+}
+$("#wheel").addEventListener("click", (e) => { const g0 = e.target.closest(".pl"); if (g0) openPlanet(g0.dataset.id); });
+$("#wheel").addEventListener("keydown", (e) => { const g0 = e.target.closest(".pl"); if (g0 && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openPlanet(g0.dataset.id); } });
+
+function openPlanet(id) {
+  const p = S.sky && S.sky.planets.find((x) => x.id === id); if (!p) return;
+  const box = el("div", "planet-sheet"), big = el("div", "big"); big.innerHTML = planetSvg(id, S.sky.moon ? S.sky.moon.phase : .5);
+  const where = el("div", "where"); where.append(el("b", null, t("todayIn", { s: `${g(p.sign)} ${sname(p.sign)}`, d: p.degree.toFixed(1) })));
+  if (p.retro) where.append(el("span", "badge", `℞ ${t("retroL")}`));
+  const chips = el("div", "chips"); t("pk_" + id).split(",").forEach((k) => chips.append(el("span", "chip", k.trim())));
+  box.append(big, el("h2", null, pname(id)), where, chips, el("span", "label", t("meaningL")), el("p", null, t("pm_" + id)));
+  if (p.retro && t("rx_" + id) !== "rx_" + id) box.append(el("p", "note", t("rx_" + id)));
+  Sheet.open(box, pname(id));
+}
+
+const Sheet = {
+  open(node, label) { const sh = $("#bsheet"), bk = $("#bsBack"); $("#bsBody").replaceChildren(node); sh.setAttribute("aria-label", label || "");
+    $("#bsClose").setAttribute("aria-label", t("close")); sh.hidden = false; bk.hidden = false; void sh.offsetWidth;
+    sh.classList.add("on"); bk.classList.add("on"); sh.scrollTop = 0; S.sheetOpen = true; haptic.tap(); try { tg.BackButton.show(); } catch {}
+    setTimeout(() => $("#bsClose").focus({ preventScroll: true }), 50); },
+  close() { if (!S.sheetOpen) return; S.sheetOpen = false; const sh = $("#bsheet"), bk = $("#bsBack"); sh.classList.remove("on"); bk.classList.remove("on");
+    setTimeout(() => { if (!S.sheetOpen) { sh.hidden = true; bk.hidden = true; } }, 430); try { if (!SUB_VIEWS.includes(S.view)) tg.BackButton.hide(); } catch {} }
+};
+$("#bsClose").addEventListener("click", () => Sheet.close());
+$("#bsBack").addEventListener("click", () => Sheet.close());
+addEventListener("keydown", (e) => { if (e.key === "Escape") Sheet.close(); });
+
+/* weekly sky report: Sunday and Monday (?report=1 shows it any day in the demo) */
+function renderReport(r) {
+  const box = $("#report"), day = new Date().getDay(), force = S.demo && new URLSearchParams(location.search).has("report");
+  if (!(day === 0 || day === 1 || force) || !r.week) { box.hidden = true; return; }
+  const m = r.moon || {}, rx = r.retrograde || [], rows = el("div", "rows");
+  const cell = (label, value) => { const d = el("div"); d.append(el("span", null, label), el("b", null, value)); return d; };
+  rows.append(cell(t("repMoonL"), `${MOON_NAMES[m.code] ? MOON_NAMES[m.code][S.lang] : ""} · ${m.illumination ?? "–"}%`),
+    cell(t("repRetroL"), rx.length ? rx.map(pname).join(", ") : t("repNone")),
+    cell(t("repStreakL"), t("repDays", { n: r.week.streak })), cell(t("repDoneL"), String(r.week.practices)));
+  const waxing = (m.phase ?? .25) < .5;
+  box.replaceChildren(el("span", "label", t("repTitle")), rows, el("p", null, t(waxing ? "repWax" : "repWane")));
+  box.hidden = false;
+}
+
+/* ═════════════ STORY CARD ═════════════
+   A 1080×1920 card drawn on a canvas: text-free art + localized text. Telegram mobile: uploaded for a short-lived
+   public link and opened in shareToStory. Elsewhere: system share sheet, Telegram download, or a plain download. */
+function loadImage(src) { return new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
+function wrapLines(x, text, maxW, maxLines) {
+  const words = String(text || "").split(/\s+/), lines = []; let line = "";
+  for (const w of words) { const test = line ? line + " " + w : w; if (x.measureText(test).width > maxW && line) { lines.push(line); line = w; if (lines.length === maxLines) break; } else line = test; }
+  if (lines.length < maxLines && line) lines.push(line);
+  if (lines.length === maxLines && words.join(" ").length > lines.join(" ").length) lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, "") + "…";
+  return lines;
+}
+async function storyCard(kind, data) {
+  const W = 1080, H = 1920, c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+  const serif = `"Cormorant", "Noto Serif Georgian", Georgia, serif`, sans = `"Manrope", "Noto Sans Georgian", system-ui, sans-serif`;
+  try { await Promise.all([`600 80px ${serif}`, `italic 500 50px ${serif}`, `500 40px ${sans}`, `700 34px ${sans}`].map((f) => document.fonts.load(f, data.title || "Astro"))); } catch {}
+  const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#0d0a24"); bg.addColorStop(.55, "#1b1450"); bg.addColorStop(1, "#0d0a24"); x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  const r = rng(hashStr(kind + (data.title || ""))); for (let i = 0; i < 420; i++) { x.globalAlpha = .2 + r() * .7; x.fillStyle = r() < .15 ? "#f0d28e" : "#e8e3ff"; x.beginPath(); x.arc(r() * W, r() * H, r() < .06 ? 2.2 : .9, 0, 6.283); x.fill(); }
+  x.globalAlpha = 1;
+  const glow = x.createRadialGradient(W / 2, 760, 40, W / 2, 760, 700); glow.addColorStop(0, "rgba(139,108,255,.32)"); glow.addColorStop(1, "rgba(139,108,255,0)"); x.fillStyle = glow; x.fillRect(0, 0, W, H);
+  // engraved frame: hairline + corners
+  x.strokeStyle = "rgba(226,189,106,.65)"; x.lineWidth = 2; x.strokeRect(54, 54, W - 108, H - 108); x.lineWidth = 1; x.strokeStyle = "rgba(226,189,106,.3)"; x.strokeRect(70, 70, W - 140, H - 140);
+  x.strokeStyle = "#e2bd6a"; x.lineWidth = 3;
+  for (const [cx, cy, sx, sy] of [[54, 54, 1, 1], [W - 54, 54, -1, 1], [54, H - 54, 1, -1], [W - 54, H - 54, -1, -1]]) { x.beginPath(); x.moveTo(cx, cy + sy * 70); x.lineTo(cx, cy); x.lineTo(cx + sx * 70, cy); x.stroke(); }
+  x.textAlign = "center"; x.textBaseline = "alphabetic";
+  x.fillStyle = "#e2bd6a"; x.font = `600 34px ${sans}`; x.fillText(data.label || "", W / 2, 190);
+  // art
+  const imgs = (await Promise.all((data.images || []).map(loadImage))).filter(Boolean);
+  let y = 250;
+  if (imgs.length > 1) { const w = 290, h = 435, gap = 30, x0 = (W - (w * imgs.length + gap * (imgs.length - 1))) / 2;
+    imgs.forEach((im, i) => { const ix = x0 + i * (w + gap); x.save(); x.shadowColor = "rgba(226,189,106,.45)"; x.shadowBlur = 40; x.drawImage(im, ix, y, w, h); x.restore();
+      x.strokeStyle = "rgba(226,189,106,.8)"; x.lineWidth = 2; x.strokeRect(ix, y, w, h); }); y += h + 70; }
+  else if (imgs.length) { const im = imgs[0], card = data.shape === "card", w = card ? 520 : 760, h = card ? 780 : 760, ix = (W - w) / 2;
+    x.save(); x.shadowColor = "rgba(226,189,106,.5)"; x.shadowBlur = 60; x.beginPath(); x.roundRect ? x.roundRect(ix, y, w, h, card ? 18 : 40) : x.rect(ix, y, w, h); x.clip();
+    const sc = Math.max(w / im.width, h / im.height), dw = im.width * sc, dh = im.height * sc; x.drawImage(im, ix + (w - dw) / 2, y + (h - dh) / 2, dw, dh); x.restore();
+    x.strokeStyle = "rgba(226,189,106,.85)"; x.lineWidth = 2.5; x.beginPath(); x.roundRect ? x.roundRect(ix, y, w, h, card ? 18 : 40) : x.rect(ix, y, w, h); x.stroke(); y += h + 110; }
+  x.fillStyle = "#f4ecd8"; x.font = `600 76px ${serif}`; for (const l of wrapLines(x, data.title, W - 220, 2)) { x.fillText(l, W / 2, y); y += 84; }
+  if (data.subtitle) { x.fillStyle = "#c6bfe4"; x.font = `500 38px ${sans}`; for (const l of wrapLines(x, data.subtitle, W - 240, 2)) { y += 6; x.fillText(l, W / 2, y); y += 48; } }
+  y += 30; x.fillStyle = "#f4ecd8"; x.font = (S.lang === "ka" ? "500 44px " : "italic 500 50px ") + serif;
+  for (const l of wrapLines(x, data.text, W - 240, Math.max(2, Math.floor((H - 260 - y) / 64)))) { x.fillText(l, W / 2, y); y += 64; }
+  // footer
+  x.fillStyle = "#e2bd6a"; x.font = `italic 600 56px ${serif}`; x.fillText("Astro Oracle", W / 2, H - 150);
+  x.fillStyle = "#8d84b8"; x.font = `500 32px ${sans}`; x.fillText("@astrogm2026bot", W / 2, H - 100);
+  return new Promise((res) => c.toBlob(res, "image/jpeg", .9));
+}
+async function shareStory(btn, kind, data) {
+  if (btn.disabled) return; btn.disabled = true; const label = btn.textContent; btn.textContent = t("shareMaking"); haptic.tap();
+  try {
+    const blob = await storyCard(kind, data), caption = `${data.title} · Astro Oracle`;
+    const v = (ver) => tg && tg.isVersionAtLeast && tg.isVersionAtLeast(ver);
+    if (!S.demo && tg && tg.shareToStory && v("7.8")) {
+      const fd = new FormData(); fd.append("file", blob, "story.jpg"); const up = await api("POST", "/api/share/image", fd);
+      const link = S.user && S.user.referral_link;
+      tg.shareToStory(up.url, { text: caption.slice(0, 200), ...(link ? { widget_link: { url: link, name: "Astro Oracle" } } : {}) });
+    } else {
+      const file = new File([blob], "astro-oracle.jpg", { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text: caption }); return; } catch (e) { if (e.name === "AbortError") return; } }
+      if (!S.demo && tg && tg.downloadFile && v("8.0")) { const fd = new FormData(); fd.append("file", blob, "story.jpg"); const up = await api("POST", "/api/share/image", fd);
+        tg.downloadFile({ url: up.url, file_name: "astro-oracle.jpg" }); return; }
+      const a = el("a"); a.href = URL.createObjectURL(blob); a.download = "astro-oracle.jpg"; document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast(t("shareSaved"));
+    }
+  } catch (e) { showError(e); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+function shareButton(kind, data) { const b = el("button", "btn ghost share-btn", t("shareStory")); b.type = "button"; b.addEventListener("click", () => shareStory(b, kind, data)); return b; }
 
 /* ═════════════ shared bits ═════════════ */
 const block = (label, text) => { const w = el("div", "area"); w.append(el("span", "label", label), el("p", null, text)); return w; };
@@ -2304,7 +2691,7 @@ async function boot() {
   const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
   S.lang = store.get("astro.lang") || (["ka", "ru", "en"].includes(tgLang) ? tgLang : "ka");
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
-  try { tg.BackButton.onClick(() => go("home")); } catch {}
+  try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else go("home"); }); } catch {}
   watchAnim($("#heroCard")); watchAnim($(".num-hero")); watchAnim($(".oracle"));
   try { const r = await wakeAndVerify(); S.economy = r.economy; if (r.user && r.user.lang && !store.get("astro.lang")) { S.lang = r.user.lang; applyI18n(); } }
   catch (e) { return splashFail(e); }
