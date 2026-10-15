@@ -44,8 +44,8 @@ class Quiet(SimpleHTTPRequestHandler):
         pass
 
 
-def serve():
-    handler = partial(Quiet, directory=str(DIST))
+def serve(directory=None):
+    handler = partial(Quiet, directory=str(directory or DIST))
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd

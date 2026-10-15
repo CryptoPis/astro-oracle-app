@@ -83,15 +83,15 @@ button { cursor: pointer; }
 #app { position: relative; min-height: 100%; box-sizing: border-box;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: calc(var(--top-safe) + 8px) calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 28px);
+  padding-block: calc(var(--top-safe) + 8px) calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 44px);
   max-width: 520px; margin: 0 auto; }
 
 /* ── top bar ── */
 .top { display: flex; align-items: center; gap: 8px; min-height: 44px; min-width: 0; }
 .brand { display: flex; align-items: center; gap: 9px; margin-right: auto; min-width: 0; }
 .brand img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1px rgba(226,189,106,.45); }
-.brand span { font: italic 600 1.3rem/1 var(--oracle); color: var(--ivory); letter-spacing: .01em; white-space: nowrap; }
-.coins { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 6px; border-radius: 99px;
+.brand span { font: italic 600 1.3rem/1 var(--oracle); color: var(--ivory); letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.coins { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px 6px 7px; border-radius: 99px; flex: none; white-space: nowrap; min-height: 36px;
   background: rgba(226,189,106,.09); border: 1px solid rgba(226,189,106,.28); color: var(--ivory);
   font-weight: 700; font-variant-numeric: tabular-nums; font-size: .95rem; }
 .coins small { color: var(--gold); font-weight: 500; font-size: .78rem; }
@@ -100,6 +100,7 @@ button { cursor: pointer; }
 @keyframes bump { 40% { transform: scale(1.12); box-shadow: 0 0 24px rgba(226,189,106,.5); } }
 .demo { font-size: .68rem; color: var(--haze); border: 1px dashed var(--veil); border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
 @media (max-width: 420px) { .demo { display: none; } .coins small { display: none; } }
+@media (max-width: 350px) { .brand span { display: none; } }
 
 /* ── type ── */
 h1, h2, h3 { font-family: var(--display); color: var(--ivory); font-weight: 500; font-stretch: 87.5%; letter-spacing: -.01em; text-wrap: balance; margin: 0; }
@@ -205,15 +206,19 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
   padding: 14px 10px 14px; border-radius: 24px; border: 1px solid var(--glass-edge); color: var(--mist); text-align: center;
   background: radial-gradient(110% 80% at 50% 0%, color-mix(in srgb, var(--c) 34%, transparent), transparent 72%), linear-gradient(180deg, rgba(37,28,88,.8), rgba(16,12,44,.9));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 18px 40px -24px color-mix(in srgb, var(--c) 80%, transparent);
-  /* tilt is written without a transition (a transition here would restart on every tilt frame); press uses `scale` */
-  transform: perspective(700px) rotateY(calc(var(--tx) * 7deg)) rotateX(calc(var(--ty) * -6deg)); transition: scale .18s; }
+  /* flat on purpose: Android WebView drops the paint of 3D-transformed items inside a horizontal scroller
+     (only the floating icon stayed visible). Tilt lives on the single hero card only. */
+  contain: paint; transition: scale .18s; }
 .pcard:active { scale: .96; }
 .pcard img { width: 108px; height: 108px; max-width: 100%; filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--c) 65%, transparent));
   animation: bob 6s ease-in-out infinite; }
 .pcard:nth-child(2n) img { animation-delay: -2s; } .pcard:nth-child(3n) img { animation-delay: -4s; }
 @keyframes bob { 50% { transform: translateY(-5px); } }
 .pcard b { font: 500 .96rem/1.2 var(--display); font-stretch: 87.5%; color: var(--ivory); text-wrap: balance; }
-.pcard small { font-size: .74rem; color: var(--gold); padding: 2px 9px; border-radius: 99px; background: rgba(226,189,106,.1); font-variant-numeric: tabular-nums; }
+.pcard small { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; max-width: 100%;
+  font: 700 .82rem/1 var(--body); color: #f8e3a8; padding: 5px 10px 5px 6px; border-radius: 99px;
+  background: rgba(226,189,106,.17); font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.mini-coin { width: 15px; height: 15px; flex: none; }
 
 /* ── zodiac strip ── */
 .strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; padding: 6px 2px 10px; margin-inline: -4px; scrollbar-width: none; }
@@ -439,6 +444,9 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 @keyframes breathe { 50% { transform: scale(.82); opacity: .7; } }
 
 /* ── tabs ── */
+.tab-fade { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; pointer-events: none;
+  height: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 48px);
+  background: linear-gradient(180deg, rgba(13,10,36,0), rgba(13,10,36,.78) 55%, rgba(13,10,36,.96)); }
 .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; justify-content: center; pointer-events: none;
   padding: 0 max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
 .tabs-in { display: flex; width: 100%; max-width: 500px; pointer-events: auto; padding: 4px; border-radius: 26px;
@@ -489,7 +497,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .pcard { border: 1px solid transparent;
   background: radial-gradient(110% 80% at 50% 0%, color-mix(in srgb, var(--c) 34%, transparent), transparent 72%) padding-box,
     linear-gradient(180deg, rgba(37,28,88,.82), rgba(16,12,44,.92)) padding-box, var(--hair) border-box; }
-.pcard small { border: 1px solid rgba(226,189,106,.22); }
+.pcard small { border: 1px solid rgba(226,189,106,.4); }
 
 /* engraved corners */
 .gift, .advice, .photo-pick, .sheet form { position: relative; }
@@ -868,6 +876,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 </div>
 </div>
 
+<div class="tab-fade" aria-hidden="true"></div>
 <nav class="tabs" aria-label="Main">
   <div class="tabs-in">
     <i class="tab-ind" aria-hidden="true"></i>
@@ -1574,7 +1583,7 @@ const Demo = (() => {
   const pick = (arr, seed) => arr[hash(seed) % arr.length];
   const ka = () => S.lang === "ka";
   const db = { user: { telegram_id: 777, first_name: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) || (S.lang === "ka" ? "გიორგი" : "Giorgi"),
-    lang: S.lang, birth_date: new URLSearchParams(location.search).has("new") ? null : "1993-07-29", birth_time: "09:30", birth_city: "Tbilisi", coins: 1250, streak: 4, daily_reward_available: true }, tarotToday: null,
+    lang: S.lang, birth_date: new URLSearchParams(location.search).has("new") ? null : "1993-07-29", birth_time: "09:30", birth_city: "Tbilisi", coins: +(new URLSearchParams(location.search).get("coins") || 1250), streak: 4, daily_reward_available: true }, tarotToday: null,
     coll: { star: 2, moon: 1, lovers: 1, magician: 1, wheel_of_fortune: 1 },
     dreams: [{ id: 1, created_at: new Date(Date.now() - 864e5 * 2).toISOString(), text: "ვიყავი ძველ სახლში, სადაც ყველა კარი ღია იყო და ოთახებიდან წყლის ხმა ისმოდა.",
       title: "ძველი სახლის ოთახები", mood: "მშვიდი", symbols: [{ symbol: "სახლი", meaning: "შენი შინაგანი სამყარო. ოთახები ცხოვრების სხვადასხვა მხარეს ასახავს." }, { symbol: "ღია კარი", meaning: "ახალი შესაძლებლობები, რომლებსაც უკვე ხედავ, მაგრამ ჯერ არ შესულხარ." }],
@@ -1904,6 +1913,7 @@ async function loadHome() {
     $("#lucky").replaceChildren(...e.lucky_numbers.map((n) => el("span", null, n)));
   } catch (err) { $("#quote").textContent = t("e_ai"); }
 }
+const MINI_COIN = '<svg class="mini-coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#e2bd6a"/><circle cx="12" cy="12" r="8.2" fill="none" stroke="#7d5c24" stroke-width="1.2"/><path d="M12 6.5l1.4 4.1 4.1 1.4-4.1 1.4L12 17.5l-1.4-4.1L6.5 12l4.1-1.4z" fill="#5b3f12"/></svg>';
 const RAILS = {
   railToday: [["day", 20, "#e2bd6a", () => openHoro("day")], ["tarot", 50, "#c86bd6", () => go("tarot")], ["moon", 70, "#b9a7ff", () => go("moon")],
     ["week", 20, "#b98cff", () => openHoro("week")], ["month", 20, "#8b6cff", () => openHoro("month")]],
@@ -1912,10 +1922,11 @@ const RAILS = {
   railChart: [["kundli", 100, "#e2bd6a", () => go("kundli")], ["numerology", 35, "#3fd0b0", () => go("num")], ["compat", 100, "#e06a9a", () => go("compat")]]
 };
 function renderPractices() {
-  for (const [rail, items] of Object.entries(RAILS)) { Tilt.watch($("#" + rail)); watchAnim($("#" + rail)); }
+  for (const rail of Object.keys(RAILS)) watchAnim($("#" + rail));
   for (const [rail, items] of Object.entries(RAILS)) $("#" + rail).replaceChildren(...items.map(([id, coins, color, open]) => {
     const b = el("button", "pcard"); b.style.setProperty("--c", color);
-    b.append(imgNode(ICON[id]), el("b", null, t("pr_" + id)), el("small", null, `+${coins} $AST`));
+    const chip = el("small"); chip.innerHTML = MINI_COIN; chip.append(`+${coins} $AST`);
+    b.append(imgNode(ICON[id]), el("b", null, t("pr_" + id)), chip);
     b.addEventListener("click", () => { haptic.tap(); open(); }); return b; }));
 }
 function openHoro(period) {
