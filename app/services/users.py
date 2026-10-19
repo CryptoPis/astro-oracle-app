@@ -90,3 +90,9 @@ def serialize_profile(user: User) -> dict:
         "needs_onboarding": user.birth_date is None,
         "referral_link": f"https://t.me/{s.bot_username}/{s.mini_app_short_name}?startapp=ref_{user.telegram_id}",
     }
+
+
+async def profile_payload(session: AsyncSession, user: User) -> dict:
+    """The one user shape the Mini App receives (verify, GET and PATCH profile): the stored profile plus the
+    streak as it should be shown today (weekly freeze included) and whether the daily gift is available."""
+    return {**serialize_profile(user), **await economy.streak_state(session, user)}

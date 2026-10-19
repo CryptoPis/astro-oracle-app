@@ -7,7 +7,7 @@ from app.db import get_session
 from app.models import User
 from app.security import InitData, current_user, require_init_data
 from app.services import economy
-from app.services.users import serialize_profile, upsert_user
+from app.services.users import profile_payload, upsert_user
 
 auth_router = APIRouter(prefix="/api/auth", tags=["auth"])
 user_router = APIRouter(prefix="/api/user", tags=["user"])
@@ -22,7 +22,7 @@ async def verify(init: InitData = Depends(require_init_data),
     await session.commit()
     if user.is_blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "account blocked")
-    return {"ok": True, **flags, "user": {**serialize_profile(user), **await economy.streak_state(session, user)},
+    return {"ok": True, **flags, "user": await profile_payload(session, user),
             "moon": astro.moon_phase(user.lang),
             "economy": {"daily_reward": economy.DAILY_LOGIN_REWARD,
                         "streak_rewards": economy.STREAK_REWARDS,
@@ -32,7 +32,7 @@ async def verify(init: InitData = Depends(require_init_data),
 
 @user_router.get("/profile")
 async def get_profile(user: User = Depends(current_user), session: AsyncSession = Depends(get_session)):
-    return {"user": {**serialize_profile(user), **await economy.streak_state(session, user)}}
+    return {"user": await profile_payload(session, user)}
 
 
 @user_router.patch("/profile")
@@ -45,7 +45,7 @@ async def update_profile(body: ProfileUpdate, user: User = Depends(current_user)
         setattr(user, field_name, value)
     await session.commit()
     await session.refresh(user)
-    return {"user": serialize_profile(user)}
+    return {"user": await profile_payload(session, user)}
 
 
 @user_router.post("/daily-reward")

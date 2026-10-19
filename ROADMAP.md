@@ -41,6 +41,12 @@
   Telegram `shareToStory`). Planet art prompts in `docs/ART_PROMPTS.md` §8. Audit: `scripts/ui_audit.py`.
 - Deployed 2026-10-15: `visual-fix-2` (with visual pass 3 and kundli D9/dasha) merged into `main` and live on Render;
   rollback tag `backup-before-visual-fix-2` = the previous production version (7548bf2).
+- Profile refresh fix (2026-10-19, branch `fix-profile-refresh`): Home could keep the old sign's data after a
+  profile change. Reproduced with `scripts/ui_profile_refresh.py` (real backend + stub Telegram): a late response
+  for the old sign overwrote the new one, nothing refreshed after the app came back from the background, and a
+  double tap sent two saves. Now: stale responses are ignored, every cache is reset and Home rebuilt after a
+  change, the profile is re-read after > 60 s in the background, Save shows progress/success/error, and verify,
+  GET and PATCH profile return one user shape.
 
 ## Next
 - Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
