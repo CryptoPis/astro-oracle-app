@@ -377,3 +377,47 @@ def test_share_image(client):
     assert bad.status_code == 415
     assert client.post("/api/share/image", files={"file": ("x.png", png, "image/png")}).status_code == 401
     assert client.get("/share/nope.png").status_code == 404
+
+
+def test_profile_change_flows_everywhere(client):
+    uid = 500
+    v = client.post("/api/auth/verify", headers=auth(uid)).json()["user"]
+    r = client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": "1990-08-15"}).json()["user"]
+    assert r["sign"]["id"] == "Leo" and r["life_path"] == 33   # 1+5+0+8+1+9+9+0 = 33, a master number
+    # one user shape everywhere: PATCH, GET and verify return the same keys, streak fields included
+    g = client.get("/api/user/profile", headers=auth(uid)).json()["user"]
+    v2 = client.post("/api/auth/verify", headers=auth(uid)).json()["user"]
+    assert set(r) == set(g) == set(v2) == set(v)
+    for k in ("streak", "streak_freeze", "daily_reward_available", "sign", "life_path", "birth_date"):
+        assert k in r
+    assert client.get("/api/daily/energy", headers=auth(uid)).json()["sign"]["id"] == "Leo"
+    assert client.get("/api/horoscope?period=day", headers=auth(uid)).json()["sign"]["id"] == "Leo"
+
+    r = client.patch("/api/user/profile", headers=auth(uid),
+                     json={"birth_date": "1995-03-14", "birth_time": "08:15", "birth_city": "Tbilisi"}).json()["user"]
+    assert r["sign"]["id"] == "Pisces" and r["life_path"] == 5   # 1+4+0+3+1+9+9+5 = 32 -> 5
+    assert (r["birth_time"], r["birth_city"]) == ("08:15", "Tbilisi")
+    g = client.get("/api/user/profile", headers=auth(uid)).json()["user"]
+    assert g["sign"]["id"] == "Pisces" and g["birth_date"] == "1995-03-14" and g["life_path"] == 5
+    e = client.get("/api/daily/energy", headers=auth(uid)).json()
+    assert e["sign"]["id"] == "Pisces"
+    assert client.get("/api/horoscope?period=day", headers=auth(uid)).json()["sign"]["id"] == "Pisces"
+    sky = client.get("/api/sky", headers=auth(uid))
+    assert sky.status_code == 200 and sky.json()["week"]["streak"] == g["streak"]
+
+
+def test_profile_rejects_invalid_dates(client):
+    from datetime import timedelta
+    from app.services.economy import today_utc
+    uid = 501
+    client.post("/api/auth/verify", headers=auth(uid))
+    client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": "1990-08-15"})
+    for bad in ("1899-12-31", (today_utc() + timedelta(days=1)).isoformat(), "2001-02-30", "15.08.1990", ""):
+        r = client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": bad})
+        assert r.status_code == 422, bad
+        assert "birth_date" in str(r.json()["detail"]), bad
+    assert "between 1900-01-01 and today" in str(client.patch("/api/user/profile", headers=auth(uid),
+                                                              json={"birth_date": "1899-12-31"}).json()["detail"])
+    assert client.patch("/api/user/profile", headers=auth(uid), json={"birth_time": "25:61"}).status_code == 422
+    # nothing changed after the rejected requests
+    assert client.get("/api/user/profile", headers=auth(uid)).json()["user"]["birth_date"] == "1990-08-15"

@@ -23,7 +23,7 @@ class ProfileUpdate(BaseModel):
     @classmethod
     def _sane_date(cls, v: date | None):
         if v and not (date(1900, 1, 1) <= v <= today_utc()):
-            raise ValueError("birth_date out of range")
+            raise ValueError("birth_date must be between 1900-01-01 and today")
         return v
 
     @field_validator("birth_city")
