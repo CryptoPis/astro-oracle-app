@@ -1,0 +1,15 @@
+{
+  "_about": "Sign themes (names come from app/core/astro.py SIGN_NAMES).",
+  "Aries": {"ka": "სიმამაცე, დასაწყისი, პირდაპირობა", "en": "courage, beginnings, directness", "ru": "смелость, начало, прямота"},
+  "Taurus": {"ka": "სტაბილურობა, მოთმინება, სიამოვნება", "en": "stability, patience, pleasure", "ru": "стабильность, терпение, удовольствие"},
+  "Gemini": {"ka": "ცნობისმოყვარეობა, საუბარი, ცვალებადობა", "en": "curiosity, conversation, change", "ru": "любопытство, общение, переменчивость"},
+  "Cancer": {"ka": "ზრუნვა, ოჯახი, მგრძნობელობა", "en": "care, family, sensitivity", "ru": "забота, семья, чувствительность"},
+  "Leo": {"ka": "შემოქმედება, გულუხვობა, სიამაყე", "en": "creativity, generosity, pride", "ru": "творчество, щедрость, гордость"},
+  "Virgo": {"ka": "სიზუსტე, სამსახური, ჯანმრთელობა", "en": "precision, service, health", "ru": "точность, служение, здоровье"},
+  "Libra": {"ka": "ჰარმონია, პარტნიორობა, სამართლიანობა", "en": "harmony, partnership, fairness", "ru": "гармония, партнёрство, справедливость"},
+  "Scorpio": {"ka": "სიღრმე, ვნება, გარდაქმნა", "en": "depth, passion, transformation", "ru": "глубина, страсть, трансформация"},
+  "Sagittarius": {"ka": "თავისუფლება, მოგზაურობა, რწმენა", "en": "freedom, travel, faith", "ru": "свобода, путешествия, вера"},
+  "Capricorn": {"ka": "მიზანი, კარიერა, დისციპლინა", "en": "ambition, career, discipline", "ru": "цель, карьера, дисциплина"},
+  "Aquarius": {"ka": "მეგობრობა, იდეები, დამოუკიდებლობა", "en": "friendship, ideas, independence", "ru": "дружба, идеи, независимость"},
+  "Pisces": {"ka": "ინტუიცია, თანაგრძნობა, ოცნება", "en": "intuition, compassion, dreams", "ru": "интуиция, сострадание, мечты"}
+}

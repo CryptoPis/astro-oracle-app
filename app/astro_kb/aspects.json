@@ -1,0 +1,23 @@
+{
+  "_about": "Major aspects. 'angle' in degrees, 'orb' is the base orb for transits (scaled per planet speed in app/core/transits.py), 'nature': harmonious | challenging | blend.",
+  "conjunction": {"angle": 0, "orb": 6, "weight": 1.0, "nature": "blend", "symbol": "☌",
+    "ka": {"name": "შეერთება", "meaning": "ენერგიები ერთდება და ძლიერდება: ეს ახალი დასაწყისის ნიშანია."},
+    "en": {"name": "conjunction", "meaning": "The energies merge and grow stronger: a sign of a new beginning."},
+    "ru": {"name": "соединение", "meaning": "Энергии сливаются и усиливаются: знак нового начала."}},
+  "sextile": {"angle": 60, "orb": 3, "weight": 0.5, "nature": "harmonious", "symbol": "⚹",
+    "ka": {"name": "სექსტილი", "meaning": "პატარა შესაძლებლობა, რომელიც შენგან ცოტა ძალისხმევას ითხოვს."},
+    "en": {"name": "sextile", "meaning": "A small opportunity that asks for a little effort from you."},
+    "ru": {"name": "секстиль", "meaning": "Небольшая возможность, которая просит немного усилий."}},
+  "square": {"angle": 90, "orb": 5, "weight": 0.85, "nature": "challenging", "symbol": "□",
+    "ka": {"name": "კვადრატი", "meaning": "დაძაბულობა და გამოწვევა: წინააღმდეგობა გაიძულებს, იმოქმედო და გაიზარდო."},
+    "en": {"name": "square", "meaning": "Tension and challenge: friction pushes you to act and grow."},
+    "ru": {"name": "квадрат", "meaning": "Напряжение и вызов: трение заставляет действовать и расти."}},
+  "trine": {"angle": 120, "orb": 5, "weight": 0.7, "nature": "harmonious", "symbol": "△",
+    "ka": {"name": "ტრიგონი", "meaning": "ჰარმონია და სიმსუბუქე: საქმე თავისით მიდის, თუ შანსს გამოიყენებ."},
+    "en": {"name": "trine", "meaning": "Harmony and ease: things flow if you use the chance."},
+    "ru": {"name": "трин", "meaning": "Гармония и лёгкость: всё идёт само, если использовать шанс."}},
+  "opposition": {"angle": 180, "orb": 6, "weight": 0.9, "nature": "challenging", "symbol": "☍",
+    "ka": {"name": "ოპოზიცია", "meaning": "ორ მხარეს შორის დაძაბულობა: საჭიროა ბალანსი შენსა და სხვებს შორის."},
+    "en": {"name": "opposition", "meaning": "Tension between two sides: you need balance between yourself and others."},
+    "ru": {"name": "оппозиция", "meaning": "Напряжение между двумя сторонами: нужен баланс между собой и другими."}}
+}
