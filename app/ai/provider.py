@@ -220,6 +220,8 @@ class MockProvider:
 
     async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900, image=None):
         data = self._DATA[schema]()
+        if schema is P.HoroscopeAI and "T1: transiting" in user:   # personal reading: cite the strongest transit
+            data["sections"] = [{**sec, "why": ["T1"]} for sec in data["sections"]]
         if schema is P.TarotAI:  # mirror the requested positions
             positions = [line.split("position=")[1].split(":")[0]
                          for line in user.splitlines() if "position=" in line]

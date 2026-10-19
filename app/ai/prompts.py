@@ -68,11 +68,17 @@ class HoroscopeSection(BaseModel):
     title: str
     text: str
     score: int = Field(3, description="1-5")
+    why: list[str] = Field(default_factory=list)   # transit ids ("T1"); the server turns them into labels
 
     @field_validator("score", mode="before")
     @classmethod
     def _clamp(cls, v):
         return _clamp_score(v)
+
+    @field_validator("why", mode="before")
+    @classmethod
+    def _ids(cls, v):
+        return [str(x).strip().upper() for x in (v or []) if str(x).strip()][:3] if isinstance(v, list) else []
 
 
 class HoroscopeAI(BaseModel):
@@ -97,6 +103,35 @@ HOROSCOPE_SCHEMA = """{
 }"""
 
 PERIOD_LABEL = {"day": "today", "week": "this week", "month": "this month"}
+
+
+PERSONAL_HOROSCOPE_SCHEMA = """{
+  "title": "short evocative headline that reflects the strongest transit",
+  "summary": "2-3 sentences: the main astrological weather of the period for this person",
+  "sections": [
+    {"area": "love", "title": "...", "text": "2-3 short sentences", "score": 1-5, "why": ["ids of the transits behind this text, e.g. T1"]},
+    {"area": "career", ...}, {"area": "health", ...}, {"area": "finance", ...}
+  ],
+  "advice": "one practical, concrete sentence",
+  "lucky_color": "one color",
+  "mood": "one or two words"
+}"""
+
+
+def personal_horoscope_prompt(lang: str, sign: str, period: str, period_key: str, moon: str,
+                              transit_lines: list[str], retro: list[str], notes: str) -> tuple[str, str]:
+    task = (f"Write this person's {PERIOD_LABEL[period]} horoscope from their real transits listed below "
+            "(computed astronomically against their natal chart). Exactly 4 sections in this order: love, career, "
+            "health, finance. Rules: build every statement on the listed transits and their given meanings only; "
+            "never invent other planets, aspects or positions. In each section's 'why' put the ids (T1, T2...) of "
+            "the transits you used for it (0-3); if no transit fits an area, keep that section short and neutral "
+            "and leave 'why' empty. Be honest: squares, oppositions and retrogrades are real difficulties; name the "
+            "difficulty plainly, do not sugar-coat it, and pair it with practical advice. Harmonious aspects are "
+            "real chances; say how to use them. The score (1-5) must follow the balance of supportive and "
+            "challenging transits for that area. Do not mention degrees, orbs or the ids in the text.")
+    user = (f"Sun sign: {sign}\nPeriod: {period} ({period_key})\nMoon: {moon}\n"
+            f"Retrograde now: {', '.join(retro) or 'none'}\n{notes}\nTransits (most important first):\n" + "\n".join(transit_lines))
+    return _system(lang, task, PERSONAL_HOROSCOPE_SCHEMA), user
 
 
 def horoscope_prompt(lang: str, sign: str, period: str, period_key: str, moon_name: str) -> tuple[str, str]:
@@ -134,7 +169,10 @@ def tarot_prompt(lang: str, spread: str, drawn: list[dict], positions: list[str]
                  sign: str | None, question: str | None) -> tuple[str, str]:
     task = (f"Interpret a Rider-Waite tarot '{spread}' spread. One entry in 'cards' per drawn card, "
             "same order. Reversed cards carry their reversed meaning. If you mention a card, use exactly the "
-            "local name given in quotes (nominative case); do not translate card names yourself.")
+            "local name given in quotes (nominative case); do not translate card names yourself. Be honest and "
+            "balanced: a reversed card or a hard card (Tower, Death, Devil, Moon, Ten of Swords and the like) means "
+            "a real difficulty or warning; say so clearly, without softening it into something purely positive, "
+            "and then give practical advice on how to meet it.")
     lines = [f"- position={pos}: {c['name']} = \"{c.get('local_name') or c['name']}\"{' (reversed)' if c['reversed'] else ''}"
              for pos, c in zip(positions, drawn)]
     user = "Cards:\n" + "\n".join(lines)
@@ -192,6 +230,13 @@ ENERGY_SCHEMA = """{
   "affirmation": "first-person affirmation, max 15 words",
   "focus": "one word theme of the day"
 }"""
+
+
+def personal_energy_prompt(lang: str, transit_line: str, moon: str, day: str) -> tuple[str, str]:
+    task = ("Write today's energy message for this person from their single strongest transit below (computed "
+            "against their natal chart). Stay faithful to its meaning; if it is a difficult aspect, say so gently but "
+            "honestly and turn it into a useful focus. Do not mention degrees or the id.")
+    return _system(lang, task, ENERGY_SCHEMA), f"Date: {day}\nMoon: {moon}\nStrongest transit: {transit_line}"
 
 
 def energy_prompt(lang: str, sign: str, moon_name: str, day: str) -> tuple[str, str]:

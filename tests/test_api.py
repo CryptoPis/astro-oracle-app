@@ -28,6 +28,17 @@ def auth(uid: int, start_param: str | None = None, auth_date: int | None = None,
     return {"Authorization": f"tma {sign_init_data(fields, token)}"}
 
 
+@pytest.fixture(autouse=True)
+def offline_geocoding(monkeypatch):
+    """Readings geocode the birth city; tests never call the real Open-Meteo API."""
+    from app.api import kundli as K
+    from app.core.chart import Place
+
+    async def fake(session, city):
+        return Place("Tbilisi, Georgia", 41.72, 44.78, "Asia/Tbilisi") if city.lower() == "tbilisi" else None
+    monkeypatch.setattr(K, "geocode", fake)
+
+
 @pytest.fixture(scope="module")
 def client():
     import asyncio
@@ -477,7 +488,31 @@ def test_purge_cache_command(client, monkeypatch):
                 left = set(await s.scalars(select(AICache.cache_key).where(AICache.cache_key.in_(["T-good", "T-bad"]))))
                 readings = await s.scalar(select(func.count()).select_from(Reading).where(Reading.user_id == 700))
             assert left == {"T-good"} and readings == 1            # only the bad shared row is gone
-            assert "Deleted 1 rows" in done.replies[0]
+            assert "Deleted " in done.replies[0]   # other rows from earlier tests (English mock text in ka) may fail too
         finally:
             await eng.dispose()
     asyncio.run(go())
+
+
+def test_personal_horoscope_and_generic_fallback(client):
+    uid = 800
+    client.post("/api/auth/verify", headers=auth(uid))
+    # no birth date: the generic sign reading still works
+    r = client.get("/api/horoscope?period=day&sign=Leo", headers=auth(uid)).json()
+    assert r["personal"] is False and r["horoscope"]["sections"]
+    e = client.get("/api/daily/energy", headers=auth(uid)).json()
+    assert e["personal"] is False and e["why"] is None
+    # with birth data: a personal reading with real transit labels as "why" chips
+    client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": "1990-08-15", "birth_time": "08:00", "birth_city": "Tbilisi", "lang": "en"})
+    r = client.get("/api/horoscope?period=day", headers=auth(uid)).json()
+    assert r["personal"] is True and r["is_own_sign"]
+    h = r["horoscope"]
+    assert h["transits"] and all(t["nature"] in ("harmonious", "challenging", "blend") for t in h["transits"])
+    assert all(s["why"] == [h["transits"][0]["label"]] for s in h["sections"])   # mock cites T1 -> its exact label
+    assert "your" in h["transits"][0]["label"]
+    again = client.get("/api/horoscope?period=day", headers=auth(uid)).json()
+    assert again["horoscope"] == h                                             # cached per natal chart
+    other = client.get("/api/horoscope?period=day&sign=Aries", headers=auth(uid)).json()
+    assert other["personal"] is False                                          # someone else's sign: generic
+    e = client.get("/api/daily/energy", headers=auth(uid)).json()
+    assert e["personal"] is True and "your" in e["why"]
