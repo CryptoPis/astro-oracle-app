@@ -47,6 +47,8 @@
   double tap sent two saves. Now: stale responses are ignored, every cache is reset and Home rebuilt after a
   change, the profile is re-read after > 60 s in the background, Save shows progress/success/error, and verify,
   GET and PATCH profile return one user shape.
+- Deployed 2026-10-19: `fix-profile-refresh` merged into `main` (bced9fa) and live on Render;
+  rollback tag `backup-before-profile-refresh` = the previous production version (9a2084c).
 
 ## Next
 - Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
