@@ -99,6 +99,12 @@ def test_tarot(client):
     assert len(client.get("/api/tarot/history", headers=auth(100)).json()["items"]) == 2
     coll = client.get("/api/tarot/collection", headers=auth(100)).json()
     assert coll["total"] == 22 and sum(coll["owned"].values()) == 4
+    # card names come from the dictionary in the user's language (ka), never from the AI's "card_title"
+    from app.core.tarot import card_name
+    lang = client.get("/api/user/profile", headers=auth(100)).json()["user"]["lang"]
+    assert all(c["title"] == card_name(c["id"], lang) for c in t["cards"])
+    s = client.post("/api/sphere", headers=auth(601), json={"question": "ვუყვარვარ?"}).json()   # own user: keeps 100's reward count
+    assert s["topic"] == "love" and s["tone"] in ("yes", "wait", "no") and s["advice"] and s["answer"]
 
 
 def test_dreams(client):

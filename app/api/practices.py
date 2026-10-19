@@ -1,5 +1,4 @@
 """Numerology and the magic sphere."""
-import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -8,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai import prompts as P
 from app.ai.provider import get_ai
 from app.core import astro
+from app.core import sphere as sphere_core
 from app.db import get_session
 from app.models import User
 from app.security import current_user
@@ -43,25 +43,6 @@ async def numerology(user: User = Depends(current_user), session: AsyncSession =
             "reading": reading, "year_reading": year_reading, "reward": reward}
 
 
-SPHERE_ANSWERS = {
-    "ka": {"yes": ["ვარსკვლავები გეუბნებიან: დიახ.", "უეჭველად ასე იქნება.", "ნიშნები ხელსაყრელია.",
-                   "დიახ, და უფრო მალე, ვიდრე ფიქრობ.", "სამყარო შენს მხარესაა."],
-           "wait": ["დრო ჯერ არ მოსულა.", "პასუხი ჯერ ნისლშია. ხვალ ისევ იკითხე.",
-                    "მოთმინება გამოიჩინე, გზა ჯერ იხსნება.", "ეს შენზეა დამოკიდებული."],
-           "no": ["ამ ნაბიჯს მოერიდე.", "ნუ დაეყრდნობი ამას.", "ვარსკვლავები სხვა გზას გიჩვენებენ."]},
-    "ru": {"yes": ["Звёзды говорят: да.", "Определённо так.", "Знаки благоприятны.",
-                   "Да, и раньше, чем ты думаешь.", "Вселенная на твоей стороне."],
-           "wait": ["Время ещё не пришло.", "Ответ пока в тумане. Спроси завтра.",
-                    "Наберись терпения, путь только открывается.", "Это зависит от тебя."],
-           "no": ["Избегай этого шага.", "Не рассчитывай на это.", "Звёзды указывают другой путь."]},
-    "en": {"yes": ["The stars say yes.", "It is certain.", "The signs are favorable.",
-                   "Yes, and sooner than you think.", "The universe is on your side."],
-           "wait": ["The time has not come yet.", "The answer is still in the mist. Ask again tomorrow.",
-                    "Be patient; the path is still opening.", "It depends on you."],
-           "no": ["Avoid this step.", "Do not count on it.", "The stars point to another path."]},
-}
-_TONE_WEIGHTS = [("yes", 5), ("wait", 4), ("no", 3)]
-_rng = secrets.SystemRandom()
 
 
 class SphereRequest(BaseModel):
@@ -72,8 +53,7 @@ class SphereRequest(BaseModel):
 async def sphere(body: SphereRequest, user: User = Depends(current_user), session: AsyncSession = Depends(get_session)):
     if not await economy.bump_counter(session, user.telegram_id, "use:sphere", 50):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, {"code": "daily_quota"})
-    tone = _rng.choices([t for t, _ in _TONE_WEIGHTS], weights=[w for _, w in _TONE_WEIGHTS])[0]
-    answer = _rng.choice(SPHERE_ANSWERS.get(user.lang, SPHERE_ANSWERS["en"])[tone])
+    result = sphere_core.ask(user.lang, body.question)   # hand-written answer + topic advice, no AI call
     reward = await economy.grant_action_reward(session, user.telegram_id, "sphere")
     await session.commit()
-    return {"answer": answer, "tone": tone, "question": body.question, "reward": reward}
+    return {**result, "question": body.question, "reward": reward}
