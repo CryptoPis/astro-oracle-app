@@ -58,8 +58,11 @@
   without text over it, rail cards without paint containment, no touch-driven tilt. All practice icons, zodiac
   art and the hero art are now one code-drawn gold engraved style. `scripts/ui_audit.py` checks clipped and
   overlapping text, the tab bar, 360×780, and card names against the real backend.
+- Deployed 2026-10-20: `polish-ka-visual` merged into `main` (702338e) and live on Render, with the admin bot
+  command `/purge_cache` (dry run) / `/purge_cache apply`; rollback tag `backup-before-polish-ka-visual` (2d7c93f).
 
 ## Next
+- Send `/purge_cache`, then `/purge_cache apply` to the bot to remove old garbled shared AI texts.
 - Run `scripts/ai_benchmark.py` with the Groq key and set `GROQ_MODEL_KA` on Render (`docs/AI_QUALITY.md`).
 - Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
 - BotFather: rename the Mini App title to "Astro Oracle" (see `docs/DEPLOY.md` §3.4).
