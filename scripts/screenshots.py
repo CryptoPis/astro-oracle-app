@@ -9,12 +9,14 @@ Saves PNGs to dist/shots/<device>-<lang>-<screen>.png and prints console errors 
 """
 import argparse
 import sys
+from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
 from scripts.perf_probe import serve, DIST
 
-DEVICES = {"phone": ({"width": 390, "height": 844}, 3, True), "desktop": ({"width": 1280, "height": 800}, 1, False)}
+DEVICES = {"phone": ({"width": 390, "height": 844}, 3, True), "small": ({"width": 360, "height": 780}, 3, True),
+           "desktop": ({"width": 1280, "height": 800}, 1, False)}
 SCREENS = ["home", "horo", "tarot", "tarot-drawn", "dream", "dream-read", "profile", "num", "sphere", "moon", "compat",
            "advisor", "aura", "coffee", "kundli"]
 UNSCROLL = ("html,body{overflow:visible!important;height:auto!important}"
@@ -67,8 +69,9 @@ def main():
     ap.add_argument("--devices", default="phone,desktop")
     ap.add_argument("--screens", default=",".join(SCREENS))
     ap.add_argument("--full", action="store_true")
+    ap.add_argument("--out", default=str(DIST / "shots"))
     a = ap.parse_args()
-    out = DIST / "shots"
+    out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     httpd = serve()
     base = f"http://127.0.0.1:{httpd.server_address[1]}/preview.html"
