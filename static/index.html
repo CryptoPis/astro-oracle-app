@@ -696,6 +696,14 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .frz.off { color: var(--haze); }
 .share-btn { justify-self: center; }
 
+/* save feedback */
+.btn.busy { pointer-events: none; }
+.btn.busy::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+.btn.done { color: #8fd3a0; border-color: rgba(143,211,160,.55); }
+.save-msg { font-size: .88rem; min-height: 1.3em; }
+.save-msg.ok { color: #8fd3a0; }
+.save-msg.err { color: var(--danger); }
+
 /* paused while the user scrolls, or while the element is off screen */
 .scrolling .la-img, .scrolling .la-shine::before, .scrolling .fog, .scrolling #astrolabe, .scrolling .pcard img, .scrolling .fan .fc,
 .scrolling #sky canvas, .scrolling .oracle img, [data-off] *, [data-off] { animation-play-state: paused !important; }
@@ -940,7 +948,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <div><b id="stStreak">0</b><span data-i18n="streakDays"></span></div>
         <div><b id="stPath">–</b><span data-i18n="lifePath"></span></div>
       </div>
-      <form class="form-row" id="dateForm">
+      <form class="form-row" id="dateForm" novalidate>
         <h2 data-i18n="birthData"></h2>
         <label class="label" for="birthInput" data-i18n="birthDate"></label>
         <input class="field" type="date" id="birthInput" required>
@@ -949,7 +957,8 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <label class="label" for="birthCity" data-i18n="birthCity"></label>
         <input class="field" id="birthCity" maxlength="128" autocomplete="off" data-i18n-ph="birthCityPh">
         <p class="muted" data-i18n="birthHint"></p>
-        <button class="btn ghost wide" data-i18n="save"></button>
+        <button class="btn ghost wide" id="saveBtn" data-i18n="save"></button>
+        <p class="save-msg" id="saveMsg" role="status" aria-live="polite"></p>
       </form>
       <div class="form-row">
         <span class="label" data-i18n="language"></span>
@@ -999,7 +1008,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
   <img src="static/img/logo.webp" alt="">
   <h1 data-i18n="obTitle"></h1>
   <p class="muted" data-i18n="obSub"></p>
-  <form id="obForm">
+  <form id="obForm" novalidate>
     <input class="field" type="date" id="obDate" required>
     <p class="err-text" id="obErr"></p>
     <button class="btn wide" data-i18n="continue"></button>
@@ -1031,7 +1040,7 @@ const I18N = {
     dreamPh:"რა დაგესიზმრა? რაც მეტ დეტალს გაიხსენებ, მით ზუსტი იქნება ახსნა.", dreamBtn:"სიზმრის ახსნა",
     dreamShort:"დაწერე ცოტა მეტი: მინიმუმ 10 სიმბოლო.", symbols:"სიმბოლოები", journal:"სიზმრების დღიური",
     journalEmpty:"დღიური ცარიელია. ახსნილი სიზმრები აქ შეინახება.", remove:"წაშლა", removed:"სიზმარი წაიშალა",
-    streakDays:"დღის სერია", lifePath:"ბედისწერის რიცხვი", birthDate:"დაბადების თარიღი", save:"შენახვა", saved:"შენახულია",
+    streakDays:"დღის სერია", lifePath:"ბედისწერის რიცხვი", birthDate:"დაბადების თარიღი", save:"შენახვა", saved:"შენახულია", saving:"ვინახავ…", savedHome:"შენახულია. მთავარი გვერდი უკვე განახლდა.",
     language:"ენა", inviteTitle:"მოიწვიე მეგობარი", inviteSub:"შენ მიიღებ 250 $AST-ს, მეგობარი კი 100-ს.",
     share:"გაზიარება", copy:"კოპირება", copied:"ბმული დაკოპირდა", earnTitle:"როგორ დავაგროვო $AST", perDay:"დღეში {n}-ჯერ",
     obTitle:"როდის დაიბადე?", obSub:"თარიღით გავიგებთ შენს ზოდიაქოს ნიშანს და ბედისწერის რიცხვს.", continue:"გაგრძელება",
@@ -1121,7 +1130,7 @@ const I18N = {
     dreamPh:"What did you dream? The more details you remember, the more precise the reading.", dreamBtn:"Interpret dream",
     dreamShort:"Write a little more: at least 10 characters.", symbols:"Symbols", journal:"Dream journal",
     journalEmpty:"Your journal is empty. Interpreted dreams are saved here.", remove:"Delete", removed:"Dream deleted",
-    streakDays:"day streak", lifePath:"life path", birthDate:"Birth date", save:"Save", saved:"Saved",
+    streakDays:"day streak", lifePath:"life path", birthDate:"Birth date", save:"Save", saved:"Saved", saving:"Saving…", savedHome:"Saved. Home is already updated.",
     language:"Language", inviteTitle:"Invite a friend", inviteSub:"You get 250 $AST, your friend gets 100.",
     share:"Share", copy:"Copy", copied:"Link copied", earnTitle:"How to earn $AST", perDay:"{n}× a day",
     obTitle:"When were you born?", obSub:"Your birth date tells us your zodiac sign and life path number.", continue:"Continue",
@@ -1210,7 +1219,7 @@ const I18N = {
     dreamPh:"Что тебе снилось? Чем больше деталей, тем точнее толкование.", dreamBtn:"Истолковать сон",
     dreamShort:"Напиши чуть больше: минимум 10 символов.", symbols:"Символы", journal:"Дневник снов",
     journalEmpty:"Дневник пуст. Истолкованные сны сохраняются здесь.", remove:"Удалить", removed:"Сон удалён",
-    streakDays:"дней подряд", lifePath:"число судьбы", birthDate:"Дата рождения", save:"Сохранить", saved:"Сохранено",
+    streakDays:"дней подряд", lifePath:"число судьбы", birthDate:"Дата рождения", save:"Сохранить", saved:"Сохранено", saving:"Сохраняю…", savedHome:"Сохранено. Главная уже обновлена.",
     language:"Язык", inviteTitle:"Пригласи друга", inviteSub:"Ты получишь 250 $AST, друг получит 100.",
     share:"Поделиться", copy:"Копировать", copied:"Ссылка скопирована", earnTitle:"Как заработать $AST", perDay:"{n} раз в день",
     obTitle:"Когда ты родился?", obSub:"По дате рождения мы узнаем твой знак зодиака и число судьбы.", continue:"Продолжить",
@@ -1283,7 +1292,7 @@ const I18N = {
   }
 };
 
-const S = { lang: "ka", user: null, moon: null, economy: null, demo: false, view: "home",
+const S = { lang: "ka", user: null, moon: null, economy: null, demo: false, view: "home", homeGen: 0, homeRendered: false, saving: false,
             sign: null, period: "day", spread: "daily", loaded: {} };
 const t = (k, vars) => { let s = (I18N[S.lang] && I18N[S.lang][k]) ?? I18N.en[k] ?? k;
   if (vars) for (const v in vars) s = s.replace(`{${v}}`, vars[v]); return s; };
@@ -2088,6 +2097,7 @@ document.addEventListener("click", (e) => { const a = e.target.closest("[data-go
 
 /* ═════════════ HOME ═════════════ */
 async function loadHome() {
+  const gen = ++S.homeGen; S.homeRendered = true; S.homeDay = todayKey(); S.loaded.home = true;
   const now = new Date(), h = now.getHours(), name = (S.user && S.user.first_name) || "";
   $("#greet").textContent = `${t(h < 5 ? "night" : h < 12 ? "morning" : h < 18 ? "day" : h < 23 ? "evening" : "night")}${name ? ", " + name : ""}`;
   const own = S.user && S.user.sign && S.user.sign.id, sign = own || seasonSign();
@@ -2099,13 +2109,14 @@ async function loadHome() {
   const card = $("#heroCard"); card.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[sign]]); if (card._sign !== sign) { card.querySelectorAll(".la-stage, .la-dots").forEach((n) => n.remove()); livingArt(card, sign); card._sign = sign; }
   $("#heroHoro").onclick = (e) => { e.stopPropagation(); S.sign = own || sign; openHoro("day"); };
   renderGift(); renderPractices();
-  api("GET", "/api/sky").then(renderSky).then(() => renderReport(S.sky)).catch(() => { $("#skySec").hidden = true; });
+  api("GET", "/api/sky").then((r) => { if (gen === S.homeGen) { renderSky(r); renderReport(r); } }).catch(() => { if (gen === S.homeGen) $("#skySec").hidden = true; });
   try { const e = await api("GET", "/api/daily/energy");
+    if (gen !== S.homeGen) return;   // a newer Home load (e.g. after a profile change) owns the screen now
     if (e.moon) { S.moon = { ...S.moon, ...e.moon, name: MOON_NAMES[e.moon.code] ? MOON_NAMES[e.moon.code][S.lang] : e.moon.name }; }
     $("#quote").textContent = e.quote; $("#affirm").textContent = e.affirmation;
     const f = $("#focus"); f.replaceChildren(`${t("focusLbl")}: `, el("b", null, e.focus));
     $("#lucky").replaceChildren(...e.lucky_numbers.map((n) => el("span", null, n)));
-  } catch (err) { $("#quote").textContent = t("e_ai"); }
+  } catch (err) { if (gen === S.homeGen) $("#quote").textContent = t("e_ai"); }
 }
 const MINI_COIN = '<svg class="mini-coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#e2bd6a"/><circle cx="12" cy="12" r="8.2" fill="none" stroke="#7d5c24" stroke-width="1.2"/><path d="M12 6.5l1.4 4.1 4.1 1.4-4.1 1.4L12 17.5l-1.4-4.1L6.5 12l4.1-1.4z" fill="#5b3f12"/></svg>';
 const RAILS = {
@@ -2664,11 +2675,32 @@ function loadProfile() {
   $("#ledger").replaceChildren(...rows.map(([k, n, lim]) => { const tr = el("tr"), td = el("td", null, t(k)); if (lim) { td.append(" "); td.append(el("small", null, t("perDay", { n: lim }))); }
     tr.append(td, el("td", null, `+${n}`)); return tr; }));
 }
-$("#dateForm").addEventListener("submit", async (e) => { e.preventDefault(); const v = $("#birthInput").value; if (!v) return;
-  try { await api("PATCH", "/api/user/profile", { birth_date: v, birth_time: $("#birthTime").value || null, birth_city: $("#birthCity").value.trim() || null }); toast(t("saved")); S.sign = null; S.loaded = { profile: true }; loadProfile(); } catch (err) { showError(err); } });
+/* After any profile change the response is the truth: every per-view cache is dropped, the hero card is
+   re-mounted for the new sign, and Home is rebuilt in the background so it is fresh before the user returns. */
+function afterProfileChange() {
+  S.sign = null; S.sky = null; S.loaded = { profile: true };
+  const card = $("#heroCard"); card._sign = null; card.querySelectorAll(".la-stage, .la-dots").forEach((n) => n.remove());
+  if (S.homeRendered) loadHome();
+}
+const validDate = (v) => !!v && v >= "1900-01-01" && v <= new Date().toISOString().slice(0, 10);
+$("#dateForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); if (S.saving) return;
+  const v = $("#birthInput").value, btn = $("#saveBtn"), msg = $("#saveMsg");
+  msg.className = "save-msg"; msg.textContent = ""; btn.classList.remove("done"); btn.textContent = t("save");   // every attempt starts clean
+  if (!validDate(v)) { msg.className = "save-msg err"; msg.textContent = t("badDate"); haptic.err(); return; }
+  S.saving = true; btn.classList.remove("done"); btn.classList.add("busy"); btn.disabled = true; btn.textContent = t("saving");
+  try {
+    await api("PATCH", "/api/user/profile", { birth_date: v, birth_time: $("#birthTime").value || null, birth_city: $("#birthCity").value.trim() || null });
+    afterProfileChange(); loadProfile(); haptic.ok();
+    btn.classList.add("done"); btn.textContent = "✓ " + t("saved"); msg.className = "save-msg ok"; msg.textContent = t("savedHome");
+    setTimeout(() => { if (!S.saving) { btn.classList.remove("done"); btn.textContent = t("save"); } }, 2400);
+  } catch (err) { haptic.err(); msg.className = "save-msg err"; msg.textContent = errText(err); btn.textContent = t("save"); }
+  finally { S.saving = false; btn.classList.remove("busy"); btn.disabled = false; }
+});
 $("#langSeg").addEventListener("click", async (e) => { const b = e.target.closest("button"); if (!b || b.dataset.lang === S.lang) return;
-  S.lang = b.dataset.lang; store.set("astro.lang", S.lang); applyI18n(); S.loaded = { profile: true }; paintBacks(); loadProfile(); syncDrawBtn();
-  try { await api("PATCH", "/api/user/profile", { lang: S.lang }); } catch {} });
+  S.lang = b.dataset.lang; store.set("astro.lang", S.lang); applyI18n(); paintBacks(); syncDrawBtn();
+  try { await api("PATCH", "/api/user/profile", { lang: S.lang }); } catch (err) { showError(err); }
+  finally { afterProfileChange(); loadProfile(); } });   // after the PATCH, so Home's texts come in the new language
 $("#copyBtn").addEventListener("click", () => { const inp = $("#refLink");
   const done = () => toast(t("copied"));
   if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done, () => { inp.select(); });
@@ -2679,10 +2711,35 @@ $("#shareBtn").addEventListener("click", () => { const link = $("#refLink").valu
 
 /* ═════════════ onboarding ═════════════ */
 function showOnboarding() { const s = $("#onboard"); s.hidden = false; $("#obDate").max = new Date().toISOString().slice(0, 10); }
-$("#obForm").addEventListener("submit", async (e) => { e.preventDefault(); const v = $("#obDate").value;
-  if (!v || v < "1900-01-01" || v > new Date().toISOString().slice(0, 10)) { $("#obErr").textContent = t("badDate"); return; }
-  try { await api("PATCH", "/api/user/profile", { birth_date: v }); $("#onboard").hidden = true; haptic.ok(); S.loaded = {}; go("home"); }
-  catch (err) { $("#obErr").textContent = errText(err); } });
+$("#obForm").addEventListener("submit", async (e) => { e.preventDefault(); const v = $("#obDate").value, btn = $("#obForm button");
+  if (!validDate(v)) { $("#obErr").textContent = t("badDate"); haptic.err(); return; }
+  if (S.saving) return; S.saving = true; btn.classList.add("busy"); btn.disabled = true; $("#obErr").textContent = "";
+  try { await api("PATCH", "/api/user/profile", { birth_date: v }); $("#onboard").hidden = true; haptic.ok(); afterProfileChange(); go("home"); }
+  catch (err) { haptic.err(); $("#obErr").textContent = errText(err); }
+  finally { S.saving = false; btn.classList.remove("busy"); btn.disabled = false; } });
+
+/* Back from the background after more than a minute: re-read the profile (it may have changed on another
+   device or in the bot) and rebuild Home if the sign, birth date, language or balance changed, or a new day began. */
+const Resume = (() => {
+  let hiddenAt = null;
+  const away = () => { if (hiddenAt == null) hiddenAt = Date.now(); };
+  async function back() {
+    if (hiddenAt == null) return; const gone = Date.now() - hiddenAt; hiddenAt = null;
+    if (gone < 60000) return;
+    const before = S.user || {};
+    try {
+      const r = await api("GET", "/api/user/profile"), u = r.user || {};
+      const changed = (before.sign && before.sign.id) !== (u.sign && u.sign.id) || before.birth_date !== u.birth_date || before.lang !== u.lang;
+      if (u.coins !== before.coins) setCoins(u.coins);
+      if (changed) afterProfileChange();                              // rebuilds Home if it was ever shown
+      else if (S.homeRendered && S.homeDay !== todayKey()) loadHome(); // a new day: new energy, new planet of the day
+      if (S.view === "profile") loadProfile(); else renderGift();
+    } catch { /* offline: keep what we have, the next action shows its own error */ }
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) away(); else back(); });
+  try { tg.onEvent("deactivated", away); tg.onEvent("activated", back); } catch {}
+  return { away, back };
+})();
 
 /* ═════════════ boot ═════════════ */
 async function boot() {
