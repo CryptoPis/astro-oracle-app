@@ -99,6 +99,12 @@ def test_tarot(client):
     assert len(client.get("/api/tarot/history", headers=auth(100)).json()["items"]) == 2
     coll = client.get("/api/tarot/collection", headers=auth(100)).json()
     assert coll["total"] == 22 and sum(coll["owned"].values()) == 4
+    # card names come from the dictionary in the user's language (ka), never from the AI's "card_title"
+    from app.core.tarot import card_name
+    lang = client.get("/api/user/profile", headers=auth(100)).json()["user"]["lang"]
+    assert all(c["title"] == card_name(c["id"], lang) for c in t["cards"])
+    s = client.post("/api/sphere", headers=auth(601), json={"question": "ვუყვარვარ?"}).json()   # own user: keeps 100's reward count
+    assert s["topic"] == "love" and s["tone"] in ("yes", "wait", "no") and s["advice"] and s["answer"]
 
 
 def test_dreams(client):
@@ -421,3 +427,57 @@ def test_profile_rejects_invalid_dates(client):
     assert client.patch("/api/user/profile", headers=auth(uid), json={"birth_time": "25:61"}).status_code == 422
     # nothing changed after the rejected requests
     assert client.get("/api/user/profile", headers=auth(uid)).json()["user"]["birth_date"] == "1990-08-15"
+
+
+def test_purge_cache_command(client, monkeypatch):
+    """/purge_cache reports failing shared AI texts; /purge_cache apply deletes exactly those; history stays."""
+    import asyncio
+    from datetime import date
+    from sqlalchemy import func, select
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+    from app.bot import handlers
+    from app.db import engine as app_engine
+    from app.models import AICache, Reading, User
+
+    loop_ka = " ".join(["შთამაგლუვება მოგიტანს სიმშვიდეს და შთამაგლუვება გაძლიერებს"] * 8)
+    good_ka = {"quote": "რაც შენია, თავის დროზე შენამდე მოვა.", "affirmation": "მე ვენდობი საკუთარ გზას.", "focus": "მოთმინება"}
+
+    class Msg:
+        def __init__(self):
+            self.replies = []
+
+        async def answer(self, text, **kw):
+            self.replies.append(text)
+
+    class Cmd:
+        def __init__(self, args):
+            self.args = args
+
+    async def go():
+        eng = create_async_engine(app_engine.url)
+        maker = async_sessionmaker(eng, class_=AsyncSession, expire_on_commit=False)
+        monkeypatch.setattr(handlers, "SessionLocal", maker)
+        try:
+            async with maker() as s:
+                s.add(User(telegram_id=700, lang="ka"))
+                s.add_all([AICache(kind="energy", cache_key="T-good", payload=good_ka),
+                           AICache(kind="horoscope", cache_key="T-bad", payload={"summary": loop_ka, "advice": "ok"})])
+                await s.flush()
+                s.add(Reading(user_id=700, kind="tarot", variant="daily", day=date(2026, 10, 20), payload={"cards": [{"interpretation": loop_ka}]}))
+                await s.commit()
+            dry = Msg()
+            await handlers.cmd_purge_cache(dry, Cmd(None))
+            async with maker() as s:
+                left = set(await s.scalars(select(AICache.cache_key).where(AICache.cache_key.in_(["T-good", "T-bad"]))))
+            assert left == {"T-good", "T-bad"}                    # dry run deletes nothing
+            assert "horoscope/ka: 1" in dry.replies[0] and "Dry run" in dry.replies[0]
+            done = Msg()
+            await handlers.cmd_purge_cache(done, Cmd("apply"))
+            async with maker() as s:
+                left = set(await s.scalars(select(AICache.cache_key).where(AICache.cache_key.in_(["T-good", "T-bad"]))))
+                readings = await s.scalar(select(func.count()).select_from(Reading).where(Reading.user_id == 700))
+            assert left == {"T-good"} and readings == 1            # only the bad shared row is gone
+            assert "Deleted 1 rows" in done.replies[0]
+        finally:
+            await eng.dispose()
+    asyncio.run(go())

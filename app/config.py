@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     # Tried in order if a model is retired or unavailable (comma-separated).
     groq_fallback_models: Annotated[list[str], NoDecode] = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
     ai_timeout_seconds: float = 40
+    # Per-language Groq model (empty = the text/fast models above). Picked with scripts/ai_benchmark.py.
+    groq_model_ka: str = ""
+    groq_model_ru: str = ""
+    # Per-language provider: "" or groq = the default; anthropic | openai | gemini = a paid provider for that
+    # language only (needs its key below; the adapters are stubs until implemented, see app/ai/provider.py).
+    ai_provider_ka: str = ""
+    ai_provider_ru: str = ""
+    anthropic_api_key: str = ""
+    openai_api_key: str = ""
+    gemini_api_key: str = ""
 
     cors_origins: Annotated[list[str], NoDecode] = []
 

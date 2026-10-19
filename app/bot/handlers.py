@@ -75,6 +75,17 @@ async def cmd_broadcast(message: Message, command: CommandObject, bot: Bot):
     await status.edit_text(f"✅ Sent: <b>{ok}</b>\n❌ Failed/blocked: <b>{fail}</b>")
 
 
+@router.message(Command("purge_cache"), F.func(is_admin))
+async def cmd_purge_cache(message: Message, command: CommandObject):
+    """/purge_cache = dry run; /purge_cache apply = delete the shared AI texts that fail the quality guard.
+    Replaces the Render Shell (not available on the free plan). User readings are never touched."""
+    from app.services.cache_quality import format_scan, scan_bad_cache
+    apply = (command.args or "").strip().lower() == "apply"
+    async with SessionLocal() as session:
+        scan = await scan_bad_cache(session, apply=apply)
+    await message.answer(html.escape(format_scan(scan, applied=apply)))
+
+
 @router.message(Command("diag"), F.func(is_admin))
 async def cmd_diag(message: Message, bot: Bot):
     from app.services.diag import format_report, run_checks

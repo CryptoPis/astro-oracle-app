@@ -50,6 +50,38 @@ _MAJOR = [
 
 DECK: list[Card] = [Card(i, slug, name, f) for i, (slug, name, f) in enumerate(_MAJOR)]
 
+# Card names are never taken from the AI (it invented cases and doubled "reversed"). Nominative case, hand-written.
+CARD_NAMES: dict[str, dict[str, str]] = {
+    "fool": {"ka": "სულელი", "ru": "Шут", "en": "The Fool"},
+    "magician": {"ka": "მაგი", "ru": "Маг", "en": "The Magician"},
+    "high_priestess": {"ka": "ქურუმი ქალი", "ru": "Верховная Жрица", "en": "The High Priestess"},
+    "empress": {"ka": "იმპერატრიცა", "ru": "Императрица", "en": "The Empress"},
+    "emperor": {"ka": "იმპერატორი", "ru": "Император", "en": "The Emperor"},
+    "hierophant": {"ka": "იეროფანტი", "ru": "Иерофант", "en": "The Hierophant"},
+    "lovers": {"ka": "შეყვარებულები", "ru": "Влюблённые", "en": "The Lovers"},
+    "chariot": {"ka": "ეტლი", "ru": "Колесница", "en": "The Chariot"},
+    "strength": {"ka": "ძალა", "ru": "Сила", "en": "Strength"},
+    "hermit": {"ka": "განდეგილი", "ru": "Отшельник", "en": "The Hermit"},
+    "wheel_of_fortune": {"ka": "ბედის ბორბალი", "ru": "Колесо Фортуны", "en": "Wheel of Fortune"},
+    "justice": {"ka": "სამართლიანობა", "ru": "Справедливость", "en": "Justice"},
+    "hanged_man": {"ka": "ჩამოკიდებული", "ru": "Повешенный", "en": "The Hanged Man"},
+    "death": {"ka": "სიკვდილი", "ru": "Смерть", "en": "Death"},
+    "temperance": {"ka": "ზომიერება", "ru": "Умеренность", "en": "Temperance"},
+    "devil": {"ka": "ეშმაკი", "ru": "Дьявол", "en": "The Devil"},
+    "tower": {"ka": "კოშკი", "ru": "Башня", "en": "The Tower"},
+    "star": {"ka": "ვარსკვლავი", "ru": "Звезда", "en": "The Star"},
+    "moon": {"ka": "მთვარე", "ru": "Луна", "en": "The Moon"},
+    "sun": {"ka": "მზე", "ru": "Солнце", "en": "The Sun"},
+    "judgement": {"ka": "განკითხვა", "ru": "Суд", "en": "Judgement"},
+    "world": {"ka": "სამყარო", "ru": "Мир", "en": "The World"},
+}
+REVERSED_LABEL = {"ka": "შებრუნებული", "ru": "перевёрнутая", "en": "reversed"}
+
+
+def card_name(slug: str, lang: str) -> str:
+    names = CARD_NAMES.get(slug, {})
+    return names.get(lang) or names.get("en") or slug
+
 SPREADS = {
     "daily": ["today"],                    # card of the day: one per user per day
     "single": ["answer"],                  # one card for a question

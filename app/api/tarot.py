@@ -42,7 +42,8 @@ async def draw(body: TarotDrawRequest, user: User = Depends(current_user),
         raise quota_exceeded("tarot")
     await session.commit()  # release the write lock before the slow AI call
 
-    drawn = [c.to_dict(get_settings().public_base_url.rstrip("/"), rev) for c, rev in tarot.draw(len(positions))]
+    drawn = [{**c.to_dict(get_settings().public_base_url.rstrip("/"), rev), "local_name": tarot.card_name(c.slug, user.lang)}
+             for c, rev in tarot.draw(len(positions))]
     sign = astro.zodiac_sign(user.birth_date) if user.birth_date else None
     system, prompt = P.tarot_prompt(user.lang, body.spread, drawn, positions, sign, body.question)
     try:
@@ -55,7 +56,8 @@ async def draw(body: TarotDrawRequest, user: User = Depends(current_user),
     cards = []
     for i, (pos, card) in enumerate(zip(positions, drawn)):
         a = ai.cards[i] if i < len(ai.cards) else ai.cards[-1]
-        cards.append({**card, "position": pos, "title": a.card_title, "keywords": a.keywords,
+        card = {k: v for k, v in card.items() if k != "local_name"}
+        cards.append({**card, "position": pos, "title": tarot.card_name(card["id"], user.lang), "keywords": a.keywords,
                       "interpretation": a.interpretation})
 
     reading = Reading(user_id=uid, kind="tarot", variant=body.spread, day=economy.today_utc(),

@@ -72,7 +72,9 @@ async def run_checks(bot=None) -> list[tuple[str, str, str]]:
             from app.ai.provider import get_ai
             ai = get_ai()
             available = set(await ai.list_models())
-            for label, model in (("text", s.groq_text_model), ("fast", s.groq_fast_model), ("vision", s.groq_vision_model)):
+            rows = [("text", s.groq_text_model), ("fast", s.groq_fast_model), ("vision", s.groq_vision_model)]
+            rows += [(f"{lang} language", m) for lang, m in (("ka", s.groq_model_ka), ("ru", s.groq_model_ru)) if m]
+            for label, model in rows:
                 add("ok" if model in available else "fail", f"Groq {label} model", model + ("" if model in available else " is NOT available"))
             t = time.perf_counter()
             res = await ai.complete_json(*P.energy_prompt("en", "Leo", "Full Moon", "2026-01-01"), P.EnergyAI, fast=True, max_tokens=200)

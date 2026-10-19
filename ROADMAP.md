@@ -49,8 +49,18 @@
   GET and PATCH profile return one user shape.
 - Deployed 2026-10-19: `fix-profile-refresh` merged into `main` (bced9fa) and live on Render;
   rollback tag `backup-before-profile-refresh` = the previous production version (9a2084c).
+- Georgian quality + unified art (2026-10-19, branch `polish-ka-visual`, not deployed): tarot card names from a
+  ka/en/ru dictionary (no more "მზის (რევერსი) შებრუნებული"); quality guard for ka/ru answers with retry →
+  next model → hand-written text (never cached); Georgian prompt rules in Georgian with examples; per-language
+  models `GROQ_MODEL_KA/RU` and a paid-provider slot; `scripts/ai_benchmark.py` (needs the Groq key, not run yet)
+  and `scripts/purge_bad_ai_cache.py`. Magic sphere: 24 native answers per language, colored glow instead of
+  the chip, topic advice. Layout: zodiac strip fits Georgian names and centres the selection, horoscope art
+  without text over it, rail cards without paint containment, no touch-driven tilt. All practice icons, zodiac
+  art and the hero art are now one code-drawn gold engraved style. `scripts/ui_audit.py` checks clipped and
+  overlapping text, the tab bar, 360×780, and card names against the real backend.
 
 ## Next
+- Run `scripts/ai_benchmark.py` with the Groq key and set `GROQ_MODEL_KA` on Render (`docs/AI_QUALITY.md`).
 - Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
 - BotFather: rename the Mini App title to "Astro Oracle" (see `docs/DEPLOY.md` §3.4).
 - Art (optional): the 8 planet images from `docs/ART_PROMPTS.md` §8.

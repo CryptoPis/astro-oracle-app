@@ -150,7 +150,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 /* ── home ── */
 /* living art */
 .living { position: relative; overflow: hidden; isolation: isolate; background: #0b0820; }
-.la-stage { position: absolute; inset: -6%; z-index: 0; transform: translate(calc(var(--tx) * -12px), calc(var(--ty) * -9px)); }
+.la-stage { position: absolute; inset: -6%; z-index: 0; transform: translate(calc(var(--tx) * -5px), calc(var(--ty) * -4px)); }
 .la-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: var(--fx, 50%) var(--fy, 50%);
   filter: hue-rotate(var(--hue, 0deg)) saturate(1.08); animation: kenburns 26s ease-in-out infinite alternate; }
 [data-tier="lite"] .la-img { animation: none; transform: scale(1.06); }
@@ -166,13 +166,13 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .la-dots i.on { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 
 /* home hero */
-.hero-card { position: relative; border-radius: 30px; aspect-ratio: 4 / 5; max-height: 72vh; width: 100%; max-width: 100%; cursor: pointer;
+.hero-card { position: relative; border-radius: 30px; aspect-ratio: 3 / 4; max-height: 72vh; width: 100%; max-width: 100%; cursor: pointer;
   box-shadow: 0 34px 80px -28px rgba(120,86,240,.7), 0 0 0 1px rgba(226,189,106,.22);
-  transform: perspective(1100px) rotateX(calc(var(--ty) * -3.5deg)) rotateY(calc(var(--tx) * 4.5deg)); }
+  transform: perspective(1100px) rotateX(calc(var(--ty) * -1.6deg)) rotateY(calc(var(--tx) * 2deg)); }
 .hero-card::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(180deg, rgba(11,8,32,.55) 0%, transparent 22%, transparent 48%, rgba(11,8,32,.94) 100%); }
 .astro-wrap { position: absolute; z-index: 1; width: 135%; aspect-ratio: 1 / 1; left: -17.5%; top: -4%; opacity: .5; pointer-events: none;
-  transform: translate(calc(var(--tx) * 16px), calc(var(--ty) * 12px)); }
+  transform: translate(calc(var(--tx) * 6px), calc(var(--ty) * 4px)); }
 #astrolabe { width: 100%; height: 100%; display: block; animation: spin 240s linear infinite; }
 [data-tier="lite"] #astrolabe { animation: none; }
 .hero-ov { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: space-between; padding: 16px 18px 20px; pointer-events: none; }
@@ -181,7 +181,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 99px; font-size: .8rem; color: var(--ivory);
   background: rgba(11,8,32,.62); border: 1px solid rgba(255,255,255,.14); }
 .pill canvas { width: 18px; height: 18px; display: block; }
-.hero-bottom { display: grid; gap: 6px; transform: translate(calc(var(--tx) * 6px), calc(var(--ty) * 4px)); }
+.hero-bottom { display: grid; gap: 6px; }
 .greet { font: italic 500 1.12rem/1.3 var(--oracle); color: var(--mist); }
 .hero-sign { font: 300 3.1rem/1 var(--display); font-stretch: 80%; letter-spacing: -.02em; color: var(--ivory); text-shadow: 0 2px 30px rgba(0,0,0,.6); }
 .hero-sub { font-size: .88rem; color: var(--mist); opacity: .85; }
@@ -205,7 +205,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .sec { display: grid; gap: 12px; }
 .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .sec-head span { font-size: .82rem; color: var(--haze); }
-.rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: none; padding-block: 6px 16px;
+.rail { display: flex; align-items: stretch; gap: 12px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: none; padding-block: 8px 26px;
   margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); scroll-padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
 .rail::-webkit-scrollbar { display: none; }
 .pcard { --c: #8b6cff; flex: 0 0 146px; scroll-snap-align: start; position: relative; display: grid; justify-items: center; align-content: start; gap: 7px;
@@ -214,11 +214,9 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 18px 40px -24px color-mix(in srgb, var(--c) 80%, transparent);
   /* flat on purpose: Android WebView drops the paint of 3D-transformed items inside a horizontal scroller
      (only the floating icon stayed visible). Tilt lives on the single hero card only. */
-  contain: paint; transition: scale .18s; }
-.pcard:active { scale: .96; }
-.pcard img { width: 108px; height: 108px; max-width: 100%; filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--c) 65%, transparent));
-  animation: bob 6s ease-in-out infinite; }
-.pcard:nth-child(2n) img { animation-delay: -2s; } .pcard:nth-child(3n) img { animation-delay: -4s; }
+  isolation: isolate; transition: filter var(--t1) var(--ease), border-color var(--t1) var(--ease); }
+.pcard:active { filter: brightness(1.18); }
+
 @keyframes bob { 50% { transform: translateY(-5px); } }
 .pcard b { font: 500 .96rem/1.2 var(--display); font-stretch: 87.5%; color: var(--ivory); text-wrap: balance; }
 .pcard small { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; max-width: 100%;
@@ -227,23 +225,25 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .mini-coin { width: 15px; height: 15px; flex: none; }
 
 /* ── zodiac strip ── */
-.strip { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; padding: 6px 2px 10px; margin-inline: -4px; scrollbar-width: none; }
+.strip { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: none;
+  padding: 6px max(16px, env(safe-area-inset-left, 0px)) 10px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  scroll-padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
 .strip::-webkit-scrollbar { display: none; }
-.sign { flex: none; width: 66px; display: grid; justify-items: center; gap: 6px; border: 0; background: none; padding: 0; scroll-snap-align: center; color: var(--haze); }
+/* 84px fits "მშვილდოსანი" on one line; two-word names ("თხის რქა") may wrap to a second line, never overlap */
+.sign { flex: 0 0 84px; width: 84px; display: grid; grid-template-rows: auto auto auto; justify-items: center; align-content: start; gap: 6px; border: 0;
+  background: none; padding: 0; scroll-snap-align: center; color: var(--haze); min-width: 0; }
 .sign .disc { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; color: var(--mist);
   border: 1px solid var(--veil); background: radial-gradient(circle at 50% 35%, #2a2160, var(--dusk)); transition: box-shadow .25s, border-color .25s, color .25s; }
-.sign small { font-size: .74rem; line-height: 1.1; text-align: center; }
+.sign small { display: block; width: 100%; font-size: .72rem; line-height: 1.2; text-align: center; overflow-wrap: anywhere; min-height: 2.4em; }
 .sign[aria-pressed="true"] .disc { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 22px rgba(226,189,106,.35); }
 .sign[aria-pressed="true"] small { color: var(--ivory); }
 .sign .own { font-size: .64rem; color: var(--gold); margin-top: -4px; }
 
 .reading { display: grid; gap: 18px; }
-.sign-card { position: relative; border-radius: 26px; aspect-ratio: 5 / 4; max-width: 100%; cursor: pointer;
-  box-shadow: 0 26px 60px -26px rgba(120,86,240,.7), 0 0 0 1px rgba(226,189,106,.2);
-  transform: perspective(1000px) rotateX(calc(var(--ty) * -3deg)) rotateY(calc(var(--tx) * 4deg)); }
-.sign-card::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, transparent 40%, rgba(11,8,32,.95)); }
-.sign-card .sign-name { position: absolute; left: 18px; right: 18px; bottom: 14px; z-index: 2; }
-.sign-card .sign-name h1 { font-weight: 300; font-size: 2.6rem; font-stretch: 80%; }
+.sign-card { position: relative; border-radius: 26px; aspect-ratio: 16 / 11; max-height: 42vh; width: 100%; max-width: 100%; margin: 0 auto; cursor: pointer;
+  box-shadow: 0 26px 60px -26px rgba(120,86,240,.7), 0 0 0 1px rgba(226,189,106,.2); }
+.sign-name { display: grid; gap: 2px; text-align: center; }
+.sign-name h1 { font-weight: 300; font-size: 2.3rem; font-stretch: 80%; }
 .medal { width: 112px; height: 112px; margin: 6px auto 0; border-radius: 50%; display: grid; place-items: center; font-size: 3.4rem; color: var(--gold);
   border: 1px solid rgba(226,189,106,.5); box-shadow: 0 0 50px rgba(139,108,255,.25), inset 0 0 30px rgba(226,189,106,.12);
   background: radial-gradient(circle at 50% 40%, #2c2366, var(--void)); }
@@ -264,7 +264,8 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .fan .fc { position: absolute; left: 50%; bottom: 0; width: 92px; aspect-ratio: 2 / 3; margin-left: -46px; border: 0; padding: 0; background: none;
   transform-origin: 50% 260%; transform: rotate(var(--a)) translateY(0); transition: transform .45s cubic-bezier(.2,.8,.2,1), filter .3s; border-radius: 10px; }
 .fan .fc img { width: 100%; height: 100%; display: block; border-radius: 10px; box-shadow: 0 12px 26px rgba(0,0,0,.55), 0 0 0 1px rgba(226,189,106,.35); }
-.fan .fc:hover, .fan .fc:focus-visible { transform: rotate(var(--a)) translateY(-14px); }
+.fan .fc:focus-visible { transform: rotate(var(--a)) translateY(-14px); }
+@media (hover: hover) and (pointer: fine) { .fan .fc:hover { transform: rotate(var(--a)) translateY(-14px); } }
 .fan .fc.picked { transform: rotate(var(--a)) translateY(-40px); }
 .fan .fc::before { content: ""; position: absolute; inset: -26px -22px; z-index: -1; border-radius: 40px; pointer-events: none;
   background: radial-gradient(closest-side, rgba(240,210,142,.6), rgba(226,189,106,.15) 60%, transparent); opacity: 0; transition: opacity var(--t2) var(--ease); }
@@ -340,8 +341,14 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 @keyframes charge { 30% { filter: drop-shadow(0 0 70px rgba(170,140,255,.95)) brightness(1.35); transform: scale(1.05); } 65% { transform: scale(.98); } }
 .answer { min-height: 2.6em; text-align: center; font: italic 500 1.9rem/1.2 var(--oracle); color: var(--ivory); text-wrap: balance; }
 
-.tone { justify-self: center; font-size: .82rem; padding: 3px 12px; border-radius: 99px; border: 1px solid var(--veil); color: var(--haze); }
-.tone.yes { color: var(--gold); border-color: rgba(226,189,106,.5); }
+.sphere-advice { text-align: center; color: var(--mist); font-size: .95rem; min-height: 1.4em; max-width: 34ch; justify-self: center; text-wrap: balance; }
+.orb-stage { isolation: isolate; }
+.orb-stage::after { content: ""; position: absolute; inset: 8% 14%; border-radius: 50%; pointer-events: none; z-index: -1; opacity: 0;
+  background: radial-gradient(closest-side, var(--tone-c, transparent), transparent 70%); transition: opacity var(--t3) var(--ease); }
+.orb-stage[data-tone]::after { opacity: .9; }
+.orb-stage[data-tone="yes"] { --tone-c: rgba(240,206,120,.55); }
+.orb-stage[data-tone="wait"] { --tone-c: rgba(150,118,255,.55); }
+.orb-stage[data-tone="no"] { --tone-c: rgba(200,210,230,.45); }
 .center { text-align: center; }
 
 /* ── advisor banner ── */
@@ -526,7 +533,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 /* buttons: gold ingot with an engraved inner line; every press answers */
 .btn { transition: transform var(--t1) var(--ease), filter var(--t1) var(--ease), box-shadow var(--t2) var(--ease);
   box-shadow: 0 8px 28px -10px rgba(226,189,106,.55), inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,236,190,.28), inset 0 -2px 0 rgba(120,80,20,.22); }
-.btn:active { transform: scale(.97); }
+.btn:active { filter: brightness(1.12); }
 .btn.ghost { box-shadow: none; background: rgba(226,189,106,.04); }
 .btn.glass { background: linear-gradient(rgba(11,8,32,.5), rgba(11,8,32,.5)) padding-box, linear-gradient(155deg, rgba(240,210,142,.55), rgba(255,255,255,.08) 45%, rgba(226,189,106,.3)) border-box; border: 1px solid transparent; }
 [data-tier="full"] #giftBtn:not([disabled]) { position: relative; overflow: hidden; }
@@ -535,7 +542,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .seg button { transition: background var(--t2) var(--ease), color var(--t2) var(--ease), box-shadow var(--t2) var(--ease); }
 .seg button[aria-pressed="true"] { background: linear-gradient(180deg, rgba(226,189,106,.16), rgba(226,189,106,.05)); color: var(--ivory);
   box-shadow: inset 0 0 0 1px rgba(226,189,106,.42), 0 6px 18px -10px rgba(226,189,106,.6); }
-.seg button:active, .sign:active .disc, .entry > button:active, .chips.ask button:active { transform: scale(.96); }
+.seg button:active, .sign:active .disc, .entry > button:active, .chips.ask button:active { filter: brightness(1.2); }
 .sign .disc { transition: box-shadow var(--t2) var(--ease), border-color var(--t2) var(--ease), color var(--t2) var(--ease), transform var(--t1) var(--ease); }
 .sign[aria-pressed="true"] .disc { border-color: var(--aura, var(--gold)); color: var(--ivory);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--aura, #e2bd6a) 16%, transparent), 0 0 26px color-mix(in srgb, var(--aura, #e2bd6a) 55%, transparent);
@@ -704,6 +711,35 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .save-msg.ok { color: #8fd3a0; }
 .save-msg.err { color: var(--danger); }
 
+
+/* ═════════ engraved art (code-drawn): gold line art, thin rings, star dots, violet inner glow ═════════ */
+.art { width: 100%; height: 100%; display: block; overflow: visible; }
+.art .motif > * { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.art.draw-in .motif > * { animation: draw-line 1.6s var(--ease) both; animation-delay: calc(var(--k, 0) * 70ms); }
+@keyframes draw-line { from { stroke-dashoffset: 1; } }
+[data-tier="full"] .art.live .tw { animation: tw 3.6s ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -.7s); }
+@keyframes tw { from { opacity: .25; } to { opacity: 1; } }
+[data-tier="full"] .art.live .glow { animation: glow-pulse 5s ease-in-out infinite; transform-origin: 60px 60px; }
+@keyframes glow-pulse { 50% { opacity: .55; } }
+.pcard-art { width: 108px; height: 108px; max-width: 100%; display: block; animation: bob 6s ease-in-out infinite; }
+.pcard:nth-child(2n) .pcard-art { animation-delay: -2s; } .pcard:nth-child(3n) .pcard-art { animation-delay: -4s; }
+.scrolling .pcard-art, .scrolling .oracle .ic { animation-play-state: paused; }
+.oracle .ic { width: 78px; height: 78px; display: block; }
+.ball .art { filter: drop-shadow(0 0 26px rgba(139,108,255,.45)); }
+.ball.charging .art { animation: charge 1.6s ease-in-out; }
+.num-hero .art { position: absolute; inset: 0; opacity: .75; }
+.photo-pick .hero-ic { width: 120px; height: 120px; }
+.la-engrave { position: absolute; inset: 0; display: grid; place-items: center;
+  background: radial-gradient(70% 60% at 50% 42%, color-mix(in srgb, var(--aura, #8b6cff) 22%, transparent), transparent 70%),
+    radial-gradient(90% 80% at 50% 50%, #1a1347, #0b0820 75%); }
+.la-engrave .art { width: 74%; height: 74%; }
+/* home hero (portrait): the art keeps to the upper part, the greeting and sign name sit on empty sky below it */
+.hero-card .la-engrave { place-items: start center; padding-top: 11%; }
+.hero-card .la-engrave .art { width: 52%; height: auto; aspect-ratio: 1 / 1; }
+.empty::before, .note.empty-art::before { content: ""; display: block; width: 44px; height: 44px; margin: 0 auto 8px; opacity: .8;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44' fill='none' stroke='%23e2bd6a'%3E%3Ccircle cx='22' cy='22' r='20' stroke-width='.8'/%3E%3Ccircle cx='22' cy='22' r='15' stroke-width='.5' stroke-dasharray='1 3'/%3E%3Cpath d='M22 12 24 20 32 22 24 24 22 32 20 24 12 22 20 20Z' fill='%23e2bd6a' stroke='none'/%3E%3C/svg%3E") center / contain no-repeat; }
+.empty { text-align: center; }
+
 /* paused while the user scrolls, or while the element is off screen */
 .scrolling .la-img, .scrolling .la-shine::before, .scrolling .fog, .scrolling #astrolabe, .scrolling .pcard img, .scrolling .fan .fc,
 .scrolling #sky canvas, .scrolling .oracle img, [data-off] *, [data-off] { animation-play-state: paused !important; }
@@ -798,7 +834,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <button class="btn wide" id="giftBtn"></button>
       </div>
       <div class="sec"><div class="sec-head"><h2 data-i18n="secToday"></h2></div><div class="rail" id="railToday"></div></div>
-      <button class="oracle" data-go="advisor"><img src="static/img/icons/advisor.webp" alt=""><div><b data-i18n="advTitle"></b><span data-i18n="advBanner"></span></div><i aria-hidden="true">›</i></button>
+      <button class="oracle" data-go="advisor"><span class="ic" id="oracleArt"></span><div><b data-i18n="advTitle"></b><span data-i18n="advBanner"></span></div><i aria-hidden="true">›</i></button>
       <div class="sec"><div class="sec-head"><h2 data-i18n="secDivination"></h2></div><div class="rail" id="railDiv"></div></div>
       <div class="sec"><div class="sec-head"><h2 data-i18n="secChart"></h2></div><div class="rail" id="railChart"></div></div>
       <div class="energy">
@@ -872,10 +908,10 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
       <input class="field" id="sphereQ" maxlength="200" data-i18n-ph="spherePh">
       <div class="orb-stage">
         <canvas id="sphereFx" aria-hidden="true"></canvas>
-        <button class="ball" id="ball" aria-describedby="answer"><img src="static/img/icons/sphere.webp" alt=""></button>
+        <button class="ball" id="ball" aria-describedby="answer"></button>
       </div>
       <p class="answer" id="answer" aria-live="polite"></p>
-      <span class="tone" id="tone" hidden></span>
+      <p class="sphere-advice" id="sphereAdvice" aria-live="polite"></p>
       <button class="btn wide" id="sphereBtn" data-i18n="sphereBtn"></button>
       <p class="muted center" id="sphereLeft"></p>
     </section>
@@ -1333,14 +1369,7 @@ const sname = (s) => SIGN_NAMES[S.lang][s] || s;
 const RANGES = { Aries:[3,21,4,19], Taurus:[4,20,5,20], Gemini:[5,21,6,20], Cancer:[6,21,7,22], Leo:[7,23,8,22], Virgo:[8,23,9,22], Libra:[9,23,10,22], Scorpio:[10,23,11,21], Sagittarius:[11,22,12,21], Capricorn:[12,22,1,19], Aquarius:[1,20,2,18], Pisces:[2,19,3,20] };
 const ELEMENT_COLOR = { fire: "#ff8f5e", earth: "#8fd3a0", air: "#a9c4ff", water: "#5fc4ea" };
 const ELEMENT = { Aries:"fire", Leo:"fire", Sagittarius:"fire", Taurus:"earth", Virgo:"earth", Capricorn:"earth", Gemini:"air", Libra:"air", Aquarius:"air", Cancer:"water", Scorpio:"water", Pisces:"water" };
-/* Paintings per sign. Add more files (leo.webp, leo-2.webp …) and list them here; the app rotates them daily
-   together with the drawn constellation. */
-const ART = {
-  Aries: ["static/img/zodiac/aries.webp", "static/img/zodiac/aries-2.webp"], Taurus: ["static/img/zodiac/taurus.webp", "static/img/zodiac/taurus-2.webp"],
-  Gemini: ["static/img/zodiac/gemini.webp"], Cancer: ["static/img/zodiac/cancer.webp", "static/img/zodiac/cancer-2.webp"],
-  Leo: ["static/img/zodiac/leo.webp"], Virgo: ["static/img/zodiac/virgo.webp"], Libra: ["static/img/zodiac/libra.webp"],
-  Scorpio: ["static/img/zodiac/scorpio.webp"], Sagittarius: ["static/img/zodiac/sagittarius.webp"], Capricorn: ["static/img/zodiac/capricorn.webp"],
-  Aquarius: ["static/img/zodiac/aquarius.webp"], Pisces: ["static/img/zodiac/pisces.webp"] };
+/* Zodiac and practice art is drawn in code (see ENGRAVED ART). The old painted files stay in static/img for rollback. */
 const LOCALE = { ka:"ka-GE", en:"en-GB", ru:"ru-RU" };
 /* Own Georgian names: many phones and Telegram Desktop ship without Georgian locale data and fall back to English. */
 const KA_MONTHS = ["იანვარი","თებერვალი","მარტი","აპრილი","მაისი","ივნისი","ივლისი","აგვისტო","სექტემბერი","ოქტომბერი","ნოემბერი","დეკემბერი"];
@@ -1397,10 +1426,17 @@ const ARCANA = [
   ["world","♄","სამყარო","The World",["დასრულება","მთლიანობა","მოგზაურობა"],["completion","wholeness","journey"]]
 ];
 const ARC = Object.fromEntries(ARCANA.map((a, i) => [a[0], { n: i, sym: a[1], ka: a[2], en: a[3], kwKa: a[4], kwEn: a[5] }]));
+const ARC_RU = { fool: "Шут", magician: "Маг", high_priestess: "Верховная Жрица", empress: "Императрица", emperor: "Император",
+  hierophant: "Иерофант", lovers: "Влюблённые", chariot: "Колесница", strength: "Сила", hermit: "Отшельник", wheel_of_fortune: "Колесо Фортуны",
+  justice: "Справедливость", hanged_man: "Повешенный", death: "Смерть", temperance: "Умеренность", devil: "Дьявол", tower: "Башня",
+  star: "Звезда", moon: "Луна", sun: "Солнце", judgement: "Суд", world: "Мир" };
+/* card names never come from the AI (it produced wrong cases and a doubled "reversed"): nominative, hand-written */
+const cardName = (id) => { const a = ARC[id]; if (!a) return id; return S.lang === "ka" ? a.ka : S.lang === "ru" ? ARC_RU[id] : a.en; };
+const cardTitle = (c) => cardName(c.id) + (c.reversed ? ` · ${t("reversed")}` : "");
 
 /* ═════════════ card art (drawn, no image files needed) ═════════════ */
 function faceSvg(id, title) {
-  const a = ARC[id] || ARC.fool, name = (title || (S.lang === "ka" ? a.ka : a.en)).replace(/[<&>"]/g, "");
+  const a = ARC[id] || ARC.fool, name = cardName(ARC[id] ? id : "fool").replace(/[<&>"]/g, "");
   const size = name.length > 14 ? 8.4 : name.length > 10 ? 9.4 : 10.5;
   return `<svg viewBox="0 0 120 200" aria-hidden="true"><defs><linearGradient id="pf${a.n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7efda"/><stop offset="1" stop-color="#e6d6ae"/></linearGradient>
   <radialGradient id="sf${a.n}" cx="50%" cy="45%" r="50%"><stop offset="0" stop-color="#fff6dc"/><stop offset="1" stop-color="#f7efda" stop-opacity="0"/></radialGradient></defs>
@@ -1424,17 +1460,11 @@ const TAROT_IMG = {
   tower: "static/img/tarot/tower.webp", star: "static/img/tarot/star.webp", moon: "static/img/tarot/moon.webp",
   sun: "static/img/tarot/sun.webp", judgement: "static/img/tarot/judgement.webp", world: "static/img/tarot/world.webp"
 };
-const ICON = {
-  day: "static/img/icons/hero_day.webp", week: "static/img/icons/hero_week.webp", month: "static/img/icons/hero_month.webp",
-  tarot: "static/img/icons/tarot.webp", dream: "static/img/icons/dream.webp", compat: "static/img/icons/compat.webp",
-  numerology: "static/img/icons/numerology.webp", moon: "static/img/icons/moon.webp", sphere: "static/img/icons/sphere.webp",
-  advisor: "static/img/icons/advisor.webp", aura: "static/img/icons/aura.webp", coffee: "static/img/icons/coffee.webp",
-  kundli: "static/img/icons/kundli.webp"
-};
+
 function imgNode(src) { const i = el("img"); i.src = src; i.alt = ""; i.decoding = "async"; i.onerror = () => { i.replaceWith(el("span")); }; return i; }
 const paintBacks = (root = document) => root.querySelectorAll("[data-back]").forEach((n) => { n.replaceChildren(imgNode(BACK_IMG)); });
 function fillFace(face, c) {
-  if (TAROT_IMG[c.id]) { const i = imgNode(TAROT_IMG[c.id]); i.alt = c.title || c.name || ""; i.onerror = () => { face.innerHTML = faceSvg(c.id, c.title); }; face.replaceChildren(i); }
+  if (TAROT_IMG[c.id]) { const i = imgNode(TAROT_IMG[c.id]); i.alt = cardName(c.id); i.onerror = () => { face.innerHTML = faceSvg(c.id, c.title); }; face.replaceChildren(i); }
   else face.innerHTML = faceSvg(c.id, c.title);
 }
 function preload(srcs) { return Promise.race([Promise.all(srcs.map((s) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = s; }))), new Promise((r) => setTimeout(r, 2500))]); }
@@ -1616,10 +1646,19 @@ const Tilt = (() => {
   const set = (x, y, src) => { st.tx = Math.max(-1, Math.min(1, x)); st.ty = Math.max(-1, Math.min(1, y)); st.src = src; st.last = performance.now(); };
   let base = null;
   const fromAngles = (beta, gamma) => { if (beta == null) return; if (!base) base = { beta, gamma }; set((gamma - base.gamma) / 22, (beta - base.beta) / 22, "gyro"); };
-  try { if (tg && tg.DeviceOrientation && tg.isVersionAtLeast && tg.isVersionAtLeast("8.0")) {
-    tg.onEvent("deviceOrientationChanged", () => fromAngles(tg.DeviceOrientation.beta * 57.3, tg.DeviceOrientation.gamma * 57.3));
-    tg.DeviceOrientation.start({ refresh_rate: 60 }); } } catch {}
-  addEventListener("deviceorientation", (e) => { if (st.src !== "gyro" || performance.now() - st.last > 500) fromAngles(e.beta, e.gamma); });
+  /* Gyroscope only, full tier only (lite: no tilt at all). While a finger is on the screen the tilt freezes, so
+     nothing moves under it; there is no touch- or drag-driven tilt anywhere. Mouse hover tilt stays on desktops. */
+  let touching = false;
+  addEventListener("touchstart", () => { touching = true; }, { passive: true });
+  addEventListener("touchend", () => { touching = false; }, { passive: true });
+  addEventListener("touchcancel", () => { touching = false; }, { passive: true });
+  const gyro = (beta, gamma) => { if (!touching) fromAngles(beta, gamma); };
+  if (!PERF.lite && !reduced) {
+    try { if (tg && tg.DeviceOrientation && tg.isVersionAtLeast && tg.isVersionAtLeast("8.0")) {
+      tg.onEvent("deviceOrientationChanged", () => gyro(tg.DeviceOrientation.beta * 57.3, tg.DeviceOrientation.gamma * 57.3));
+      tg.DeviceOrientation.start({ refresh_rate: 30 }); } } catch {}
+    addEventListener("deviceorientation", (e) => { if (st.src !== "gyro" || performance.now() - st.last > 500) gyro(e.beta, e.gamma); });
+  }
   addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") set(e.clientX / innerWidth * 2 - 1, e.clientY / innerHeight * 2 - 1, "pointer"); }, { passive: true });
   /* --tx/--ty are written on the few visible "tilt hosts" (hero card, rails, sign card), never on <html>:
      a custom property on the root restyles the whole document, which was the main cause of jank and flicker. */
@@ -1628,8 +1667,7 @@ const Tilt = (() => {
   let wx = 9, wy = 9;
   return { st, watch(n) { hosts.add(n); if (io) io.observe(n); else seen.add(n); wx = 9; },
     tick(ts) {
-      if (!PERF.lite && performance.now() - st.last > 2500) { st.tx = Math.sin(ts / 4200) * .35; st.ty = Math.cos(ts / 5300) * .25; }  // idle sway (full tier)
-      else if (PERF.lite && performance.now() - st.last > 2500) { st.tx = 0; st.ty = 0; }
+      if (performance.now() - st.last > 2500) { st.tx = 0; st.ty = 0; }   // settle back; no idle sway (nothing moves on its own)
       st.x += (st.tx - st.x) * .08; st.y += (st.ty - st.y) * .08;
       if (Math.abs(st.x - wx) < .004 && Math.abs(st.y - wy) < .004) return;   // nothing visible would change
       wx = st.x; wy = st.y; const x = st.x.toFixed(3), y = st.y.toFixed(3);
@@ -1716,7 +1754,7 @@ const livingIO = "IntersectionObserver" in window ? new IntersectionObserver((es
 startLoop((ts) => { for (const host of livingVisible) { if (!host.isConnected) { livingVisible.delete(host); continue; } if (host.offsetParent !== null && host._living) host._living.draw(ts); } }, PERF.lite ? 24 : 60);
 
 function livingArt(host, sign, opts = {}) {
-  const day = todayKey(), paintings = ART[sign] || [], variants = [...paintings.map((src) => ({ kind: "paint", src })), { kind: "stars" }];
+  const day = todayKey(), variants = [{ kind: "engrave" }, { kind: "stars" }];
   let idx = opts.variant != null ? opts.variant : hashStr(sign + day) % variants.length;
   host.classList.add("living"); host.style.setProperty("--focus-x", "50%");
   const stage = el("div", "la-stage"); host.prepend(stage);
@@ -1724,7 +1762,10 @@ function livingArt(host, sign, opts = {}) {
   const dots = el("div", "la-dots"); if (variants.length > 1) host.append(dots);
   function mount() {
     const v = variants[idx], seed = hashStr(sign + day + idx); stage.replaceChildren(); painter = null;
-    if (v.kind === "paint") {
+    if (v.kind === "engrave") {
+      const box = el("div", "la-engrave"); box.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[sign]]); box.innerHTML = zodiacArt(sign, { live: true, label: sname(sign) });
+      const fx = el("canvas", "la-fx"); stage.append(box, fx); painter = motes(fx, seed);
+    } else if (v.kind === "paint") {
       const r = rng(seed), img = imgNode(v.src); img.className = "la-img";
       img.style.setProperty("--fx", `${30 + r() * 40}%`); img.style.setProperty("--fy", `${30 + r() * 40}%`);
       img.style.setProperty("--hue", `${Math.round((r() - .5) * 24)}deg`); img.style.animationDelay = `-${Math.round(r() * 20)}s`;
@@ -1734,7 +1775,7 @@ function livingArt(host, sign, opts = {}) {
     if (reduced) requestAnimationFrame(() => painter && painter.draw(0));
   }
   host._living = { draw: (ts) => painter && painter.draw(ts), resize: () => painter && painter.resize() };
-  mount(); Tilt.watch(host); if (livingIO) livingIO.observe(host); else livingVisible.add(host);
+  mount(); if (opts.tilt !== false) Tilt.watch(host); if (livingIO) livingIO.observe(host); else livingVisible.add(host);
   if (reduced) requestAnimationFrame(() => host._living.draw(0));
   if (variants.length > 1 && !opts.static) host.addEventListener("click", (e) => { if (e.target.closest("button, a")) return; idx = (idx + 1) % variants.length; haptic.tap(); mount(); });
   addEventListener("resize", () => painter && painter.resize());
@@ -1825,10 +1866,11 @@ const Demo = (() => {
       "ოჯახი და პასუხისმგებლობა", "შინაგანი ძიება", "მიღწევები და ფინანსები", "დასრულება და განთავისუფლება"],
     en: ["New beginnings", "Partnership and patience", "Creativity and connection", "Work and foundations", "Change and freedom",
       "Family and responsibility", "Inner search", "Achievement and finance", "Completion and release"] };
-  const SPH = { ka: { yes: ["ვარსკვლავები გეუბნებიან: დიახ.", "უეჭველად ასე იქნება.", "ნიშნები ხელსაყრელია.", "დიახ, და უფრო მალე, ვიდრე ფიქრობ."],
-      wait: ["დრო ჯერ არ მოსულა.", "პასუხი ჯერ ნისლშია. ხვალ ისევ იკითხე.", "ეს შენზეა დამოკიდებული."], no: ["ამ ნაბიჯს მოერიდე.", "ვარსკვლავები სხვა გზას გიჩვენებენ."] },
-    en: { yes: ["The stars say yes.", "It is certain.", "The signs are favorable.", "Yes, and sooner than you think."],
-      wait: ["The time has not come yet.", "The answer is still in the mist. Ask again tomorrow.", "It depends on you."], no: ["Avoid this step.", "The stars point to another path."] } };
+  const SPH = { ka: { yes: ["ვარსკვლავები გიღიმიან: დიახ.", "კარი უკვე იღება, შედი თამამად.", "ცა შენს მხარესაა."],
+      wait: ["ნისლი ჯერ არ გაფანტულა. ცოტა მოიცადე.", "პასუხი შენშივეა. მოუსმინე გულს."], no: ["ამჯერად არა, მაგრამ უკეთესი რამ გელოდება.", "ეს კარი დაკეტილია. სხვა გაიღება."] },
+    en: { yes: ["The stars are smiling: yes.", "The door is opening. Walk through it.", "The sky is on your side."],
+      wait: ["The mist hasn't lifted yet. Wait a little.", "The answer is within you. Listen to your heart."], no: ["Not this time, but something better is waiting.", "This door is closed. Another one will open."] } };
+  const SPH_ADV = { ka: "ენდე ინტუიციას და პირველი ნაბიჯი დღესვე გადადგი.", en: "Trust your intuition and take the first step today." };   // sample: the server picks advice by topic
   const TX = {
     ka: { titles: ["ვარსკვლავები გზას გინათებენ", "მშვიდი ძალის დღე", "ახალი კარი იღება", "ნელა, მაგრამ დარწმუნებით"],
       summary: ["{s}, დღეს ენერგია შიგნიდან მოდის. ნაკლები ხმაური და მეტი ყურადღება დეტალებზე საუკეთესო შედეგს მოგიტანს.", "მთვარის ფაზა შენს მხარესაა. კარგი დროა, დაასრულო ის, რაც დიდი ხანია გადადებული გაქვს.", "დღე სწრაფად იცვლება, მაგრამ შენ სიმშვიდეს ინარჩუნებ. ენდე პირველ შთაბეჭდილებას."],
@@ -1945,7 +1987,7 @@ const Demo = (() => {
         advice: L === "ka" ? "დაისახე ერთი მიზანი, რომელიც ამ წლის ენერგიას შეესაბამება." : "Set one goal that fits this year's energy." };
       return { life_path: lp, is_master: [11, 22, 33].includes(lp), personal_year: py, year, reading, year_reading, reward: limited("num", 35, 1) }; }
     if (p === "/api/sphere") { await wait(300); const L = ka() ? "ka" : "en", r = Math.random(), tone = r < .42 ? "yes" : r < .75 ? "wait" : "no";
-      const list = SPH[L][tone]; return { answer: list[(Math.random() * list.length) | 0], tone, reward: limited("sphere", 25, 5) }; }
+      const list = SPH[L][tone]; return { answer: list[(Math.random() * list.length) | 0], tone, topic: "general", advice: SPH_ADV[L], reward: limited("sphere", 25, 5) }; }
     if (p === "/api/moon/ritual") { await wait(1100); const L = ka() ? "ka" : "en";
       return { moon: moonNow(), reward: limited("moon", 70, 1), ritual: L === "ka" ? { title: "ვერცხლის წყალი",
           intention: "ეს ფაზა განზრახვების დროა. რასაც ახლა დათესავ, სავსემთვარეობისას გაიფურჩქნება.",
@@ -2131,7 +2173,8 @@ function renderPractices() {
   for (const [rail, items] of Object.entries(RAILS)) $("#" + rail).replaceChildren(...items.map(([id, coins, color, open]) => {
     const b = el("button", "pcard"); b.style.setProperty("--c", color);
     const chip = el("small"); chip.innerHTML = MINI_COIN; chip.append(`+${coins} $AST`);
-    b.append(imgNode(ICON[id]), el("b", null, t("pr_" + id)), chip);
+    const art = el("span", "pcard-art"); art.innerHTML = practiceArt(id === "numerology" ? "numerology" : id, { glow: color });
+    b.append(art, el("b", null, t("pr_" + id)), chip);
     b.addEventListener("click", () => { haptic.tap(); open(); }); return b; }));
 }
 function openHoro(period) {
@@ -2161,9 +2204,13 @@ function loadHoro() {
   const strip = $("#strip"); strip.replaceChildren();
   for (const s of SIGNS) { const b = el("button", "sign"); b.dataset.sign = s; b.setAttribute("aria-pressed", String(s === S.sign)); b.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[s]]);
     const d = el("span", "disc sym", g(s)); b.append(d, el("small", null, sname(s))); if (s === own) b.append(el("span", "own", t("yours")));
-    b.addEventListener("click", () => { S.sign = s; strip.querySelectorAll(".sign").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.sign === s))); haptic.tap(); fetchHoro(); });
+    b.addEventListener("click", () => { S.sign = s; strip.querySelectorAll(".sign").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.sign === s))); haptic.tap();
+      b.scrollIntoView({ inline: "center", block: "nearest", behavior: reduced ? "auto" : "smooth" }); fetchHoro(); });
     strip.append(b); }
-  requestAnimationFrame(() => { const sel = strip.querySelector('[aria-pressed="true"]'); if (sel) strip.scrollLeft = sel.offsetLeft - strip.clientWidth / 2 + sel.clientWidth / 2; });
+  // centre the selected sign inside the strip (offsetLeft is relative to the page, not the strip: it cut the sign off)
+  requestAnimationFrame(() => { const sel = strip.querySelector('[aria-pressed="true"]'); if (!sel) return;
+    const sr = strip.getBoundingClientRect(), r = sel.getBoundingClientRect();
+    strip.scrollLeft += (r.left + r.width / 2) - (sr.left + sr.width / 2); });
   fetchHoro();
 }
 $("#periodSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; S.period = b.dataset.period;
@@ -2177,13 +2224,13 @@ async function fetchHoro() {
 function renderHoro(out, r) {
   const h = r.horoscope, s = r.sign.id, root = el("div", "reading");
   const nameBlock = el("div", "sign-name"); nameBlock.append(el("h1", null, sname(s)), el("p", "sign-meta", `${rangeText(s)} · ${t("element")}: ${t(ELEMENT[s])}`));
-  const card = el("div", "sign-card"); card.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[s]]); card.append(nameBlock); root.append(card); livingArt(card, s);
+  const card = el("div", "sign-card"); card.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[s]]); root.append(card, nameBlock); livingArt(card, s, { tilt: false });
   root.append(el("h2", null, h.title), el("p", null, h.summary));
   const areas = el("div", "areas");
   for (const a of h.sections) { const w = el("div", "area"), head = el("div", "area-head"); head.append(el("b", null, t(a.area)), stars(a.score)); w.append(head, el("p", null, a.text)); areas.append(w); }
   const chips = el("div", "chips"); chips.append(el("span", "chip", `${t("luckyColor")}: ${h.lucky_color}`), el("span", "chip", `${t("mood")}: ${h.mood}`));
   root.append(areas, chips, el("p", "advice", h.advice), shareButton("horoscope", { label: `${t("p" + S.period[0].toUpperCase() + S.period.slice(1))} · ${t("horoTitle")}`,
-    images: [(ART[s] || [])[0]].filter(Boolean), title: sname(s), subtitle: h.title, text: h.advice }));
+    images: [svgUrl(zodiacArt(s, { draw: false }))], title: sname(s), subtitle: h.title, text: h.advice }));
   out.replaceChildren(root);
 }
 
@@ -2209,7 +2256,7 @@ async function loadCollection() {
     $("#collCount").textContent = `${Object.keys(owned).length} / ${ARCANA.length}`;
     const prev = store.get("astro.coll"), seen = prev == null ? null : new Set(prev.split(",")); let lit = 0;
     store.set("astro.coll", Object.keys(owned).join(","));
-    $("#coll").replaceChildren(...ARCANA.map(([id]) => { const a = ARC[id], fresh = owned[id] && seen && !seen.has(id), name = S.lang === "ka" ? a.ka : a.en;
+    $("#coll").replaceChildren(...ARCANA.map(([id]) => { const a = ARC[id], fresh = owned[id] && seen && !seen.has(id), name = cardName(id);
       const f = el("figure", owned[id] ? (fresh ? "lit" : "") : "off"); if (fresh) f.style.setProperty("--i", lit++);
       if (owned[id] && TAROT_IMG[id]) f.append(imgNode(TAROT_IMG[id])); else if (owned[id]) { const m = el("div", "face-mini"); m.innerHTML = faceSvg(id); f.append(m); } else f.append(imgNode(BACK_IMG));
       f.append(el("figcaption", null, owned[id] ? name : t("locked"))); if (owned[id] > 1) f.append(el("b", null, `×${owned[id]}`)); return f; }));
@@ -2245,13 +2292,13 @@ $("#drawBtn").addEventListener("click", async () => {
   btn.disabled = false; btn.textContent = deck.hidden ? t("drawAgain") : (S.spread === "three" ? t("drawThree") : t("drawDaily"));
 });
 function renderTarotText(out, r) {
-  const items = r.cards.map((c) => { const w = el("div", "card-read"), h = el("h3", null, c.title || c.name);
-    if (c.reversed) h.append(el("small", null, t("reversed"))); const chips = el("div", "chips"); (c.keywords || []).forEach((k) => chips.append(el("span", "chip", k)));
+  const items = r.cards.map((c) => { const w = el("div", "card-read"), h = el("h3", null, cardName(c.id));
+    if (c.reversed) h.append(el("small", null, `· ${t("reversed")}`)); const chips = el("div", "chips"); (c.keywords || []).forEach((k) => chips.append(el("span", "chip", k)));
     w.append(el("span", "label", t(c.position) || c.position), h, chips, el("p", null, c.interpretation)); return w; });
   const synth = el("div", "card-read"); synth.append(el("span", "label", t("message")), el("p", "synth", r.synthesis));
   const one = r.cards.length === 1, c0 = r.cards[0];
   out.replaceChildren(...items, synth, el("p", "advice", r.advice), shareButton("tarot", { label: one ? t("cardOfDay") : t("message"), shape: "card",
-    images: r.cards.map((c) => TAROT_IMG[c.id]).filter(Boolean), title: one ? (c0.title || c0.name) : r.cards.map((c) => c.title || c.name).join(" · "),
+    images: r.cards.map((c) => TAROT_IMG[c.id]).filter(Boolean), title: one ? cardTitle(c0) : r.cards.map((c) => cardName(c.id)).join(" · "),
     subtitle: one ? (c0.keywords || []).join(" · ") : "", text: r.synthesis || r.advice }));
 }
 
@@ -2291,7 +2338,7 @@ async function loadJournal() {
 async function loadNum() {
   const out = $("#numOut"); loading(out);
   try { const r = await api("GET", "/api/numerology"), a = r.reading, y = r.year_reading, root = el("div", "reading");
-    const hero = el("div", "num-hero"); hero.append(imgNode(ICON.numerology), el("b", null, r.life_path)); if (r.is_master) hero.append(el("span", "master", t("master")));
+    const hero = el("div", "num-hero"), art = el("span"); art.innerHTML = engraved(heptagram(), { live: true }); hero.append(art.firstElementChild, el("b", null, r.life_path)); if (r.is_master) hero.append(el("span", "master", t("master")));
     const head = el("div", "view-head center"); head.append(el("span", "label", t("lifePath")), el("h2", null, a.title));
     const pair = el("div", "pair"), sx = el("div"), cx = el("div", "dim");
     const list = (items) => { const ul = el("ul"); items.forEach((i) => ul.append(el("li", null, i))); return ul; };
@@ -2310,14 +2357,14 @@ const SphereFx = (() => { const fx = fxLayer($("#sphereFx"));
 })();
 function loadSphere() { $("#sphereLeft").textContent = ""; }
 async function askSphere() {
-  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), tone = $("#tone");
+  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), adv = $("#sphereAdvice"), stage = $(".orb-stage");
   if (btn.disabled) return; btn.disabled = true; haptic.tap();
-  ans.classList.remove("show"); ans.textContent = ""; tone.hidden = true;
+  ans.classList.remove("show"); ans.textContent = ""; adv.textContent = ""; delete stage.dataset.tone;
   ball.classList.remove("charging"); void ball.offsetWidth; ball.classList.add("charging"); SphereFx.burst();
   try { const q = $("#sphereQ").value.trim();
     const [r] = await Promise.all([api("POST", "/api/sphere", { question: q || null }), wait(1400)]);
     ans.textContent = r.answer; void ans.offsetWidth; ans.classList.add("show");
-    tone.textContent = t("tone_" + r.tone); tone.className = "tone " + r.tone; tone.hidden = false;
+    stage.dataset.tone = r.tone; adv.textContent = r.advice || ""; ball.setAttribute("aria-label", t("tone_" + r.tone));
     if (r.reward) $("#sphereLeft").textContent = t("sphereLeft", { u: r.reward.used_today, l: r.reward.daily_limit });
   } catch (e) { showError(e); }
   btn.disabled = false;
@@ -2325,6 +2372,79 @@ async function askSphere() {
 $("#sphereBtn").addEventListener("click", askSphere);
 $("#ball").addEventListener("click", askSphere);
 
+
+
+/* ═════════════ ENGRAVED ART ═════════════
+   One style for every practice icon, the zodiac art and the planets: fine gold line art (1-1.5 px) on a 120×120
+   grid, two thin rings with ticks, tiny star dots and a soft violet (or element-tinted) inner glow. Drawn in code:
+   no image files, never any letters or numbers. Lines draw themselves the first time; on large "live" art the
+   star dots twinkle and the glow breathes (full tier only, off with reduced motion). */
+let artUid = 0;
+const G = "#e2bd6a";
+const star4 = (x, y, r) => `<path d="M${x} ${y - r} ${x + r * .28} ${y - r * .28} ${x + r} ${y} ${x + r * .28} ${y + r * .28} ${x} ${y + r} ${x - r * .28} ${y + r * .28} ${x - r} ${y} ${x - r * .28} ${y - r * .28}Z" fill="${G}" stroke="none"/>`;
+function artTicks() { let o = ""; for (let i = 0; i < 36; i++) { const a = i * Math.PI / 18, l = i % 3 ? 2 : 4;
+  o += `<line x1="${(60 + Math.cos(a) * 55).toFixed(2)}" y1="${(60 + Math.sin(a) * 55).toFixed(2)}" x2="${(60 + Math.cos(a) * (55 - l)).toFixed(2)}" y2="${(60 + Math.sin(a) * (55 - l)).toFixed(2)}"/>`; } return o; }
+const TICKS = artTicks();
+const DOTS = [[22, 30, 1.1], [97, 24, 1.3], [104, 70, .9], [18, 82, 1], [86, 98, 1.2], [34, 104, .8], [70, 16, .8]];
+/* frame + motif; every shape of the motif gets pathLength=1 so it can draw itself */
+function engraved(motif, { glow = "#8b6cff", live = false, draw = true, label = "" } = {}) {
+  const u = "ea" + (++artUid); let k = 0;
+  const m = motif.replace(/<(path|rect|circle|ellipse|polygon|polyline|line)(?=[\s/>])/g, (t) => `${t} pathLength="1" style="--k:${k++}"`);
+  return `<svg class="art${live ? " live" : ""}${draw && !reduced ? " draw-in" : ""}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}>
+    <defs><radialGradient id="${u}"><stop offset="0" stop-color="${glow}" stop-opacity=".45"/><stop offset=".55" stop-color="${glow}" stop-opacity=".14"/><stop offset="1" stop-color="${glow}" stop-opacity="0"/></radialGradient></defs>
+    <circle class="glow" cx="60" cy="60" r="58" fill="url(#${u})"/>
+    <g fill="none" stroke="${G}"><circle cx="60" cy="60" r="55" stroke-width="1.1" stroke-opacity=".85"/><circle cx="60" cy="60" r="50.5" stroke-width=".6" stroke-opacity=".55" stroke-dasharray="1 3"/>
+      <g stroke-width=".6" stroke-opacity=".6">${TICKS}</g></g>
+    <g class="motif" fill="none" stroke="${G}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${m}</g>
+    <g fill="#fbe7b3">${DOTS.map(([x, y, r], i) => `<circle class="tw" style="--k:${i}" cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g></svg>`;
+}
+const heptagram = () => { const P = Array.from({ length: 7 }, (_, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 7; return [60 + Math.cos(a) * 27, 60 + Math.sin(a) * 27]; });
+  return `<path d="M${Array.from({ length: 8 }, (_, i) => P[(i * 3) % 7].map((v) => v.toFixed(2)).join(" ")).join(" L")}Z"/>`; };
+const sunRays = (cx, cy, r1, r2, n) => Array.from({ length: n }, (_, i) => { const a = i * 2 * Math.PI / n, l = i % 2 ? r2 * .82 : r2;
+  return `<line x1="${(cx + Math.cos(a) * r1).toFixed(2)}" y1="${(cy + Math.sin(a) * r1).toFixed(2)}" x2="${(cx + Math.cos(a) * l).toFixed(2)}" y2="${(cy + Math.sin(a) * l).toFixed(2)}"/>`; }).join("");
+const MOTIF = {
+  tarot: () => `<rect x="34" y="36" width="26" height="40" rx="3" transform="rotate(-16 47 56)"/><rect x="60" y="36" width="26" height="40" rx="3" transform="rotate(16 73 56)"/>
+    <rect x="47" y="30" width="26" height="42" rx="3" fill="#120d33"/><rect x="50.5" y="33.5" width="19" height="35" rx="2" stroke-width=".6" stroke-opacity=".6"/>${star4(60, 47, 7)}<circle cx="60" cy="61" r="3.2"/>
+    <path d="M44 86 Q60 92 76 86" stroke-opacity=".6"/>`,
+  moon: () => `<path d="M64 26 A24 24 0 1 0 84 64 A18 18 0 1 1 64 26Z"/><rect x="62" y="64" width="11" height="20" rx="1.5"/>
+    <path d="M67.5 64 C64.5 60 66 56 67.5 52 C69 56 70.5 60 67.5 64Z" fill="${G}" stroke="none"/><path d="M54 87 H82"/>${star4(40, 38, 4)}`,
+  dream: () => `<path d="M34 76 A10 10 0 0 1 40 58 A15 15 0 0 1 68 54 A11 11 0 0 1 84 64 A9 9 0 0 1 82 82 H42 A8 8 0 0 1 34 76Z"/>
+    <path d="M72 26 A12 12 0 1 0 84 42 A9 9 0 1 1 72 26Z"/>${star4(42, 36, 4)}${star4(54, 26, 2.6)}<path d="M46 90 H76" stroke-opacity=".5"/>`,
+  sphere: () => `<circle cx="60" cy="54" r="23"/><circle cx="60" cy="54" r="17" stroke-width=".6" stroke-opacity=".55" stroke-dasharray="2 3"/>
+    <path d="M47 52 C52 42 66 42 71 50 C66 58 54 58 52 52" stroke-opacity=".8"/><path d="M50 40 A15 15 0 0 1 60 36" stroke-opacity=".6"/>
+    <path d="M45 77 H75 L70 87 H50Z"/><path d="M42 90 H78"/>${star4(66, 56, 3)}`,
+  coffee: () => `<path d="M38 58 H76 V62 C76 75 68 83 57 83 C46 83 38 75 38 62Z"/><path d="M76 63 A7 7 0 0 1 76 77 H73"/>
+    <ellipse cx="57" cy="88" rx="27" ry="4.5"/><path d="M48 50 C45 45 51 41 48 34 M57 50 C54 45 60 41 57 34 M66 50 C63 45 69 41 66 34" stroke-opacity=".75"/>
+    <circle cx="57" cy="70" r="5" stroke-width=".6" stroke-opacity=".6"/>`,
+  aura: () => `<ellipse cx="60" cy="60" rx="30" ry="38" stroke-opacity=".35"/><ellipse cx="60" cy="60" rx="22" ry="30" stroke-opacity=".65"/>
+    <circle cx="60" cy="42" r="6"/><path d="M60 48 V68 M60 68 L52 84 M60 68 L68 84 M47 55 L60 59 L73 55"/>${star4(60, 22, 3)}`,
+  kundli: () => `<rect x="33" y="33" width="54" height="54"/><path d="M33 33 L87 87 M87 33 L33 87"/><path d="M60 33 L87 60 L60 87 L33 60Z"/>${star4(60, 60, 4)}`,
+  numerology: () => `<circle cx="60" cy="60" r="31" stroke-width=".7" stroke-opacity=".6"/>${heptagram()}<circle cx="60" cy="60" r="7"/>`,
+  compat: () => `<circle cx="50" cy="60" r="19"/><circle cx="70" cy="60" r="19"/>${star4(60, 60, 5)}<path d="M40 88 Q60 96 80 88" stroke-opacity=".5"/>`,
+  advisor: () => `<path d="M30 60 Q60 34 90 60 Q60 86 30 60Z"/><circle cx="60" cy="60" r="10"/><circle cx="60" cy="60" r="3.4" fill="${G}" stroke="none"/>
+    ${[-150, -120, -90, -60, -30].map((d) => { const a = d * Math.PI / 180; return `<line x1="${(60 + Math.cos(a) * 30).toFixed(1)}" y1="${(60 + Math.sin(a) * 30).toFixed(1)}" x2="${(60 + Math.cos(a) * 37).toFixed(1)}" y2="${(60 + Math.sin(a) * 37).toFixed(1)}"/>`; }).join("")}`,
+  day: () => `<circle cx="60" cy="60" r="13"/><circle cx="60" cy="60" r="8" stroke-width=".6" stroke-opacity=".6"/>${sunRays(60, 60, 17, 30, 16)}`,
+  week: () => `<path d="M34 76 H86"/><path d="M45 76 A15 15 0 0 1 75 76"/>${sunRays(60, 76, 19, 25, 9).replace(/<line/g, '<line stroke-opacity=".7"')}
+    ${Array.from({ length: 7 }, (_, i) => { const a = Math.PI + (i + .5) * Math.PI / 7; return `<circle cx="${(60 + Math.cos(a) * 36).toFixed(1)}" cy="${(76 + Math.sin(a) * 36).toFixed(1)}" r="2.2" fill="${G}" stroke="none"/>`; }).join("")}`,
+  month: () => [0, .17, .3, .42, .5].map((ph, i) => { const x = 30 + i * 15;
+    return `<circle cx="${x}" cy="60" r="6" stroke-width=".7"/>` + (ph > .02 ? `<path d="${moonPath(x, 60, 6, ph)}" fill="${G}" stroke="none"/>` : ""); }).join("")
+    + `<path d="M26 76 Q60 86 94 76" stroke-opacity=".55"/>${star4(60, 40, 4)}`,
+};
+MOTIF.numerology_icon = MOTIF.numerology;
+const practiceArt = (id, opts = {}) => engraved((MOTIF[id] || MOTIF.sphere)(), opts);
+
+/* zodiac: the sign's real star pattern, its glyph in a small medallion, the glow tinted by its element */
+function zodiacArt(sign, opts = {}) {
+  const [pts, lines] = CONST[sign], X = (v) => (24 + v * 72).toFixed(1), Y = (v) => (20 + v * 62).toFixed(1);
+  const L = lines.map(([a, b]) => `<path d="M${X(pts[a][0])} ${Y(pts[a][1])} L${X(pts[b][0])} ${Y(pts[b][1])}" stroke-width="1" stroke-opacity=".85"/>`).join("");
+  const P = pts.map(([x, y, m]) => `<circle cx="${X(x)}" cy="${Y(y)}" r="${m === 1 ? 2.6 : m === 2 ? 1.9 : 1.3}" fill="#fbe7b3" stroke="none"/>`
+    + (m === 1 ? star4(+X(x), +Y(y), 5.5).replace(`fill="${G}"`, 'fill="#fbe7b3" fill-opacity=".55"') : "")).join("");
+  const medal = `<circle cx="60" cy="97" r="9.5" fill="#0d0a24"/><text x="60" y="97" text-anchor="middle" dominant-baseline="central" font-size="11.5" fill="${G}" stroke="none"
+    font-family="'Noto Sans Symbols','Segoe UI Symbol',serif">${GLYPH[sign]}&#xFE0E;</text>`;
+  return engraved(L + P + medal, { glow: ELEMENT_COLOR[ELEMENT[sign]], ...opts });
+}
+/* the same art as an <img>-able data URL (for the story card canvas) */
+const svgUrl = (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg.replace(/class="art[^"]*"/, 'class="art" width="480" height="480"'));
 
 /* ═════════════ LIVE SKY ═════════════
    Real positions from /api/sky (astronomy-engine on the server, tropical zodiac like the horoscopes).
@@ -2586,13 +2706,13 @@ async function shrink(file) {   // resize on the phone before upload: faster and
 function setupPhoto(kind) {
   const box = document.querySelector(`.photo-pick[data-kind="${kind}"]`), out = $(`#${kind}Out`);
   const input = el("input"); input.type = "file"; input.accept = "image/*"; input.hidden = true; input.id = kind + "File";
-  const preview = imgNode(ICON[kind]); preview.className = "hero-ic";
+  const art = el("span", "hero-ic"); art.innerHTML = practiceArt(kind, { live: true }); const preview = el("img"); preview.alt = ""; preview.hidden = true;
   const pick = el("button", "btn ghost", t("choosePhoto")), read = el("button", "btn wide", t("readPhoto")); pick.type = read.type = "button"; read.hidden = true;
-  box.replaceChildren(preview, el("p", "muted", t(kind + "Hint")), input, pick, read, el("p", "muted", t("photoPrivacy")));
+  box.replaceChildren(art, preview, el("p", "muted", t(kind + "Hint")), input, pick, read, el("p", "muted", t("photoPrivacy")));
   let file = null;
   pick.addEventListener("click", () => input.click());
   input.addEventListener("change", () => { file = input.files && input.files[0]; if (!file) return;
-    preview.src = URL.createObjectURL(file); preview.className = "preview"; pick.textContent = t("changePhoto"); read.hidden = false; out.replaceChildren(); });
+    preview.src = URL.createObjectURL(file); preview.className = "preview"; preview.hidden = false; art.hidden = true; pick.textContent = t("changePhoto"); read.hidden = false; out.replaceChildren(); });
   read.addEventListener("click", async () => { if (!file) return; read.disabled = true; loading(out);
     try { const fd = new FormData(); fd.append("file", await shrink(file), "photo.jpg");
       const r = await api("POST", `/api/vision/${kind}`, fd); out.replaceChildren(kind === "aura" ? auraView(r.reading) : coffeeView(r.reading)); haptic.ok();
@@ -2750,6 +2870,7 @@ async function boot() {
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
   try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else go("home"); }); } catch {}
   watchAnim($("#heroCard")); watchAnim($(".num-hero")); watchAnim($(".oracle"));
+  $("#oracleArt").innerHTML = practiceArt("advisor", { glow: "#3fb8a8" }); $("#ball").innerHTML = practiceArt("sphere", { live: true });
   try { const r = await wakeAndVerify(); S.economy = r.economy; if (r.user && r.user.lang && !store.get("astro.lang")) { S.lang = r.user.lang; applyI18n(); } }
   catch (e) { return splashFail(e); }
   setCoins((S.user && S.user.coins) || 0);
