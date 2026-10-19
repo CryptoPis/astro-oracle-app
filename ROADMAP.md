@@ -60,8 +60,16 @@
   overlapping text, the tab bar, 360×780, and card names against the real backend.
 - Deployed 2026-10-20: `polish-ka-visual` merged into `main` (702338e) and live on Render, with the admin bot
   command `/purge_cache` (dry run) / `/purge_cache apply`; rollback tag `backup-before-polish-ka-visual` (2d7c93f).
+- Mystic motion + real transits (2026-10-20, branch `mystic-motion-transits`, not deployed): personal horoscopes
+  and daily energy from the person's natal chart and the real transits of the period (`app/core/transits.py`,
+  `docs/ASTROLOGY.md`), a hand-written knowledge base in ka/en/ru (`app/astro_kb/`), "why the stars say this"
+  chips, cache per natal chart; honest tarot rules; "numbers of the day". Motion language "slow celestial
+  ritual": drifting sky layers, breathing nebula, rare meteor, blur-to-focus arrivals, tarot spiral and 3D flip,
+  sphere mist, starburst gift, astrolabe loader. Videos: `scripts/motion_videos.py` → `dist/motion/`.
 
 ## Next
+- Review the motion videos and test the personal horoscope on a phone, then deploy `mystic-motion-transits`.
+- Enrich `app/astro_kb/` from the owner's book (rewritten in our own words).
 - Send `/purge_cache`, then `/purge_cache apply` to the bot to remove old garbled shared AI texts.
 - Run `scripts/ai_benchmark.py` with the Groq key and set `GROQ_MODEL_KA` on Render (`docs/AI_QUALITY.md`).
 - Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
