@@ -5,14 +5,22 @@
 - JSON mode plus Pydantic validation, with one automatic repair retry.
 - Switchable provider: AI_PROVIDER=groq | mock. Add OpenAI or Claude by
   implementing `complete_json` in another class.
+- Georgian and Russian answers pass a quality guard (app/ai/quality.py). A rejected answer is retried once
+  (lower temperature, repetition penalties), then the next model is tried, then a short hand-written text
+  (app/ai/fallbacks.py) is returned and marked so it is never cached.
+- Per-language routing: GROQ_MODEL_KA / GROQ_MODEL_RU pick the model; AI_PROVIDER_KA / AI_PROVIDER_RU can
+  send one language to another provider (paid adapters are stubs for now).
 """
 import json
 import logging
+import re
 from typing import Protocol, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 from app.ai import prompts as P
+from app.ai import quality
+from app.ai.fallbacks import safe_payload
 from app.config import get_settings
 
 log = logging.getLogger(__name__)
@@ -21,6 +29,15 @@ T = TypeVar("T", bound=BaseModel)
 
 class AIError(Exception):
     pass
+
+
+_LANG = re.compile(r"Output language code: ([a-z]{2})")
+
+
+def lang_of(system: str) -> str:
+    """The prompt builders write 'Output language code: xx' into every system prompt."""
+    m = _LANG.search(system or "")
+    return m.group(1) if m else "en"
 
 
 class AIProvider(Protocol):
@@ -59,7 +76,7 @@ class GroqProvider:
     """
 
     def __init__(self, api_key: str, text_model: str, fast_model: str, vision_model: str, timeout: float,
-                 fallbacks: list[str] | None = None, client=None):
+                 fallbacks: list[str] | None = None, client=None, lang_models: dict[str, str] | None = None):
         if client is None:
             from groq import AsyncGroq
             client = AsyncGroq(api_key=api_key, timeout=timeout, max_retries=1)
@@ -69,6 +86,8 @@ class GroqProvider:
         self.dead: set[str] = set()
         self.no_json_mode: set[str] = set()
         self.no_reasoning_param: set[str] = set()
+        self.no_penalty: set[str] = set()
+        self.lang_models = {k: v for k, v in (lang_models or {}).items() if v}
 
     def _chain(self, preferred: str, image: bool) -> list[str]:
         chain = [preferred] if image else [preferred, *self.fallbacks]
@@ -78,8 +97,10 @@ class GroqProvider:
                 seen.add(m); out.append(m)
         return out
 
-    async def _call(self, model: str, messages: list, max_tokens: int, temperature: float) -> str:
+    async def _call(self, model: str, messages: list, max_tokens: int, temperature: float, penalties: bool = False) -> str:
         kwargs = {"model": model, "messages": messages, "temperature": temperature}
+        if penalties and model not in self.no_penalty:
+            kwargs["frequency_penalty"], kwargs["presence_penalty"] = 0.6, 0.3
         reasoning = model.startswith("openai/gpt-oss")
         kwargs["max_tokens"] = max_tokens + (800 if reasoning else 0)
         if model not in self.no_json_mode:
@@ -95,12 +116,17 @@ class GroqProvider:
                 return await self._call(model, messages, max_tokens, temperature)
             if "reasoning" in msg and model not in self.no_reasoning_param:
                 self.no_reasoning_param.add(model)
+                return await self._call(model, messages, max_tokens, temperature, penalties)
+            if "penalty" in msg and model not in self.no_penalty:
+                self.no_penalty.add(model)
                 return await self._call(model, messages, max_tokens, temperature)
             raise
         return resp.choices[0].message.content or ""
 
     async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900, image=None):
-        preferred = self.vision_model if image else (self.fast_model if fast else self.text_model)
+        lang = lang_of(system)
+        guarded = lang in ("ka", "ru")
+        preferred = self.vision_model if image else (self.lang_models.get(lang) or (self.fast_model if fast else self.text_model))
         content = user
         if image:  # sent inline as base64; never as a Telegram file URL (that would leak the bot token)
             import base64
@@ -108,13 +134,22 @@ class GroqProvider:
                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(image).decode()}}]
         base_messages = [{"role": "system", "content": system}, {"role": "user", "content": content}]
         last_err: Exception | None = None
+        rejected = False
         for model in self._chain(preferred, bool(image)):
             messages = list(base_messages)
             for attempt in range(2):
                 raw = ""
                 try:
-                    raw = await self._call(model, messages, max_tokens, 0.7 if attempt == 0 else 0.3)
-                    return schema.model_validate(extract_json(raw))
+                    raw = await self._call(model, messages, max_tokens, 0.7 if attempt == 0 else 0.3, penalties=attempt > 0)
+                    out = schema.model_validate(extract_json(raw))
+                    if guarded and (bad := quality.payload_problems(out.model_dump(), lang)):
+                        # no user text in the log: only the model, language, schema and the reasons
+                        log.warning("AI quality reject: model=%s lang=%s schema=%s attempt=%s reasons=%s",
+                                    model, lang, schema.__name__, attempt + 1, bad)
+                        rejected = True
+                        messages = list(base_messages)
+                        continue
+                    return out
                 except (json.JSONDecodeError, ValidationError) as e:
                     last_err = e
                     log.warning("AI %s returned invalid JSON (attempt %s): %s", model, attempt + 1, e)
@@ -129,6 +164,10 @@ class GroqProvider:
                         break
                     log.exception("Groq call failed on %s", model)
                     raise AIError(str(e)) from e
+        if rejected:   # the models answered, but only with text we must not show
+            log.error("AI quality: every model failed for lang=%s schema=%s; using the safe text", lang, schema.__name__)
+            quality.fallback_used.set(True)
+            return safe_payload(schema, lang)
         raise AIError(f"no working AI model: {last_err}")
 
     async def list_models(self) -> list[str]:
@@ -188,6 +227,43 @@ class MockProvider:
         return schema.model_validate(data)
 
 
+class PaidProviderStub:
+    """Adapter slot for a paid model (Anthropic Claude, OpenAI, Google Gemini) for one language.
+
+    Disabled by default and makes no network call: it only exists so a language can be switched by env vars
+    (AI_PROVIDER_KA=anthropic + ANTHROPIC_API_KEY=...) once the adapter is written. To implement it, send
+    `system` + `user` to the provider's chat API asking for JSON, then return schema.model_validate(...);
+    the LanguageRouter already runs the quality guard's fallback chain through the default provider.
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+
+    async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900, image=None):
+        raise AIError(f"{self.name} adapter is not implemented yet")
+
+
+class LanguageRouter:
+    """Sends a language to its own provider if one is configured; on any failure uses the default one."""
+
+    def __init__(self, default: AIProvider, per_lang: dict[str, AIProvider]):
+        self.default, self.per_lang = default, per_lang
+
+    async def complete_json(self, system, user, schema, **kw):
+        special = self.per_lang.get(lang_of(system))
+        if special is not None:
+            try:
+                return await special.complete_json(system, user, schema, **kw)
+            except AIError as e:
+                log.warning("language provider failed (%s); using the default provider", e)
+        return await self.default.complete_json(system, user, schema, **kw)
+
+    async def list_models(self) -> list[str]:
+        return await self.default.list_models()
+
+
+PAID_KEYS = {"anthropic": "anthropic_api_key", "openai": "openai_api_key", "gemini": "gemini_api_key"}
+
 _provider: AIProvider | None = None
 
 
@@ -196,10 +272,20 @@ def get_ai() -> AIProvider:
     if _provider is None:
         s = get_settings()
         if s.ai_provider == "mock":
-            _provider = MockProvider()
+            default: AIProvider = MockProvider()
         else:
             if not s.groq_api_key:
                 raise RuntimeError("GROQ_API_KEY is not set (or set AI_PROVIDER=mock for offline dev)")
-            _provider = GroqProvider(s.groq_api_key, s.groq_text_model, s.groq_fast_model,
-                                     s.groq_vision_model, s.ai_timeout_seconds, s.groq_fallback_models)
+            default = GroqProvider(s.groq_api_key, s.groq_text_model, s.groq_fast_model, s.groq_vision_model,
+                                   s.ai_timeout_seconds, s.groq_fallback_models,
+                                   lang_models={"ka": s.groq_model_ka, "ru": s.groq_model_ru})
+        per_lang: dict[str, AIProvider] = {}
+        for lang, name in (("ka", s.ai_provider_ka), ("ru", s.ai_provider_ru)):
+            name = (name or "").strip().lower()
+            if name in PAID_KEYS:
+                if getattr(s, PAID_KEYS[name]):
+                    per_lang[lang] = PaidProviderStub(name)
+                else:
+                    log.warning("AI_PROVIDER_%s=%s but its API key is not set; using the default", lang.upper(), name)
+        _provider = LanguageRouter(default, per_lang) if per_lang else default
     return _provider

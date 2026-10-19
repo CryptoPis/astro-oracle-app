@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai import prompts as P
+from app.ai import quality
 from app.ai.provider import get_ai
 from app.core import astro
 from app.models import AICache
@@ -28,7 +29,15 @@ async def cached_ai(session: AsyncSession, kind: str, key: str, generate) -> tup
     async with _locks[f"{kind}:{key}"]:
         if (hit := await session.scalar(q)) is not None:
             return hit, True
-        payload = await generate()
+        token = quality.fallback_used.set(False)
+        try:
+            payload = await generate()
+            used_fallback = quality.fallback_used.get()
+        finally:
+            quality.fallback_used.reset(token)
+        if used_fallback:   # a safe placeholder text: show it now, ask the AI again next time
+            _locks.pop(f"{kind}:{key}", None)
+            return payload, False
         insert = _insert(session)
         await session.execute(insert(AICache).values(kind=kind, cache_key=key, payload=payload)
                               .on_conflict_do_nothing(index_elements=["kind", "cache_key"]))
