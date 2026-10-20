@@ -659,3 +659,22 @@ def test_cache_version_and_purge_old(client, monkeypatch):
         finally:
             await eng.dispose()
     asyncio.run(go())
+
+
+def test_horoscope_chart_for_the_chamber_dome(client):
+    """Read-only geometry: natal points, the sky, and the very transits the personal reading is built on."""
+    assert client.get("/api/horoscope/chart").status_code == 401
+    uid = 850
+    client.post("/api/auth/verify", headers=auth(uid))
+    assert client.get("/api/horoscope/chart", headers=auth(uid)).json()["detail"]["code"] == "needs_birth_date"
+    client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": "1990-08-15", "birth_time": "08:00", "birth_city": "Tbilisi", "lang": "ka"})
+    r = client.get("/api/horoscope/chart?period=day", headers=auth(uid)).json()
+    assert set(r["natal"]["points"]) >= {"sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "asc"}
+    assert set(r["sky"]) >= {"sun", "moon", "uranus", "neptune", "pluto"} and all(0 <= p["lon"] < 360 for p in r["sky"].values())
+    assert r["transits"] and r["transits"][0]["id"] == "T1" and "შენი" in r["transits"][0]["label"]
+    assert all(t["meaning"] is None or t["meaning"]["meaning"] for t in r["transits"])
+    h = client.get("/api/horoscope?period=day", headers=auth(uid)).json()["horoscope"]
+    assert [t["label"] for t in h["transits"]] == [t["label"] for t in r["transits"]]   # the same transits as the reading
+    before = client.get("/api/user/profile", headers=auth(uid)).json()["user"]["coins"]
+    client.get("/api/horoscope/chart?period=week", headers=auth(uid))
+    assert client.get("/api/user/profile", headers=auth(uid)).json()["user"]["coins"] == before   # no reward, no side effects

@@ -122,3 +122,33 @@ Performance with the new live-sky section (CPU 4x): phone 59.8 FPS idle and scro
 189 ms/s idle; desktop 59.9 FPS, 0 long tasks; phone with the full tier forced 60 FPS, 0 long tasks.
 The sky wheel is a static SVG drawn once per data refresh; only the planet-of-the-day halo animates
 (opacity/transform, paused in the lite tier).
+
+# Oracle chamber (2026-10-20, branch `oracle-chamber`)
+
+Measured with `python -m scripts.chamber_check --perf` on the demo build (`dist/preview.html?ui=chamber`),
+390×844, device pixel ratio 2 (the chamber caps it at 1.75), Chrome with **CPU throttled 4×**. The FULL tier ran on a
+real GPU through ANGLE/Direct3D 11 (an old NVIDIA GeForce GT 630, roughly a mid phone GPU), not on software GL.
+
+| | FULL (three.js) | LITE (2.5D) |
+|---|---|---|
+| Interactive (page start → room usable) | 3.33 s | 2.33 s |
+| of which: parsing the 2.3 MB demo page | 0.96 s | 0.97 s |
+| of which: the chamber's own boot | 1.19 s | 0.21 s |
+| FPS, room idle (candles, dust, smoke) | 60.3 (worst frame 17 ms) | 60.0 (worst 50 ms, one frame) |
+| FPS, turning between objects | 60.2 (worst 17 ms) | 60.2 (worst 17 ms) |
+| JS heap before → after 10 more station visits | 12.9 → 12.9 MB (+0.4 %) | 7.27 → 7.27 MB (+0.1 %) |
+| GPU geometries / textures after 10 visits and 3 full tarot draws | 109 / 30 → 109 / 30 | none |
+| Download when the chamber starts (gzip) | 207 KB (three.js 166 KB + modules 41 KB) | 22 KB |
+
+Notes
+- The real app page (`static/index.html`, ~330 KB) parses much faster than the 2.3 MB demo page with inlined images,
+  so on a phone the FULL room should be interactive in under 3 s once the server is awake.
+- Stage modules (6-7 KB each), sound (2 KB) and the tarot card faces load only when needed; card faces are released
+  when the tarot stage ends.
+- What was cut to get here: per-pixel procedural textures halved (256 px, they repeat), the classic star sky is not
+  painted in chamber mode, shaders compile with `renderer.compileAsync` (parallel where the driver allows).
+- Rendering stops while a panel covers the room (except for a reaction that is playing), while the app is hidden,
+  and when leaving; the LITE tier only animates transforms and opacity. A FULL room that draws its first frames
+  slowly (average > 45 ms) switches itself to LITE and remembers it.
+- GPU uploads are lazy (an object is uploaded the first time it is drawn), so the memory check warms up every
+  station and stage first, then compares.

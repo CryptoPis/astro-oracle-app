@@ -54,5 +54,20 @@ Cormorant for the oracle's voice (upright in Georgian: Georgian has no true ital
 `docs/PERF_NOTES.md`. Zodiac art: all 12 signs in one black & gold engraved style, no text in any image (the app
 is multilingual); Aries, Taurus, Cancer also keep earlier purple paintings as daily variants. Tarot: full 22-card deck. Art style and prompts: `docs/ART_PROMPTS.md`.
 
+**Oracle chamber (opt-in UI, branch `oracle-chamber`).** A second interface on the same app: a candle-lit
+astrologer's room in which every practice is an object you touch (tarot table, crystal ball, moon window, the
+oracle's candle, book of dreams, astrolabe, star-chart scroll, aura mirror, coffee cup, gift chest; the star dome
+above). Switch: `?ui=chamber` (also `?startapp=ui_chamber`) or Profile → Interface; the classic UI stays the
+default. Code: `static/chamber/*.js` (ES modules, loaded only when the chamber is on) + three.js 0.160.0 vendored in
+`static/vendor/`; the classic `frontend/app.html` only gained a switch, a small bridge (`bridge()`) and a few events
+(`astro:sky`, `astro:energy`, `astro:busy`, `astro:vision`, `astro:compat`). The glass-and-gold panel shows the
+app's own views, so API, auth, i18n, economy and AI are shared. FULL tier: procedural WebGL room (no image files,
+no text in the art), interactive stages for tarot (shuffle, fan, draw by hand, flip; reversed lands upside down),
+the sphere (wipe the mist), the chest (coins fly to the counter), the 3D horoscope under the dome (natal wheel,
+transit beams; data from the read-only `GET /api/horoscope/chart`), the moon ritual (candles light step by step)
+and the coffee cup (swirl, turn over, photo). LITE tier (Telegram Desktop, weak phones, no fast WebGL, reduced
+motion): the same room in 2.5D layers, all features through the panel. Sound: Web Audio only, off by default.
+Checks: `scripts/chamber_check.py` (smoke, memory, FPS), videos `scripts/chamber_videos.py`.
+
 **Status / next.** See `ROADMAP.md` (done, next, parked mining, ideas inbox: voice, monetization with Telegram Stars,
 engagement strategy). Deployment-ready; follow `docs/DEPLOY.md`.
