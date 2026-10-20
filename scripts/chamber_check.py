@@ -83,6 +83,19 @@ def smoke(page, cdp, tier, errors):
     return fails, mem
 
 
+def deep_tarot(page, cdp):
+    """Three full tarot draws (shuffle, pull, server draw, flips, reading) then back: card faces must be released."""
+    from scripts.chamber_videos import tarot_flow
+    base = heap(page, cdp)
+    for k in range(3):
+        tarot_flow(page, three=k % 2 == 0)
+        page.evaluate("window.__astro.back()")
+        page.wait_for_timeout(1400)
+    after = heap(page, cdp)
+    ok = after["textures"] <= base["textures"] and after["geometries"] <= base["geometries"]
+    return ok, base, after
+
+
 def fps(page, seconds=5, turning=True):
     return page.evaluate("""async ([ms, turning]) => { let n = 0, worst = 0, last = performance.now(); const t0 = last;
       let i = 0; const turn = turning ? setInterval(() => window.__chamber.turn(++i % 10), 900) : 0;
@@ -104,6 +117,13 @@ def main():
             if got != tier:
                 all_fails.append(f"asked for {tier}, got {got}")
             fails, mem = smoke(page, cdp, tier, errors)
+            if tier == "full":
+                ok, b0, b1 = deep_tarot(page, cdp)
+                print(f"full: 3 tarot draws · GPU geometries/textures {b0['geometries']}/{b0['textures']} -> {b1['geometries']}/{b1['textures']}")
+                if not ok:
+                    fails.append("full: tarot draws leaked GPU objects")
+                if page.evaluate("document.getElementById('chCoinVal').textContent") == "1,250":
+                    fails.append("full: tarot draws paid no reward")
             all_fails += fails
             report[tier] = {"smoke": "ok" if not fails else fails, "memory": mem}
             print(f"{tier}: {'ok' if not fails else fails} · heap {mem['before']['heap'] // 1024} -> {mem['after']['heap'] // 1024} KB"

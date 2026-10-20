@@ -68,7 +68,82 @@ def scene_tour(page):
     page.wait_for_timeout(2600)
 
 
-SCENES = {"chamber-tour": (scene_tour, {"intro": True})}
+def dbg(page):
+    return page.evaluate("window.__chamber.state.stage && window.__chamber.state.stage.debug()")
+
+
+def drag(page, a, b, steps=16):
+    page.mouse.move(a[0], a[1])
+    page.mouse.down()
+    for i in range(1, steps + 1):
+        page.mouse.move(a[0] + (b[0] - a[0]) * i / steps, a[1] + (b[1] - a[1]) * i / steps)
+        page.wait_for_timeout(18)
+    page.mouse.up()
+
+
+def tarot_flow(page, three):
+    page.evaluate("window.__chamber.open('tarot')")
+    page.wait_for_timeout(2600)
+    if three:
+        page.click(".ch-hud .seg button[data-v='three']")
+        page.wait_for_timeout(900)
+        page.fill(".ch-q", "რა მელის ამ თვეში?")
+        page.wait_for_timeout(600)
+    d = dbg(page)["deck"]
+    drag(page, (d["x"] - 90, d["y"]), (d["x"] + 90, d["y"]))      # a swipe across the deck: the riffle
+    page.wait_for_timeout(2600)
+    for _ in range(3 if three else 1):
+        fan = dbg(page)["fan"]
+        c = fan[len(fan) // 2]
+        drag(page, (c["x"], c["y"]), (c["x"], c["y"] - 150), steps=18)
+        page.wait_for_timeout(1300)
+    page.wait_for_timeout(2600)                                   # the server draws, the cards shimmer
+    for s in dbg(page)["slots"]:
+        drag(page, (s["x"], s["y"] + 30), (s["x"], s["y"] - 60), steps=14)   # turned over by hand
+        page.wait_for_timeout(1500)
+    page.wait_for_timeout(4200)
+    page.evaluate("document.getElementById('scroller').scrollTo({ top: 520, behavior: 'smooth' })")
+    page.wait_for_timeout(2600)
+
+
+def scene_tarot(page):
+    tarot_flow(page, three=True)
+
+
+def scene_tarot_reversed(page):
+    tarot_flow(page, three=False)
+
+
+def scene_sphere(page):
+    page.evaluate("window.__chamber.open('sphere')")
+    page.wait_for_function("window.__chamber.state.stage && window.__chamber.state.stage.debug")
+    page.wait_for_timeout(1400)
+    page.fill(".ch-q", "გამიმართლებს ხვალ?")
+    page.wait_for_timeout(900)
+    b = dbg(page)["ball"]
+    page.mouse.move(b["x"] - 50, b["y"] - 30)
+    page.mouse.down()
+    import math
+    for i in range(70):                                            # a finger wiping round and round
+        a = i / 6
+        page.mouse.move(b["x"] + math.cos(a) * 55, b["y"] + math.sin(a) * 40)
+        page.wait_for_timeout(22)
+    page.mouse.up()
+    page.wait_for_timeout(6500)
+
+
+def scene_gift(page):
+    page.evaluate("window.__chamber.open('gift')")
+    page.wait_for_function("window.__chamber.state.stage && window.__chamber.state.stage.debug")
+    page.wait_for_timeout(1600)
+    c = dbg(page)["chest"]
+    page.mouse.click(c["x"], c["y"])
+    page.wait_for_timeout(5200)
+
+
+SCENES = {"chamber-tour": (scene_tour, {"intro": True}), "chamber-tarot": (scene_tarot, {}),
+          "chamber-tarot-reversed": (scene_tarot_reversed, {"query": "&rev=tower"}), "chamber-sphere": (scene_sphere, {}),
+          "chamber-gift": (scene_gift, {})}
 
 
 def make_context(browser, opts, tmp=None):

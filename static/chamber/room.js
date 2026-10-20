@@ -93,11 +93,11 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     const side = lam({ color: 0xd8c9a6 }), back = lam({ color: 0x2a2060 });
     const deck = new THREE.Mesh(new THREE.BoxGeometry(.13, .04, .2), [side, side, back, side, side, side]); deck.position.set(0, .856, .02); g.add(deck);
     new THREE.TextureLoader().load(B.BACK_IMG, (tx) => { tx.colorSpace = THREE.SRGBColorSpace; back.map = tx; back.color.set(0xffffff); back.needsUpdate = true; });
-    const c = F.candle(.14, .022); c.position.set(.42, .836, -.18); g.add(c);
-    const box = new THREE.Mesh(new THREE.BoxGeometry(.2, .07, .14), mat.dark); box.position.set(-.4, .87, .06); box.rotation.y = .3; g.add(box);
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(.21, .012, .15), mat.gold); lid.position.set(-.4, .91, .06); lid.rotation.y = .3; g.add(lid);
+    const c = F.candle(.14, .022); c.position.set(.36, .836, -.3); g.add(c);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(.2, .07, .14), mat.dark); box.position.set(-.3, .87, -.2); box.rotation.y = .3; g.add(box);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(.21, .012, .15), mat.gold); lid.position.set(-.3, .91, -.2); lid.rotation.y = .3; g.add(lid);
     place(g, S.tarot.slot, 2.7);
-    register("tarot", g, new THREE.Vector3(0, .86, 0), 1.25, hitBox(1.3, .5, 1.3, .8), { deck, box, candle: c });
+    register("tarot", g, new THREE.Vector3(0, .86, 0), 1.25, hitBox(1.3, .5, 1.3, .8), { deck, box, lid, candle: c, stageDist: .34, stageRise: 2.5, stageOff: -.02 });
   }
   // 1 · crystal ball on a brass stand
   { const g = new THREE.Group();
@@ -106,7 +106,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     const ball = new THREE.Mesh(new THREE.SphereGeometry(.21, 48, 32), sphereMaterial(THREE, F.clock)); ball.position.y = 1.2; g.add(ball);
     const halo = F.glow(T.glowViolet, 0x8b6cff, .95, .5); halo.position.y = 1.2; g.add(halo);
     place(g, S.sphere.slot, 2.9);
-    register("sphere", g, new THREE.Vector3(0, 1.18, 0), .95, hitBox(.6, 1.4, .6, .7), { ball, halo });
+    register("sphere", g, new THREE.Vector3(0, 1.18, 0), .95, hitBox(.6, 1.4, .6, .7), { ball, halo, stageDist: 1.3, stageRise: .1, stageOff: .07 });
   }
   // 2 · the moon window (real phase), its sill with three ritual candles, the moonbeam and dust
   { const g = new THREE.Group(), W = 1.0, Hr = 1.15, r = W / 2;
@@ -209,13 +209,13 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     const body = new THREE.Mesh(new THREE.BoxGeometry(.52, .28, .34), lam({ map: T.table, color: 0xb08868 })); body.position.y = .14; g.add(body);
     const lid = new THREE.Group(); lid.position.set(0, .28, -.17); g.add(lid);
     const lidMesh = new THREE.Mesh(new THREE.CylinderGeometry(.17, .17, .52, 18, 1, false, 0, Math.PI), lam({ map: T.table, color: 0xb08868 }));
-    lidMesh.rotation.z = Math.PI / 2; lidMesh.rotation.y = Math.PI / 2; lidMesh.position.z = .17; lid.add(lidMesh);
+    lidMesh.rotation.z = Math.PI / 2; lidMesh.position.z = .17; lid.add(lidMesh);   // a half cylinder along x, curved side up
     for (const x of [-.17, .17]) { const band = new THREE.Mesh(new THREE.BoxGeometry(.035, .29, .35), mat.brass); band.position.set(x, .14, 0); g.add(band);
       const lb = new THREE.Mesh(new THREE.TorusGeometry(.172, .012, 4, 18, Math.PI), mat.brass); lb.rotation.y = Math.PI / 2; lb.position.set(x, 0, .17); lid.add(lb); }
     const lock = new THREE.Mesh(new THREE.BoxGeometry(.07, .08, .02), mat.gold); lock.position.set(0, .26, .175); g.add(lock);
     const inner = F.glow(T.glow, 0xffd27a, .9, 0); inner.position.set(0, .3, 0); g.add(inner);
     place(g, S.gift.slot, 2.8);
-    register("gift", g, new THREE.Vector3(0, .3, 0), 1.05, hitBox(.7, .7, .55, .3), { lid, inner });
+    register("gift", g, new THREE.Vector3(0, .3, 0), 1.05, hitBox(.7, .7, .55, .3), { lid, inner, body, stageDist: 1.35, stageRise: .7, stageOff: .02 });
   }
 
   /* the dome as a station (look up, then touch it) */
@@ -279,18 +279,18 @@ function nightInfo() {
 /* the crystal ball: glass with a gold rim, a slow inner mist; uTint/uFill colour it; uMist hides the depths */
 export function sphereMaterial(THREE, clock) {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: clock, uTint: { value: new THREE.Color(0x8b6cff) }, uFill: { value: 0 }, uMist: { value: 1 }, uMask: { value: null }, uUseMask: { value: 0 } },
+    uniforms: { uTime: clock, uTint: { value: new THREE.Color(0x8b6cff) }, uFill: { value: 0 }, uMist: { value: 1 }, uFog: { value: 0 }, uMask: { value: null }, uUseMask: { value: 0 } },
     vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vP; varying vec2 vUv;
       void main() { vUv = uv; vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: `uniform float uTime, uFill, uMist, uUseMask; uniform vec3 uTint; uniform sampler2D uMask; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying vec2 vUv;
+    fragmentShader: `uniform float uTime, uFill, uMist, uFog, uUseMask; uniform vec3 uTint; uniform sampler2D uMask; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying vec2 vUv;
       float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
       float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * n(p); p *= 2.03; a *= 0.5; } return s; }
       void main() { float fr = pow(1.0 - max(dot(vN, vV), 0.0), 2.4);
         vec2 q = vP.xy * 7.0 + vec2(uTime * 0.07, -uTime * 0.05); float m = fbm(q + fbm(q * 1.7 + uTime * 0.04));
         vec3 deep = vec3(0.07, 0.05, 0.2); vec3 mist = vec3(0.78, 0.74, 0.95) * smoothstep(0.35, 0.85, m);
-        float mask = uUseMask > 0.5 ? texture2D(uMask, vec2(vV.x * 0.5 + 0.5 + vN.x * 0.25, vN.y * 0.5 + 0.5)).r : 1.0;
-        vec3 col = deep + mist * uMist * mask * 0.9;
+        float mask = mix(1.0, texture2D(uMask, vUv).a, clamp(uUseMask, 0.0, 1.0));   // alpha: wiped = transparent
+        vec3 col = deep + mist * uMist * mask * 0.9 + vec3(0.62, 0.58, 0.78) * uFog * mask * (0.75 + 0.25 * m);   // the stage's milky fog
         col = mix(col, uTint * (0.55 + 0.45 * m), uFill * 0.85);
         col += vec3(1.0, 0.86, 0.55) * fr * 0.9 + uTint * fr * 0.35;
         float spec = pow(max(dot(reflect(-vV, vN), normalize(vec3(-0.4, 0.7, 0.6))), 0.0), 40.0);

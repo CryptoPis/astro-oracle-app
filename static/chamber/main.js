@@ -173,7 +173,7 @@ export async function start(B) {
     clearTimeout(pauseTimer);
     if (state.panel) { state.panel = false; scroller.classList.remove("ch-open"); $("#chCatch").hidden = true; root.classList.remove("panel-on"); }
     engine.pause(false);
-    if (state.stage) { try { state.stage.end(); } catch {} state.stage = null; engine.setStage(null); $("#chHud").hidden = true; }
+    if (state.stage) { try { state.stage.end(); } catch (e) { console.warn("stage end", e); } state.stage = null; engine.setStage(null); $("#chHud").hidden = true; root.classList.remove("stage-on"); }
     await engine.unfocus(); state.station = null; state.closing = false;
     refreshNew(); plaque(); syncBack();
   }
@@ -194,6 +194,26 @@ export async function start(B) {
     try { if (show) tg.BackButton.show(); else tg.BackButton.hide(); } catch {}
   }
 
+  /* ── interactive stages (FULL): the object itself is the interface; the panel comes for the reading ── */
+  const STAGES = { tarot: "stage-tarot", sphere: "stage-sphere", gift: "stage-gift" };
+  const sound = { play() {} };   // replaced by the sound module when sound is on
+  async function openStage(id) {
+    if (engine.tier !== "full" || !STAGES[id]) return false;
+    const [mod] = await Promise.all([load(STAGES[id]), engine.focus(id, "stage")]);
+    const hud = $("#chHud"); hud.replaceChildren(); hud.hidden = false; root.classList.add("stage-on");
+    const ui = {
+      hud, T,
+      panel(nodes, title) { $("#chPanel").replaceChildren(...[].concat(nodes)); engine.refocus("panel"); B.go("chamber"); if (title) $("#chPTitle").textContent = title; },
+      async hidePanel() { if (!state.panel) return; state.panel = false; clearTimeout(pauseTimer); scroller.classList.remove("ch-open"); $("#chCatch").hidden = true;
+        root.classList.remove("panel-on"); engine.pause(false); await engine.refocus("stage"); syncBack(); },
+      sound: (name) => sound.play(name),
+      coinsTarget: () => $("#chCoins"),
+    };
+    const stage = mod.createStage({ THREE: engine.THREE, engine, room: engine.room, station: engine.room.stations.get(id), B, T, ui, F: engine.F, X: engine.X });
+    state.stage = stage; engine.setStage(stage); await stage.start(); syncBack();
+    return true;
+  }
+
   /* ── opening a station ── */
   async function open(id) {
     if (state.opening) return; const s = byId(id); if (!s) return;
@@ -201,6 +221,7 @@ export async function start(B) {
     if (["tarot", "horo", "moon"].includes(id)) B.store.set("astro.chSeen." + id, B.todayKey());
     try {
       if (id === "profile") { B.go("profile"); return; }
+      if (await openStage(id)) return;
       const glide = engine.focus(id, "panel");
       await new Promise((r) => setTimeout(r, B.reduced ? 0 : 380));   // the panel rises while the camera arrives
       if (id === "gift") { B.renderGift(); $("#chPanel").replaceChildren(giftBox); B.go("chamber"); }

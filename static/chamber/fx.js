@@ -88,6 +88,21 @@ export function makeFx(THREE, X) {
     mesh.userData.mat = m; return mesh;
   }
 
-  return { clock, flameMat, flame, glow, candle, dust, smoke, beam, flames,
+  /* a burst of gold dust (reward, a turned card): points thrown up, slowed and fading; update(dt) -> still alive */
+  function burst(parent, at, { count = 46, color = 0xffd27a, speed = .55, size = 9, life = 1.4 } = {}) {
+    const pos = new Float32Array(count * 3), vel = [], r = X.rng((Math.random() * 1e9) | 0);
+    for (let i = 0; i < count; i++) { pos.set([at.x, at.y, at.z], i * 3); const a = r() * Math.PI * 2, up = .4 + r() * .8, s = speed * (.4 + r() * .8);
+      vel.push([Math.cos(a) * s * .6, up * s, Math.sin(a) * s * .6]); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const m = new THREE.PointsMaterial({ color, size: size / 1000, map: X.T.glow, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+    const pts = new THREE.Points(g, m); pts.renderOrder = 7; pts.frustumCulled = false; parent.add(pts);
+    let age = 0;
+    return { update(dt) { age += dt; const k = Math.max(0, 1 - age / life);
+        for (let i = 0; i < count; i++) { const v = vel[i]; v[1] -= dt * .5; v[0] *= .985; v[2] *= .985; pos[i * 3] += v[0] * dt; pos[i * 3 + 1] += v[1] * dt; pos[i * 3 + 2] += v[2] * dt; }
+        g.attributes.position.needsUpdate = true; m.opacity = k; if (k <= 0) { this.dispose(); return false; } return true; },
+      dispose() { if (pts.parent) pts.parent.remove(pts); g.dispose(); m.dispose(); } };
+  }
+
+  return { clock, flameMat, flame, glow, candle, dust, smoke, beam, flames, burst,
     face(camera) { for (const f of flames) { const p = f.parent; if (!p) continue; f.lookAt(camera.position.x, f.getWorldPosition(_v).y, camera.position.z); } } };
 }
