@@ -64,6 +64,9 @@ async def run_checks(bot=None) -> list[tuple[str, str, str]]:
             await own_bot.session.close()
 
     # ── AI ──
+    from app.ai import stats
+    counters = await stats.today()
+    add("ok", "AI calls today (UTC)", stats.format_line(counters))
     if s.ai_provider == "mock":
         add("warn", "AI", "AI_PROVIDER=mock: sample answers only")
     elif s.groq_api_key:

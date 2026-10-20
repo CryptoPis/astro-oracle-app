@@ -508,11 +508,88 @@ def test_personal_horoscope_and_generic_fallback(client):
     assert r["personal"] is True and r["is_own_sign"]
     h = r["horoscope"]
     assert h["transits"] and all(t["nature"] in ("harmonious", "challenging", "blend") for t in h["transits"])
-    assert all(s["why"] == [h["transits"][0]["label"]] for s in h["sections"])   # mock cites T1 -> its exact label
+    assert all(s["why"][0] == h["transits"][0]["label"] for s in h["sections"])   # mock cites T1 -> its exact label
+    assert all(c == h["transits"][0]["dignity"] for s in h["sections"] for c in s["why"][1:])   # + its dignity chip
     assert "your" in h["transits"][0]["label"]
     again = client.get("/api/horoscope?period=day", headers=auth(uid)).json()
-    assert again["horoscope"] == h                                             # cached per natal chart
+    assert again["horoscope"] == h                                             # cached
     other = client.get("/api/horoscope?period=day&sign=Aries", headers=auth(uid)).json()
     assert other["personal"] is False                                          # someone else's sign: generic
     e = client.get("/api/daily/energy", headers=auth(uid)).json()
     assert e["personal"] is True and "your" in e["why"]
+
+
+def _rows(kind: str) -> int:
+    import asyncio
+    from sqlalchemy import func, select
+    from app.db import SessionLocal
+    from app.models import AICache
+
+    async def q():
+        async with SessionLocal() as s:
+            return await s.scalar(select(func.count()).select_from(AICache).where(AICache.kind == kind))
+    return asyncio.run(q())
+
+
+def test_personal_text_is_shared_by_matching_transits(client):
+    """Two people with the same top transits (here: the same birth data) cost one AI call, not two."""
+    body = {"birth_date": "1985-03-02", "birth_time": "14:30", "birth_city": "Tbilisi", "lang": "ru"}
+    for uid in (810, 811):
+        client.post("/api/auth/verify", headers=auth(uid))
+        client.patch("/api/user/profile", headers=auth(uid), json=body)
+    before = _rows("horoscope_personal")
+    a = client.get("/api/horoscope?period=week", headers=auth(810)).json()
+    assert _rows("horoscope_personal") == before + 1
+    b = client.get("/api/horoscope?period=week", headers=auth(811)).json()
+    assert a["personal"] and b["personal"] and _rows("horoscope_personal") == before + 1
+    assert a["horoscope"]["sections"] == b["horoscope"]["sections"]
+
+
+def test_personal_quota_and_ai_failure_fall_back_to_the_sign_text(client, monkeypatch):
+    from app.ai import provider
+    from app.services import economy
+    uid = 820
+    client.post("/api/auth/verify", headers=auth(uid))
+    client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": "1979-11-30", "lang": "en"})
+    # 1) the daily cap is reached: no new personal text, the shared sign horoscope instead
+    monkeypatch.setitem(economy.AI_DAILY_CAPS, "horoscope", 0)
+    monkeypatch.setitem(economy.AI_DAILY_CAPS, "energy", 0)
+    r = client.get("/api/horoscope?period=month", headers=auth(uid)).json()
+    assert r["personal"] is False and r["is_own_sign"] and r["horoscope"]["sections"]
+    assert client.get("/api/daily/energy", headers=auth(uid)).json()["personal"] is False
+    # 2) the cap allows it but the AI (e.g. Groq's own rate limit) fails on the personal prompt
+    monkeypatch.setitem(economy.AI_DAILY_CAPS, "horoscope", 40)
+    real = provider.get_ai()
+
+    class PersonalFails:
+        async def complete_json(self, system, user, schema, **kw):
+            if "T1:" in user or "transiting" in user:
+                raise provider.AIError("rate limited")
+            return await real.complete_json(system, user, schema, **kw)
+    monkeypatch.setattr(provider, "_provider", PersonalFails())
+    r = client.get("/api/horoscope?period=month", headers=auth(uid)).json()
+    assert r["personal"] is False and r["horoscope"]["sections"]
+
+
+def test_ai_call_counters_have_no_user_data(client):
+    import asyncio
+    from app.ai import stats
+    from app.services.diag import format_report  # noqa: F401  (diag imports stats)
+    uid = 830
+    client.post("/api/auth/verify", headers=auth(uid))
+    client.get("/api/horoscope?period=day&sign=Virgo", headers=auth(uid))   # may be cached; force one call:
+    from app.ai.prompts import EnergyAI
+
+    async def one_call():
+        await stats.CountingProvider(provider_mock()).complete_json("Output language code: ka", "x", EnergyAI)
+        await stats.flush()
+        return await stats.today()
+    today = asyncio.run(one_call())
+    assert today.get("call:EnergyAI.ka", 0) >= 1
+    assert all(k == "requests" or k.startswith("call:") for k in today)       # only feature names and counts
+    assert "AI calls" in stats.format_line(today)
+
+
+def provider_mock():
+    from app.ai.provider import MockProvider
+    return MockProvider()

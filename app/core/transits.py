@@ -7,8 +7,13 @@ How a reading is built:
    month = one sample per day, keeping each aspect's tightest orb and its date; the Moon is left out.
 3. Aspects to natal points: conjunction, sextile, square, trine, opposition. Orbs shrink for fast planets
    (a Moon square counts within ~3.5°, a Saturn square within ~2.3°).
-4. Ranking: transiting planet weight × natal point weight × aspect weight × closeness; at most two aspects
-   per transiting planet so one planet does not fill the whole reading.
+4. Ranking: transiting planet weight × natal point weight × aspect weight × closeness, then Sepharial's
+   rules ("Effects of Transits", 1920): the rarer the planet the weightier (the weights in planets.json), a
+   retrograde pass ×1.15 and a stationary one ×1.25 (the planet lingers on the point), two planets on one
+   natal point ×1.1 each; and the essential dignity of the transiting planet after Lilly (domicile ×1.2,
+   exaltation ×1.15: strong and clear; detriment ×1.05: felt, but awkward). At most two aspects per
+   transiting planet so one planet does not fill the whole reading.
+5. Meanings: app/astro_kb/transits.json ("saturn>venus", fallback "sun>*") plus planets/aspects/houses.
 """
 import hashlib
 from datetime import date, datetime, time, timedelta, timezone
@@ -28,6 +33,38 @@ RETRO_CAN = ["mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune
 ORB_SCALE = {"moon": 0.7, "sun": 0.6, "mercury": 0.5, "venus": 0.5, "mars": 0.5, "jupiter": 0.45, "saturn": 0.45,
              "uranus": 0.35, "neptune": 0.35, "pluto": 0.35}
 TOP_N = {"day": 4, "week": 5, "month": 5}
+MEAN_SPEED = {"mercury": 1.38, "venus": 1.2, "mars": 0.52, "jupiter": 0.083, "saturn": 0.034, "uranus": 0.012,
+              "neptune": 0.006, "pluto": 0.004}           # degrees per day
+STATION = 0.15                                              # |speed| below 15% of the mean = stationary
+DIGNITY_FACTOR = {"domicile": 1.2, "exaltation": 1.15, "detriment": 1.05, "fall": 1.0}
+RETRO_FACTOR, STATION_FACTOR, DOUBLE_FACTOR = 1.15, 1.25, 1.1
+
+
+def dignity(pid: str, lon: float) -> str | None:
+    """Major essential dignity of a traditional planet at a longitude (Lilly's table): domicile | exaltation |
+    detriment | fall | None (peregrine or only a minor dignity; the outer planets have none)."""
+    kb = load("dignities")
+    if pid not in kb["fall"]:
+        return None
+    sign = SIGNS[int(lon % 360 // 30)]
+    if sign in kb["domicile"][pid]:
+        return "domicile"
+    if kb["exaltation"][pid] == sign:
+        return "exaltation"
+    if sign in kb["detriment"][pid]:
+        return "detriment"
+    if kb["fall"][pid] == sign:
+        return "fall"
+    return None
+
+
+def motion(pid: str, speed: float) -> str:
+    """direct | retrograde | stationary (Sepharial: a stationary or retrograde transit weighs more)."""
+    if pid not in MEAN_SPEED:
+        return "direct"
+    if abs(speed) < STATION * MEAN_SPEED[pid]:
+        return "stationary"
+    return "retrograde" if speed < 0 else "direct"
 
 
 def _time(dt: datetime) -> A.Time:
@@ -94,14 +131,18 @@ def aspects_at(pos: dict, natal: dict, include_moon: bool) -> list[dict]:
                 if orb <= max_orb:
                     nxt = separation(lon + speed, nlon)
                     found.append({"transit": tp, "natal": np, "aspect": aid, "orb": round(orb, 2), "max_orb": max_orb,
-                                  "applying": abs(nxt - a["angle"]) < orb, "lon": lon})
+                                  "applying": abs(nxt - a["angle"]) < orb, "lon": lon, "speed": speed})
     return found
 
 
 def score(item: dict) -> float:
     planets, aspects = load("planets"), load("aspects")
     closeness = 1 - 0.6 * item["orb"] / item["max_orb"]
-    return planets[item["transit"]]["weight_transit"] * planets[item["natal"]]["weight_natal"] * aspects[item["aspect"]]["weight"] * closeness
+    base = planets[item["transit"]]["weight_transit"] * planets[item["natal"]]["weight_natal"] * aspects[item["aspect"]]["weight"] * closeness
+    mot = item.get("motion", "direct")
+    base *= STATION_FACTOR if mot == "stationary" else RETRO_FACTOR if mot == "retrograde" else 1.0
+    base *= DIGNITY_FACTOR.get(item.get("dignity") or "", 1.0)
+    return base * (DOUBLE_FACTOR if item.get("double") else 1.0)
 
 
 def period_days(period: str, day: date) -> list[date]:
@@ -128,6 +169,13 @@ def transits_for(natal: dict, period: str, day: date, limit: int | None = None) 
             key = (item["transit"], item["natal"], item["aspect"])
             if key not in best or item["orb"] < best[key]["orb"]:
                 best[key] = {**item, "date": d.isoformat()}
+    hits: dict[str, set[str]] = {}
+    for item in best.values():
+        item["dignity"] = dignity(item["transit"], item["lon"])
+        item["motion"] = motion(item["transit"], item["speed"])
+        hits.setdefault(item["natal"], set()).add(item["transit"])
+    for item in best.values():   # Sepharial: two planets on one point act more strongly (the fast Moon does not count)
+        item["double"] = item["transit"] != "moon" and len(hits[item["natal"]] - {"moon"}) >= 2
     ranked = sorted(best.values(), key=score, reverse=True)
     top, per_planet = [], {}
     for item in ranked:
@@ -162,6 +210,33 @@ def label(item: dict, lang: str) -> str:
     return f"{t} {sym} your {n['name']}"
 
 
+def dignity_label(item: dict, lang: str) -> str | None:
+    """'იუპიტერი ამაღლებაში' / 'Jupiter exalted' / 'Юпитер в экзальтации', or None."""
+    if not item.get("dignity"):
+        return None
+    name = load("planets")[item["transit"]].get(lang, load("planets")[item["transit"]]["en"])["name"]
+    lab = load("dignities")["labels"][item["dignity"]]
+    return f"{name} {lab.get(lang, lab['en'])}"
+
+
+def pair_meaning(item: dict, lang: str) -> dict | None:
+    """Sepharial-based meaning of 'transiting X over natal Y' (transits.json) in the reader's language."""
+    kb = load("transits")
+    entry = kb.get(f"{item['transit']}>{item['natal']}") or kb.get(f"{item['transit']}>*")
+    if not entry:
+        return None
+    return {**(entry.get(lang) or entry["en"]), "source": entry.get("source", "")}
+
+
+def signature(tr: dict) -> str:
+    """What a reading's text depends on, without orbs and dates: people with the same top transits share one text."""
+    parts = [f"{i['transit']}.{i['aspect']}.{i['natal']}.{i.get('house') or 0}.{i.get('dignity') or '-'}.{i.get('motion', 'direct')}"
+             f".{int(i['applying'])}.{int(bool(i.get('double')))}" for i in tr["transits"]]
+    moon = tr["moon_sign"] if tr["period"] == "day" else ""   # week/month texts do not mention the day's Moon sign
+    raw = "|".join(parts) + "#" + ",".join(tr["retrograde"]) + "#" + moon
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
 def retro_label(pid: str, lang: str) -> str:
     name = load("planets")[pid].get(lang, load("planets")[pid]["en"])["name"]
     return {"ka": f"{name} ℞", "ru": f"{name} ℞", "en": f"{name} ℞"}.get(lang, f"{name} ℞")
@@ -183,9 +258,26 @@ def describe_for_ai(item: dict, lang: str) -> str:
     side = "supportive" if item["nature"] == "harmonious" else "challenging" if item["nature"] == "challenging" else "supportive+challenging"
     expr = {"supportive": tl["supportive"], "challenging": tl["challenging"],
             "supportive+challenging": f"{tl['supportive']} / {tl['challenging']}"}[side]
-    when = f", closest on {item['date']}" if item.get("date") else ""
+    pair = pair_meaning(item, lang)
+    if pair:   # the pair entry is more specific than the planet's general expression
+        expr = {"supportive": pair["supportive"], "challenging": pair["challenging"],
+                "supportive+challenging": f"{pair['supportive']} / {pair['challenging']}"}[side]
     house = f"; transit house {item['house']} ({houses[str(item['house'])].get(lang, houses[str(item['house'])]['en'])})" if item.get("house") else ""
+    extra = []
+    if item.get("motion") in ("retrograde", "stationary"):
+        extra.append(f"transiting planet {item['motion']}: the theme lingers and weighs more")
+    if item.get("dignity"):
+        lab = load("dignities")["labels"][item["dignity"]]
+        extra.append(f"transiting {item['transit']} {lab['en']}: {lab['meaning_en']}")
+        if item["transit"] == "jupiter" and item["dignity"] in ("detriment", "fall"):
+            extra.append("Sepharial: an afflicted Jupiter does little good, so keep the promise modest")
+    if item.get("double"):
+        extra.append(f"another planet also touches natal {item['natal']}: the theme is emphasised")
+    # no orb or date here: the text is shared by everyone with the same signature()
     return (f"{item['id']}: transiting {item['transit']} {item['aspect']} natal {item['natal']} "
-            f"(orb {item['orb']}°, {'applying' if item['applying'] else 'separating'}{when}, {item['nature']}); "
+            f"({'applying' if item['applying'] else 'separating'}, {item['nature']}); "
             f"{tl['name']}: {tl['themes']}; {nl['name']}: {nl['themes']}; aspect: {al['meaning']}; "
-            f"expression: {expr}{house}; areas: {', '.join(areas_of(item))}")
+            + (f"meaning: {pair['meaning']}; " if pair else "")
+            + f"expression: {expr}"
+            + (f"; advice: {pair['advice']}" if pair else "")
+            + house + "".join(f"; {e}" for e in extra) + f"; areas: {', '.join(areas_of(item))}")

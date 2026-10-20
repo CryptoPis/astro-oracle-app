@@ -71,11 +71,9 @@ async def get_daily_energy(session: AsyncSession, sign: str, lang: str, day: dat
 
 
 # ───────── personal readings from real transits (app/core/transits.py) ─────────
-def personal_key(natal: dict, period: str, day: date, lang: str) -> str:
-    """One reading per natal chart, period and language (not per sign)."""
-    return f"{natal['fingerprint']}:{period}:{astro.period_key(period, day)}:{lang}"
-
-
+# Quota: a personal text is generated only when someone opens it (never by the morning cron), and it is cached by
+# what the text depends on (sign, period, language and the signature of the top transits), not by the person.
+# Two people whose top transits match share one AI call.
 def _notes(natal: dict) -> str:
     if not natal["time_known"]:
         return "Birth time unknown: houses and ascendant are not used; the natal Moon position is approximate."
@@ -84,10 +82,34 @@ def _notes(natal: dict) -> str:
     return ""
 
 
-async def get_personal_horoscope(session: AsyncSession, natal: dict, sign: str, period: str, lang: str, day: date) -> tuple[dict, bool]:
-    pkey = astro.period_key(period, day)
+def personal_key(tr: dict, natal: dict, sign: str, period: str, day: date, lang: str) -> str:
+    accuracy = "t" if natal["time_known"] else "n"
+    accuracy += "p" if natal["place_known"] else "-"
+    return f"{sign}:{period}:{astro.period_key(period, day)}:{lang}:{accuracy}:{transits.signature(tr)}"
+
+
+def personal_plan(natal: dict, sign: str, period: str, day: date, lang: str) -> dict:
+    """The transits of the period and the shared cache key of their reading (computed once per request)."""
     tr = transits.transits_for(natal, period, day)
-    labels = {it["id"]: transits.label(it, lang) for it in tr["transits"]}
+    return {"natal": natal, "sign": sign, "period": period, "day": day, "lang": lang, "tr": tr,
+            "key": personal_key(tr, natal, sign, period, day, lang)}
+
+
+def _chips(tr: dict, lang: str) -> dict[str, list[str]]:
+    """T-id -> 'why' chips: the aspect label, plus the planet's essential dignity when it has one."""
+    out = {}
+    for it in tr["transits"]:
+        chips = [transits.label(it, lang)]
+        if (d := transits.dignity_label(it, lang)) is not None:
+            chips.append(d)
+        out[it["id"]] = chips
+    return out
+
+
+async def get_personal_horoscope(session: AsyncSession, plan: dict) -> tuple[dict, bool]:
+    natal, sign, period, day, lang, tr = (plan[k] for k in ("natal", "sign", "period", "day", "lang", "tr"))
+    pkey = astro.period_key(period, day)
+    chips = _chips(tr, lang)
     moon = astro.moon_phase("en")
     moon_desc = f"{moon['name']}, Moon in {tr['moon_sign']}" if period == "day" else moon["name"]
 
@@ -96,28 +118,37 @@ async def get_personal_horoscope(session: AsyncSession, natal: dict, sign: str, 
         system, user = P.personal_horoscope_prompt(lang, sign, period, pkey, moon_desc, lines, tr["retrograde"], _notes(natal))
         result = (await get_ai().complete_json(system, user, P.HoroscopeAI, max_tokens=1200)).model_dump()
         for sec in result["sections"]:   # ids -> exact, localized labels computed here, never written by the AI
-            sec["why"] = [labels[i] for i in sec.get("why", []) if i in labels]
-        result["transits"] = [{"label": labels[it["id"]], "nature": it["nature"], "date": it.get("date")} for it in tr["transits"]]
+            sec["why"] = list(dict.fromkeys(c for i in sec.get("why", []) for c in chips.get(i, [])))
         result["retrograde"] = [transits.retro_label(p, lang) for p in tr["retrograde"]]
         return result
 
-    payload, hit = await cached_ai(session, "horoscope_personal", personal_key(natal, period, day, lang), gen)
-    return {"period_key": pkey, **payload}, hit
+    payload, hit = await cached_ai(session, "horoscope_personal", plan["key"], gen)
+    # per person (not cached): the exact dates of this chart's transits
+    transit_list = [{"label": chips[it["id"]][0], "nature": it["nature"], "date": it.get("date"),
+                     "dignity": transits.dignity_label(it, lang)} for it in tr["transits"]]
+    return {"period_key": pkey, **payload, "transits": transit_list}, hit
 
 
-async def get_personal_energy(session: AsyncSession, natal: dict, lang: str, day: date) -> dict | None:
-    """Daily energy from the person's strongest transit of the day; None if there is none (generic is used)."""
+def energy_plan(natal: dict, lang: str, day: date) -> dict | None:
     tr = transits.transits_for(natal, "day", day, limit=1)
     if not tr["transits"]:
         return None
+    return {"tr": tr, "lang": lang, "day": day, "key": f"{day.isoformat()}:{lang}:{transits.signature(tr)}"}
+
+
+async def get_personal_energy(session: AsyncSession, plan: dict) -> dict:
+    """Daily energy from the person's strongest transit of the day (shared by everyone with the same one)."""
+    tr, lang, day = plan["tr"], plan["lang"], plan["day"]
     it = tr["transits"][0]
     moon = astro.moon_phase("en")
 
     async def gen():
         system, user = P.personal_energy_prompt(lang, transits.describe_for_ai(it, lang), f"{moon['name']}, in {tr['moon_sign']}", day.isoformat())
-        out = (await get_ai().complete_json(system, user, P.EnergyAI, fast=True, max_tokens=300)).model_dump()
-        out["why"] = transits.label(it, lang)
-        return out
+        return (await get_ai().complete_json(system, user, P.EnergyAI, fast=True, max_tokens=300)).model_dump()
 
-    payload, _ = await cached_ai(session, "energy_personal", f"{natal['fingerprint']}:{day.isoformat()}:{lang}", gen)
-    return payload
+    payload, _ = await cached_ai(session, "energy_personal", plan["key"], gen)
+    return {**payload, "why": transits.label(it, lang)}
+
+
+async def is_cached(session: AsyncSession, kind: str, key: str) -> bool:
+    return await session.scalar(select(AICache.id).where(AICache.kind == kind, AICache.cache_key == key)) is not None
