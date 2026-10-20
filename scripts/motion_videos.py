@@ -3,7 +3,8 @@
     python -m scripts.build_frontend
     python -m scripts.motion_videos            # -> dist/motion/*.webm
 
-Scenes: home, tab switch, tarot ritual, sphere, horoscope, reward. Uses the demo build (dist/preview.html).
+Scenes: home, tab switch, tarot ritual, tarot with a reversed card (?rev=tower), sphere, horoscope, reward.
+Uses the demo build (dist/preview.html), whose readings come from the knowledge base (app/astro_kb).
 """
 import shutil
 import sys
@@ -52,6 +53,16 @@ def scene_tarot(page):
     page.wait_for_timeout(3000)
 
 
+def scene_tarot_reversed(page):
+    """Card of the day, forced to The Tower reversed: the honest, Waite-based reading of a hard card."""
+    page.evaluate("window.__astro.go('tarot')")
+    page.wait_for_timeout(1800)
+    page.evaluate("document.querySelector('#deck .fc:nth-child(3)').click()")
+    page.wait_for_timeout(9000)
+    scroll(page, 520, 14, 130)
+    page.wait_for_timeout(3500)
+
+
 def scene_sphere(page):
     page.evaluate("window.__astro.go('sphere')")
     page.wait_for_timeout(2500)
@@ -79,8 +90,9 @@ def scene_reward(page):
     page.wait_for_timeout(4000)
 
 
-SCENES = {"home": scene_home, "tab-switch": scene_tabs, "tarot-ritual": scene_tarot, "sphere": scene_sphere,
-          "horoscope": scene_horoscope, "reward": scene_reward}
+SCENES = {"home": scene_home, "tab-switch": scene_tabs, "tarot-ritual": scene_tarot, "tarot-reversed": scene_tarot_reversed,
+          "sphere": scene_sphere, "horoscope": scene_horoscope, "reward": scene_reward}
+QUERY = {"tarot-reversed": "&rev=tower"}
 
 
 def main():
@@ -95,7 +107,7 @@ def main():
             ctx = browser.new_context(viewport=VP, is_mobile=True, has_touch=True, record_video_dir=str(tmp), record_video_size=VP)
             ctx.add_init_script("try { localStorage.setItem('astro.lang', 'ka') } catch (e) {}")
             page = ctx.new_page()
-            page.goto(base)
+            page.goto(base + QUERY.get(name, ""))
             scene(page)
             video = page.video.path()
             ctx.close()
