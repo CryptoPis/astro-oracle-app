@@ -1,0 +1,44 @@
+{
+  "_about": "Essential dignities of the seven traditional planets. Domicile, exaltation, detriment, fall and triplicities as in Lilly, Christian Astrology I ch. XVIII-XIX ('A Table of the Essentiall Dignities of the Planets according to Ptolomy'), checked against Ptolemy, Tetrabiblos I.17-24. Terms: the Tetrabiblos table of Ptolemy's own terms (first readings; in Leo Saturn takes the first degrees, as Ptolemy's text says). Faces: the Chaldean order used by Lilly. Scores are Lilly's: domicile +5, exaltation +4, triplicity +3, term +2, face +1, detriment -5, fall -4, peregrine (no dignity at all) -5. Uranus, Neptune and Pluto have no essential dignities in these sources.",
+  "notes": [
+    "Ptolemy gives two sets of terms, the 'Egyptian' ones and his own; they differ in many signs (Tetrabiblos I.23-24). Lilly calls his table 'according to Ptolemy'. We use Ptolemy's own terms.",
+    "Triplicities: Ptolemy and Lilly give water to Mars by day and by night ('according to Ptolomy and Naibod'); other traditions (Dorotheus) give water to Venus by day and Mars by night. We follow Lilly.",
+    "Modern rulers (Uranus-Aquarius, Neptune-Pisces, Pluto-Scorpio) are not used for dignity: they are not in Ptolemy or Lilly."
+  ],
+  "domicile": {"sun": ["Leo"], "moon": ["Cancer"], "mercury": ["Gemini", "Virgo"], "venus": ["Taurus", "Libra"], "mars": ["Aries", "Scorpio"], "jupiter": ["Sagittarius", "Pisces"], "saturn": ["Capricorn", "Aquarius"]},
+  "exaltation": {"sun": "Aries", "moon": "Taurus", "mercury": "Virgo", "venus": "Pisces", "mars": "Capricorn", "jupiter": "Cancer", "saturn": "Libra"},
+  "detriment": {"sun": ["Aquarius"], "moon": ["Capricorn"], "mercury": ["Sagittarius", "Pisces"], "venus": ["Aries", "Scorpio"], "mars": ["Libra", "Taurus"], "jupiter": ["Gemini", "Virgo"], "saturn": ["Cancer", "Leo"]},
+  "fall": {"sun": "Libra", "moon": "Scorpio", "mercury": "Pisces", "venus": "Virgo", "mars": "Cancer", "jupiter": "Capricorn", "saturn": "Aries"},
+  "triplicity": {"fire": {"day": "sun", "night": "jupiter"}, "earth": {"day": "venus", "night": "moon"}, "air": {"day": "saturn", "night": "mercury"}, "water": {"day": "mars", "night": "mars"}},
+  "terms": {
+    "Aries": [["jupiter", 6], ["venus", 14], ["mercury", 21], ["mars", 26], ["saturn", 30]],
+    "Taurus": [["venus", 8], ["mercury", 15], ["jupiter", 22], ["saturn", 24], ["mars", 30]],
+    "Gemini": [["mercury", 7], ["jupiter", 13], ["venus", 20], ["mars", 26], ["saturn", 30]],
+    "Cancer": [["mars", 6], ["mercury", 13], ["jupiter", 20], ["venus", 27], ["saturn", 30]],
+    "Leo": [["saturn", 6], ["mercury", 13], ["venus", 19], ["jupiter", 25], ["mars", 30]],
+    "Virgo": [["mercury", 7], ["venus", 13], ["jupiter", 18], ["saturn", 24], ["mars", 30]],
+    "Libra": [["saturn", 6], ["venus", 11], ["mercury", 19], ["jupiter", 24], ["mars", 30]],
+    "Scorpio": [["mars", 6], ["venus", 14], ["jupiter", 21], ["mercury", 27], ["saturn", 30]],
+    "Sagittarius": [["jupiter", 8], ["venus", 14], ["mercury", 19], ["saturn", 25], ["mars", 30]],
+    "Capricorn": [["venus", 6], ["mercury", 12], ["jupiter", 19], ["saturn", 25], ["mars", 30]],
+    "Aquarius": [["saturn", 6], ["mercury", 12], ["venus", 20], ["jupiter", 25], ["mars", 30]],
+    "Pisces": [["venus", 8], ["jupiter", 14], ["mercury", 20], ["mars", 26], ["saturn", 30]]
+  },
+  "faces": {
+    "Aries": ["mars", "sun", "venus"], "Taurus": ["mercury", "moon", "saturn"], "Gemini": ["jupiter", "mars", "sun"],
+    "Cancer": ["venus", "mercury", "moon"], "Leo": ["saturn", "jupiter", "mars"], "Virgo": ["sun", "venus", "mercury"],
+    "Libra": ["moon", "saturn", "jupiter"], "Scorpio": ["mars", "sun", "venus"], "Sagittarius": ["mercury", "moon", "saturn"],
+    "Capricorn": ["jupiter", "mars", "sun"], "Aquarius": ["venus", "mercury", "moon"], "Pisces": ["saturn", "jupiter", "mars"]
+  },
+  "scores": {"domicile": 5, "exaltation": 4, "triplicity": 3, "term": 2, "face": 1, "detriment": -5, "fall": -4, "peregrine": -5},
+  "labels": {
+    "domicile": {"ka": "საკუთარ ნიშანში", "en": "in its own sign", "ru": "в обители",
+      "meaning_en": "At home: the planet acts with full strength and in its best way.", "meaning_ka": "სახლშია: პლანეტა სრული ძალით და საუკეთესოდ მოქმედებს.", "meaning_ru": "Дома: планета действует в полную силу и лучшим образом."},
+    "exaltation": {"ka": "ამაღლებაში", "en": "exalted", "ru": "в экзальтации",
+      "meaning_en": "Honoured guest: strong and generous, sometimes a little proud.", "meaning_ka": "საპატიო სტუმარია: ძლიერი და გულუხვი, ზოგჯერ ცოტა ამაყი.", "meaning_ru": "Почётный гость: сильна и щедра, иногда немного горда."},
+    "detriment": {"ka": "ექსილში", "en": "in detriment", "ru": "в изгнании",
+      "meaning_en": "Far from home: the planet works against its grain and shows its harder side.", "meaning_ka": "სახლიდან შორსაა: პლანეტა საკუთარი ბუნების საწინააღმდეგოდ მოქმედებს და უფრო მძიმე მხარეს აჩენს.", "meaning_ru": "Далеко от дома: планета действует против своей природы и показывает тяжёлую сторону."},
+    "fall": {"ka": "დაცემაში", "en": "in fall", "ru": "в падении",
+      "meaning_en": "Weakened and uneasy: its gifts come with doubt or delay.", "meaning_ka": "დასუსტებულია: მისი ძღვენი ეჭვით ან დაგვიანებით მოდის.", "meaning_ru": "Ослаблена: её дары приходят с сомнением или задержкой."}
+  }
+}

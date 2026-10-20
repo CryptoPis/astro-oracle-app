@@ -1,23 +1,118 @@
 {
-  "_about": "Major aspects. 'angle' in degrees, 'orb' is the base orb for transits (scaled per planet speed in app/core/transits.py), 'nature': harmonious | challenging | blend.",
-  "conjunction": {"angle": 0, "orb": 6, "weight": 1.0, "nature": "blend", "symbol": "☌",
-    "ka": {"name": "შეერთება", "meaning": "ენერგიები ერთდება და ძლიერდება: ეს ახალი დასაწყისის ნიშანია."},
-    "en": {"name": "conjunction", "meaning": "The energies merge and grow stronger: a sign of a new beginning."},
-    "ru": {"name": "соединение", "meaning": "Энергии сливаются и усиливаются: знак нового начала."}},
-  "sextile": {"angle": 60, "orb": 3, "weight": 0.5, "nature": "harmonious", "symbol": "⚹",
-    "ka": {"name": "სექსტილი", "meaning": "პატარა შესაძლებლობა, რომელიც შენგან ცოტა ძალისხმევას ითხოვს."},
-    "en": {"name": "sextile", "meaning": "A small opportunity that asks for a little effort from you."},
-    "ru": {"name": "секстиль", "meaning": "Небольшая возможность, которая просит немного усилий."}},
-  "square": {"angle": 90, "orb": 5, "weight": 0.85, "nature": "challenging", "symbol": "□",
-    "ka": {"name": "კვადრატი", "meaning": "დაძაბულობა და გამოწვევა: წინააღმდეგობა გაიძულებს, იმოქმედო და გაიზარდო."},
-    "en": {"name": "square", "meaning": "Tension and challenge: friction pushes you to act and grow."},
-    "ru": {"name": "квадрат", "meaning": "Напряжение и вызов: трение заставляет действовать и расти."}},
-  "trine": {"angle": 120, "orb": 5, "weight": 0.7, "nature": "harmonious", "symbol": "△",
-    "ka": {"name": "ტრიგონი", "meaning": "ჰარმონია და სიმსუბუქე: საქმე თავისით მიდის, თუ შანსს გამოიყენებ."},
-    "en": {"name": "trine", "meaning": "Harmony and ease: things flow if you use the chance."},
-    "ru": {"name": "трин", "meaning": "Гармония и лёгкость: всё идёт само, если использовать шанс."}},
-  "opposition": {"angle": 180, "orb": 6, "weight": 0.9, "nature": "challenging", "symbol": "☍",
-    "ka": {"name": "ოპოზიცია", "meaning": "ორ მხარეს შორის დაძაბულობა: საჭიროა ბალანსი შენსა და სხვებს შორის."},
-    "en": {"name": "opposition", "meaning": "Tension between two sides: you need balance between yourself and others."},
-    "ru": {"name": "оппозиция", "meaning": "Напряжение между двумя сторонами: нужен баланс между собой и другими."}}
+ "_about": "Major aspects. 'angle' in degrees, 'orb' is the base orb for transits (scaled per planet speed in app/core/transits.py), 'nature': harmonious | challenging | blend. Natures after Ptolemy (Tetrabiblos I.13); readings after Sepharial.",
+ "conjunction": {
+  "angle": 0,
+  "orb": 6,
+  "weight": 1.0,
+  "nature": "blend",
+  "symbol": "☌",
+  "ka": {
+   "name": "შეერთება",
+   "meaning": "ენერგიები ერთდება და ძლიერდება: ეს ახალი დასაწყისის ნიშანია.",
+   "advice": "ახალი ენერგია ერთ მიზანს მიმართე."
+  },
+  "en": {
+   "name": "conjunction",
+   "meaning": "The energies merge and grow stronger: a sign of a new beginning.",
+   "advice": "Focus the new energy on one goal."
+  },
+  "ru": {
+   "name": "соединение",
+   "meaning": "Энергии сливаются и усиливаются: знак нового начала.",
+   "advice": "Направь новую энергию на одну цель."
+  },
+  "source": "Ptolemy I.13; Sepharial: a conjunction takes the nature of the planets involved"
+ },
+ "sextile": {
+  "angle": 60,
+  "orb": 3,
+  "weight": 0.5,
+  "nature": "harmonious",
+  "symbol": "⚹",
+  "ka": {
+   "name": "სექსტილი",
+   "meaning": "პატარა შესაძლებლობა, რომელიც შენგან ცოტა ძალისხმევას ითხოვს.",
+   "advice": "პატარა შესაძლებლობას ჩაეჭიდე: ორჯერ არ მოვა."
+  },
+  "en": {
+   "name": "sextile",
+   "meaning": "A small opportunity that asks for a little effort from you.",
+   "advice": "Take the small opportunity: it will not knock twice."
+  },
+  "ru": {
+   "name": "секстиль",
+   "meaning": "Небольшая возможность, которая просит немного усилий.",
+   "advice": "Лови маленькую возможность: она не постучит дважды."
+  },
+  "source": "Ptolemy I.13: sextile and trine are 'harmonious' (of like nature)"
+ },
+ "square": {
+  "angle": 90,
+  "orb": 5,
+  "weight": 0.85,
+  "nature": "challenging",
+  "symbol": "□",
+  "ka": {
+   "name": "კვადრატი",
+   "meaning": "დაძაბულობა და გამოწვევა: წინააღმდეგობა გაიძულებს, იმოქმედო და გაიზარდო.",
+   "advice": "ძალით ნუ შეეცდები: პრობლემები სათითაოდ გადაჭერი."
+  },
+  "en": {
+   "name": "square",
+   "meaning": "Tension and challenge: friction pushes you to act and grow.",
+   "advice": "Do not force it: solve one problem at a time."
+  },
+  "ru": {
+   "name": "квадрат",
+   "meaning": "Напряжение и вызов: трение заставляет действовать и расти.",
+   "advice": "Не дави: решай проблемы по одной."
+  },
+  "source": "Ptolemy I.13: square and opposition are 'disharmonious'; Sepharial reads them as obstacles to be worked through"
+ },
+ "trine": {
+  "angle": 120,
+  "orb": 5,
+  "weight": 0.7,
+  "nature": "harmonious",
+  "symbol": "△",
+  "ka": {
+   "name": "ტრიგონი",
+   "meaning": "ჰარმონია და სიმსუბუქე: საქმე თავისით მიდის, თუ შანსს გამოიყენებ.",
+   "advice": "ეს მსუბუქი დინება მნიშვნელოვან საქმეს მოახმარე და არა მხოლოდ კომფორტს."
+  },
+  "en": {
+   "name": "trine",
+   "meaning": "Harmony and ease: things flow if you use the chance.",
+   "advice": "Use the easy flow for something that matters, not just comfort."
+  },
+  "ru": {
+   "name": "трин",
+   "meaning": "Гармония и лёгкость: всё идёт само, если использовать шанс.",
+   "advice": "Используй лёгкость для важного, а не только для удобства."
+  },
+  "source": "Ptolemy I.13: the most harmonious aspect"
+ },
+ "opposition": {
+  "angle": 180,
+  "orb": 6,
+  "weight": 0.9,
+  "nature": "challenging",
+  "symbol": "☍",
+  "ka": {
+   "name": "ოპოზიცია",
+   "meaning": "ორ მხარეს შორის დაძაბულობა: საჭიროა ბალანსი შენსა და სხვებს შორის.",
+   "advice": "მეორე მხარესთან შუალედური გზა მოძებნე."
+  },
+  "en": {
+   "name": "opposition",
+   "meaning": "Tension between two sides: you need balance between yourself and others.",
+   "advice": "Look for the middle ground with the other side."
+  },
+  "ru": {
+   "name": "оппозиция",
+   "meaning": "Напряжение между двумя сторонами: нужен баланс между собой и другими.",
+   "advice": "Ищи середину с другой стороной."
+  },
+  "source": "Ptolemy I.13: disharmonious; Sepharial: oppositions bring matters to a head through other people"
+ }
 }
