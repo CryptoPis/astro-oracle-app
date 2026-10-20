@@ -78,8 +78,12 @@
 - Deployed 2026-10-20: `mystic-motion-transits` merged into `main` (942ec32) and live on Render (healthz deep ok,
   `/` matches the merged `static/index.html`, unauthenticated API 401); rollback tag `backup-before-mystic-motion`
   (a3dce7c).
+- Deployed 2026-10-20: `cache-v2` merged into `main` (2c0ccc3): every shared AI text key carries `v2:` (texts
+  from the knowledge base); admin `/purge_cache old` (dry run) / `/purge_cache old apply` removes pre-v2 rows;
+  rollback tag `backup-before-cache-v2` (58cad30).
 
 ## Next
+- Send `/purge_cache old`, then `/purge_cache old apply` to the bot.
 - Watch "AI calls today" in `/diag` for a few days and tune the caps if needed.
 - Test the personal horoscope, the dignity chips, the planet of the day and a reversed tarot card on a phone.
 - Send `/purge_cache`, then `/purge_cache apply` to the bot to remove old garbled shared AI texts.
