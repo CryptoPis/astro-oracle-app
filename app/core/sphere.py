@@ -123,4 +123,6 @@ def ask(lang: str, question: str | None) -> dict:
     lang = lang if lang in ANSWERS else "en"
     tone = _rng.choices([t for t, _ in TONE_WEIGHTS], weights=[w for _, w in TONE_WEIGHTS])[0]
     topic = topic_of(question)
-    return {"answer": _rng.choice(ANSWERS[lang][tone]), "tone": tone, "topic": topic, "advice": ADVICE[lang][(topic, tone)]}
+    from app.astro_kb.context import sphere_lore   # Sepharial's crystal lore: the cloud the mist forms for this tone
+    return {"answer": _rng.choice(ANSWERS[lang][tone]), "tone": tone, "topic": topic, "advice": ADVICE[lang][(topic, tone)],
+            **sphere_lore(tone, lang)}

@@ -1,0 +1,111 @@
+{
+ "_about": "Sign themes (names come from app/core/astro.py SIGN_NAMES). Element, mode and traditional ruler after Ptolemy (Tetrabiblos I.17) and Lilly (modern rulers of Scorpio, Aquarius, Pisces are not used for dignities).",
+ "Aries": {
+  "ka": "სიმამაცე, დასაწყისი, პირდაპირობა",
+  "en": "courage, beginnings, directness",
+  "ru": "смелость, начало, прямота",
+  "element": "fire",
+  "mode": "cardinal",
+  "ruler": "mars",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Taurus": {
+  "ka": "სტაბილურობა, მოთმინება, სიამოვნება",
+  "en": "stability, patience, pleasure",
+  "ru": "стабильность, терпение, удовольствие",
+  "element": "earth",
+  "mode": "fixed",
+  "ruler": "venus",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Gemini": {
+  "ka": "ცნობისმოყვარეობა, საუბარი, ცვალებადობა",
+  "en": "curiosity, conversation, change",
+  "ru": "любопытство, общение, переменчивость",
+  "element": "air",
+  "mode": "mutable",
+  "ruler": "mercury",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Cancer": {
+  "ka": "ზრუნვა, ოჯახი, მგრძნობელობა",
+  "en": "care, family, sensitivity",
+  "ru": "забота, семья, чувствительность",
+  "element": "water",
+  "mode": "cardinal",
+  "ruler": "moon",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Leo": {
+  "ka": "შემოქმედება, გულუხვობა, სიამაყე",
+  "en": "creativity, generosity, pride",
+  "ru": "творчество, щедрость, гордость",
+  "element": "fire",
+  "mode": "fixed",
+  "ruler": "sun",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Virgo": {
+  "ka": "სიზუსტე, სამსახური, ჯანმრთელობა",
+  "en": "precision, service, health",
+  "ru": "точность, служение, здоровье",
+  "element": "earth",
+  "mode": "mutable",
+  "ruler": "mercury",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Libra": {
+  "ka": "ჰარმონია, პარტნიორობა, სამართლიანობა",
+  "en": "harmony, partnership, fairness",
+  "ru": "гармония, партнёрство, справедливость",
+  "element": "air",
+  "mode": "cardinal",
+  "ruler": "venus",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Scorpio": {
+  "ka": "სიღრმე, ვნება, გარდაქმნა",
+  "en": "depth, passion, transformation",
+  "ru": "глубина, страсть, трансформация",
+  "element": "water",
+  "mode": "fixed",
+  "ruler": "mars",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Sagittarius": {
+  "ka": "თავისუფლება, მოგზაურობა, რწმენა",
+  "en": "freedom, travel, faith",
+  "ru": "свобода, путешествия, вера",
+  "element": "fire",
+  "mode": "mutable",
+  "ruler": "jupiter",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Capricorn": {
+  "ka": "მიზანი, კარიერა, დისციპლინა",
+  "en": "ambition, career, discipline",
+  "ru": "цель, карьера, дисциплина",
+  "element": "earth",
+  "mode": "cardinal",
+  "ruler": "saturn",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Aquarius": {
+  "ka": "მეგობრობა, იდეები, დამოუკიდებლობა",
+  "en": "friendship, ideas, independence",
+  "ru": "дружба, идеи, независимость",
+  "element": "air",
+  "mode": "fixed",
+  "ruler": "saturn",
+  "source": "Ptolemy I.11-17; Lilly"
+ },
+ "Pisces": {
+  "ka": "ინტუიცია, თანაგრძნობა, ოცნება",
+  "en": "intuition, compassion, dreams",
+  "ru": "интуиция, сострадание, мечты",
+  "element": "water",
+  "mode": "mutable",
+  "ruler": "jupiter",
+  "source": "Ptolemy I.11-17; Lilly"
+ }
+}

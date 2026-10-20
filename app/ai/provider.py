@@ -19,7 +19,7 @@ from typing import Protocol, TypeVar
 from pydantic import BaseModel, ValidationError
 
 from app.ai import prompts as P
-from app.ai import quality
+from app.ai import quality, stats
 from app.ai.fallbacks import safe_payload
 from app.config import get_settings
 
@@ -98,6 +98,7 @@ class GroqProvider:
         return out
 
     async def _call(self, model: str, messages: list, max_tokens: int, temperature: float, penalties: bool = False) -> str:
+        stats.count("requests")   # every raw request counts against the Groq quota
         kwargs = {"model": model, "messages": messages, "temperature": temperature}
         if penalties and model not in self.no_penalty:
             kwargs["frequency_penalty"], kwargs["presence_penalty"] = 0.6, 0.3
@@ -220,6 +221,8 @@ class MockProvider:
 
     async def complete_json(self, system, user, schema, *, fast=False, max_tokens=900, image=None):
         data = self._DATA[schema]()
+        if schema is P.HoroscopeAI and "T1: transiting" in user:   # personal reading: cite the strongest transit
+            data["sections"] = [{**sec, "why": ["T1"]} for sec in data["sections"]]
         if schema is P.TarotAI:  # mirror the requested positions
             positions = [line.split("position=")[1].split(":")[0]
                          for line in user.splitlines() if "position=" in line]
@@ -287,5 +290,6 @@ def get_ai() -> AIProvider:
                     per_lang[lang] = PaidProviderStub(name)
                 else:
                     log.warning("AI_PROVIDER_%s=%s but its API key is not set; using the default", lang.upper(), name)
-        _provider = LanguageRouter(default, per_lang) if per_lang else default
+        from app.ai.stats import CountingProvider
+        _provider = CountingProvider(LanguageRouter(default, per_lang) if per_lang else default)
     return _provider

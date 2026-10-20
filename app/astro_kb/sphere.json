@@ -1,0 +1,20 @@
+{
+  "_about": "Crystal-gazing lore for the Magic Sphere. Source: Sepharial, How to Read the Crystal (1922): the crystal is a focus for the seer's own faculty; gaze calmly and without strain, in quiet and soft light, a few minutes at a time; the 'clouding' of the ball comes before images; white or light clouds were read as favourable, dark or black clouds as unfavourable, and clouds moving upward or to the right as an affirmative answer, downward or to the left as negative. Sepharial himself warns against expecting too much and against strain. The app uses this only as atmosphere and a gentle reflective line; answers stay playful and are never presented as prophecy.",
+  "how_to": {
+    "en": "Hold your question in mind, breathe slowly and gaze into the sphere without straining.",
+    "ka": "კითხვა გონებაში დაიჭირე, ნელა ისუნთქე და სფეროს დაძაბვის გარეშე ჩახედე.",
+    "ru": "Держи вопрос в уме, дыши медленно и смотри в сферу без напряжения."
+  },
+  "yes": {"source": "Sepharial: white clouds, or clouds rising or moving to the right, answer 'yes'",
+    "en": {"cloud": "The mist turns white and drifts upward.", "lore": "In old crystal lore, light rising clouds were read as a yes."},
+    "ka": {"cloud": "ნისლი თეთრდება და მაღლა მიიწევს.", "lore": "ძველი კრისტალის ტრადიციით, ღია, მაღლა ამავალი ღრუბლები „დიახ“-ს ნიშნავდა."},
+    "ru": {"cloud": "Туман белеет и поднимается вверх.", "lore": "В старой традиции светлые поднимающиеся облака означали «да»."}},
+  "wait": {"source": "Sepharial: clouding before the vision; colours not yet clear mean the answer is not yet formed",
+    "en": {"cloud": "The mist swirls, still undecided.", "lore": "When the crystal only clouds and no picture forms, the seers said to try again later."},
+    "ka": {"cloud": "ნისლი ტრიალებს, ჯერ გადაუწყვეტელია.", "lore": "როცა კრისტალი მხოლოდ იბინდება და სურათი არ ჩნდება, მჭვრეტელები ამბობდნენ, მოგვიანებით სცადეო."},
+    "ru": {"cloud": "Туман кружится, ещё не решив.", "lore": "Когда кристалл лишь мутнеет и образ не появляется, провидцы советовали попробовать позже."}},
+  "no": {"source": "Sepharial: dark clouds, or clouds sinking or moving to the left, answer 'no'",
+    "en": {"cloud": "The mist darkens and sinks.", "lore": "In old crystal lore, dark sinking clouds were read as a no, or as a warning to pause."},
+    "ka": {"cloud": "ნისლი მუქდება და ქვევით ეშვება.", "lore": "ძველი ტრადიციით, მუქი, დაღმავალი ღრუბლები „არა“-ს ან შეჩერების გაფრთხილებას ნიშნავდა."},
+    "ru": {"cloud": "Туман темнеет и опускается.", "lore": "В старой традиции тёмные опускающиеся облака означали «нет» или предупреждение остановиться."}}
+}

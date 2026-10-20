@@ -1,0 +1,113 @@
+{
+ "_about": "Whole-sign houses counted from the natal ascendant (used only when birth time and city are known). Significations after Lilly, Christian Astrology I, ch. on the twelve houses, softened to modern everyday terms.",
+ "1": {
+  "areas": [
+   "health"
+  ],
+  "ka": "შენ თავი, სხეული, იმიჯი",
+  "en": "self, body, image",
+  "ru": "личность, тело, образ",
+  "source": "Lilly: life, body, temperament"
+ },
+ "2": {
+  "areas": [
+   "finance"
+  ],
+  "ka": "ფული, შემოსავალი, ღირებულებები",
+  "en": "money, income, values",
+  "ru": "деньги, доход, ценности",
+  "source": "Lilly: substance, wealth; Sepharial: Saturn entering the 2nd brings money stress"
+ },
+ "3": {
+  "areas": [
+   "career"
+  ],
+  "ka": "საუბარი, ახლო გზები, და-ძმები",
+  "en": "communication, short trips, siblings",
+  "ru": "общение, поездки, братья и сёстры",
+  "source": "Lilly: brethren, short journeys, letters"
+ },
+ "4": {
+  "areas": [
+   "love"
+  ],
+  "ka": "სახლი, ოჯახი, ფესვები",
+  "en": "home, family, roots",
+  "ru": "дом, семья, корни",
+  "source": "Lilly: father, land, the end of things"
+ },
+ "5": {
+  "areas": [
+   "love"
+  ],
+  "ka": "სიყვარული, შემოქმედება, ბავშვები",
+  "en": "romance, creativity, children",
+  "ru": "любовь, творчество, дети",
+  "source": "Lilly: children, pleasure, gifts"
+ },
+ "6": {
+  "areas": [
+   "health",
+   "career"
+  ],
+  "ka": "ყოველდღიური სამუშაო, ჯანმრთელობა",
+  "en": "daily work, health",
+  "ru": "ежедневная работа, здоровье",
+  "source": "Lilly: sickness, servants, small animals"
+ },
+ "7": {
+  "areas": [
+   "love"
+  ],
+  "ka": "პარტნიორობა, ქორწინება, ხელშეკრულებები",
+  "en": "partnership, marriage, contracts",
+  "ru": "партнёрство, брак, договоры",
+  "source": "Lilly: marriage, partners, open enemies"
+ },
+ "8": {
+  "areas": [
+   "finance"
+  ],
+  "ka": "საერთო ფული, სიახლოვე, გარდაქმნა",
+  "en": "shared money, intimacy, transformation",
+  "ru": "общие деньги, близость, трансформация",
+  "source": "Lilly: death, legacies, the partner's money"
+ },
+ "9": {
+  "areas": [
+   "career"
+  ],
+  "ka": "მოგზაურობა, სწავლა, მსოფლმხედველობა",
+  "en": "travel, study, beliefs",
+  "ru": "путешествия, учёба, убеждения",
+  "source": "Lilly: long journeys, religion, learning"
+ },
+ "10": {
+  "areas": [
+   "career"
+  ],
+  "ka": "კარიერა, სტატუსი, მიზნები",
+  "en": "career, status, goals",
+  "ru": "карьера, статус, цели",
+  "source": "Lilly: honour, profession, the mother; Sepharial: the Sun/MC rules position"
+ },
+ "11": {
+  "areas": [
+   "career",
+   "love"
+  ],
+  "ka": "მეგობრები, ჯგუფები, იმედები",
+  "en": "friends, groups, hopes",
+  "ru": "друзья, группы, надежды",
+  "source": "Lilly: friends, hopes, wishes"
+ },
+ "12": {
+  "areas": [
+   "health"
+  ],
+  "ka": "დასვენება, ფარული საქმეები, შინაგანი სამყარო",
+  "en": "rest, hidden matters, inner life",
+  "ru": "отдых, тайное, внутренний мир",
+  "source": "Lilly: private enemies, sorrow, confinement; modern: rest and inner life"
+ }
+}

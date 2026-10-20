@@ -32,7 +32,7 @@ async def moon_ritual(user: User = Depends(current_user), session: AsyncSession 
     moon_en, moon = astro.moon_phase("en"), astro.moon_phase(user.lang)
 
     async def gen():
-        system, prompt = P.moon_ritual_prompt(user.lang, moon_en["name"], moon_en["illumination"], day.isoformat())
+        system, prompt = P.moon_ritual_prompt(user.lang, moon_en["name"], moon_en["illumination"], day.isoformat(), moon_en["code"])
         return (await get_ai().complete_json(system, prompt, P.MoonRitualAI, max_tokens=700)).model_dump()
 
     ritual, _ = await cached_ai(session, "moon", f"{moon['code']}:{day.isoformat()}:{user.lang}", gen)

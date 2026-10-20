@@ -11,6 +11,20 @@ Admin self-check: `/diag` in the bot. Dev checks: `scripts/perf_probe.py` (FPS, 
 (overflow, rail cards), `scripts/screenshots.py` (every screen in ka/en/ru). Frontend: one file `frontend/app.html` (no framework) → `python -m scripts.build_frontend` builds
 `static/index.html` (served at `/`) and `dist/preview.html` (browser preview with demo data).
 
+**Astrology.** Horoscopes for your own sign are personal: natal chart + real transits of the day/week/month
+(astronomy-engine, tropical), ranked and explained from a knowledge base (`app/astro_kb/`) built from public-
+domain books in our own words (Sepharial for transits, Lilly for dignities, Ptolemy as cross-check; Waite for
+tarot, Atkinson for aura, Harley for the moon, a 1920s tea-cup book for coffee, Agrippa for day correspondences,
+Freud's method for dreams as one perspective). Every AI prompt gets its KB lines: the KB decides, the AI only
+phrases, and difficult meanings are said honestly. Each horoscope section shows the transits behind it.
+Details, sources and limits: `docs/ASTROLOGY.md`. Kundli stays sidereal (Lahiri). Tarot is random by design.
+
+**AI quota (Groq free tier).** Shared texts per sign; personal texts only on open, shared by transit signature;
+per-user daily caps with fallback to the sign text; daily call counters in `/diag` (no user data).
+
+**Motion.** "Slow celestial ritual": one curve `cubic-bezier(.2,.7,.1,1)`, 240/480/900 ms, ambient loops of
+20-60 s, transform/opacity/canvas only, paused off screen and while scrolling, reduced in the lite tier.
+
 **AI.** Groq (free) with a quality guard for Georgian and Russian: garbled answers are retried, then another
 model, then a hand-written text (never cached). Names of cards, signs, planets and moon phases never come from
 the AI. Per-language model `GROQ_MODEL_KA/RU`; a paid provider can take one language via `AI_PROVIDER_KA`

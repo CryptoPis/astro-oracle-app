@@ -31,9 +31,10 @@
   --tab-h: 76px;
 
   /* motion language: one curve for everything, a spring only where it means something (arrival, reward) */
-  --ease: cubic-bezier(.22, .8, .24, 1);
-  --ease-spring: cubic-bezier(.34, 1.45, .55, 1);
-  --t1: 180ms; --t2: 320ms; --t3: 600ms;
+  /* motion language "slow celestial ritual": one calm curve, three durations, ambient loops of 20-60 s */
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  --ease-spring: cubic-bezier(.2, .7, .1, 1);   /* kept as an alias: nothing in the app bounces */
+  --t1: 240ms; --t2: 480ms; --t3: 900ms;
 
   /* celestial glass + gold hairline: a translucent night fill and a 1px gold edge that fades around the shape */
   --surf: linear-gradient(180deg, rgba(42,32,96,.74), rgba(17,12,46,.86));
@@ -734,6 +735,103 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44' fill='none' stroke='%23e2bd6a'%3E%3Ccircle cx='22' cy='22' r='20' stroke-width='.8'/%3E%3Ccircle cx='22' cy='22' r='15' stroke-width='.5' stroke-dasharray='1 3'/%3E%3Cpath d='M22 12 24 20 32 22 24 24 22 32 20 24 12 22 20 20Z' fill='%23e2bd6a' stroke='none'/%3E%3C/svg%3E") center / contain no-repeat; }
 .empty { text-align: center; }
 
+
+/* personal horoscope: badge, "why" chips, the sky behind the reading */
+.pbadge { justify-self: center; display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--gold); padding: 4px 12px;
+  border-radius: 99px; border: 1px solid rgba(226,189,106,.45); background: rgba(226,189,106,.08); }
+.why { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
+.why .why-l { width: 100%; font-size: .72rem; color: var(--haze); letter-spacing: .03em; }
+.why span.wc { font-size: .76rem; padding: 3px 9px; border-radius: 99px; color: var(--mist); border: 1px solid rgba(226,189,106,.3); background: rgba(25,19,61,.6); white-space: nowrap; }
+.sky-behind { display: grid; gap: 8px; padding: 14px 16px; border-radius: 20px; border: 1px solid transparent; background: var(--surf) padding-box, var(--hair) border-box; }
+.sky-behind ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.sky-behind li { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-size: .9rem; color: var(--ivory); }
+.sky-behind li i { font-style: normal; font-size: .74rem; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.sky-behind li i.harmonious { color: #8fd3a0; border: 1px solid rgba(143,211,160,.4); }
+.sky-behind li i.challenging { color: #ffb08a; border: 1px solid rgba(255,150,110,.45); }
+.sky-behind li i.blend { color: #c9b8ff; border: 1px solid rgba(170,150,255,.45); }
+.sky-behind .retro-line { font-size: .82rem; color: var(--haze); }
+.energy-why { font-size: .78rem; color: var(--haze); }
+.energy-why b { color: var(--gold); font-weight: 500; }
+.energy-day { font-size: .78rem; line-height: 1.5; color: var(--haze); margin-top: 2px; }
+.energy-day i { display: inline-block; vertical-align: -1px; margin-right: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--dc, var(--gold)); box-shadow: 0 0 8px var(--dc, var(--gold)); }
+.energy-day b { color: var(--mist); font-weight: 500; }
+.sphere-cloud { min-height: 1.2em; text-align: center; font-size: .8rem; font-style: italic; color: var(--haze); margin: 2px 16px 0; opacity: 0; transition: opacity var(--t2) var(--ease); }
+.sphere-cloud.show { opacity: 1; }
+.sky-behind li em { font-style: normal; font-size: .7rem; color: var(--gold); margin-left: 6px; }
+
+
+/* ═════════ motion: slow celestial ritual ═════════ */
+/* living sky: three depth layers drift at their own pace, a nebula breathes, a rare meteor */
+#sky canvas.layer { inset: -24px; width: calc(100% + 48px); height: calc(100% + 48px); }
+#sky #nebula { inset: -6%; width: 112%; height: 112%; opacity: .75; }
+[data-tier="full"] #sky #nebula { animation: neb-breathe 46s ease-in-out infinite alternate; }
+@keyframes neb-breathe { from { opacity: .55; transform: scale(1); } to { opacity: .9; transform: scale(1.05); } }
+[data-tier="full"] #sky canvas.l0 { animation: drift-far 60s ease-in-out infinite alternate, twinkle 7s ease-in-out infinite alternate; }
+[data-tier="full"] #sky canvas.l1 { animation: drift-mid 42s ease-in-out infinite alternate, twinkle 5.5s ease-in-out -2s infinite alternate; }
+[data-tier="full"] #sky canvas.l2 { animation: drift-near 28s ease-in-out infinite alternate, twinkle 3.9s ease-in-out -1s infinite alternate; }
+@keyframes drift-far { to { transform: translate3d(-6px, -4px, 0); } }
+@keyframes drift-mid { to { transform: translate3d(-12px, -7px, 0); } }
+@keyframes drift-near { to { transform: translate3d(-20px, -12px, 0); } }
+#sky .meteor { position: absolute; width: 140px; height: 1.5px; border-radius: 2px; opacity: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,246,220,0), rgba(255,246,220,.95)); transform-origin: 100% 50%; }
+#sky .meteor.go { animation: meteor 1.3s var(--ease) forwards; }
+@keyframes meteor { 0% { opacity: 0; transform: rotate(var(--ang)) translateX(0) scaleX(.3); } 15% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--ang)) translateX(260px) scaleX(1); } }
+.scrolling #sky #nebula { animation-play-state: paused; }
+
+/* screen arrival: content rises out of a soft blur into focus, in order */
+.view.enter > * { animation: rise-focus var(--t3) var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes rise-focus { from { opacity: 0; filter: blur(8px); transform: translateY(16px); } }
+[data-tier="lite"] .view.enter > * { animation-name: fade-in; animation-duration: var(--t2); }
+#veil.on path { animation-duration: var(--t3); }
+
+/* code-drawn art: a slow light travels along the lines (live art, full tier) */
+.art .sheen > * { stroke: #fff4d6; stroke-width: 1.7; stroke-dasharray: .05 .95; stroke-dashoffset: 1; opacity: 0; }
+[data-tier="full"] .art.live .sheen > * { opacity: .75; animation: sheen 9s linear infinite; animation-delay: calc(var(--k, 0) * -.6s); }
+@keyframes sheen { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.art.draw-in .motif > * { animation-duration: 1.9s; }
+/* constellation drawn star by star */
+.art .motif .st { transform-box: fill-box; transform-origin: center; }
+.art.draw-in .motif .st { animation: star-in 700ms var(--ease) both; animation-delay: calc(var(--s, 0) * 140ms + 500ms); }
+@keyframes star-in { from { opacity: 0; transform: scale(.2); } 60% { opacity: 1; transform: scale(1.5); } to { transform: scale(1); } }
+.scrolling .art .sheen > * { animation-play-state: paused; }
+
+/* tarot ritual: the cards orbit in a slow spiral, then the spread is dealt */
+.fan.orbit .fc, .fan.orbit .fc:not(.picked) { transform-origin: 50% 50%; animation: orbit 1.9s var(--ease) both; animation-delay: calc(var(--i) * 45ms); }
+@keyframes orbit {
+  0% { transform: rotate(var(--a)); }
+  35% { transform: rotate(calc(var(--i) * 51deg)) translateY(-84px) rotate(calc(var(--i) * -51deg)); }
+  70% { transform: rotate(calc(var(--i) * 51deg + 220deg)) translateY(-30px) rotate(calc(var(--i) * -51deg - 220deg)); }
+  100% { transform: translateY(-6px) scale(.92); opacity: .9; } }
+.face::after { content: ""; position: absolute; inset: 0; pointer-events: none; transform: translateX(-120%);
+  background: linear-gradient(105deg, transparent 35%, rgba(255,240,205,.55) 50%, transparent 65%); }
+.card.flipped .face::after { animation: face-sweep 1.4s var(--ease) .55s both; }
+@keyframes face-sweep { to { transform: translateX(120%); } }
+
+/* oracle words surface like ink in water; long texts in small groups so phones stay smooth */
+@keyframes ink { from { opacity: 0; filter: blur(4px); } }
+.ink.long .w { animation-duration: var(--t2); }
+
+/* magic sphere: mist inside the orb, an aura that blooms behind it */
+.ball { position: relative; }
+.ball .mist { position: absolute; left: 31%; top: 26%; width: 38%; height: 38%; border-radius: 50%; pointer-events: none; }
+.orb-stage::after { transform: scale(.6); transition: opacity var(--t3) var(--ease), transform 1.4s var(--ease); }
+.orb-stage[data-tone]::after { transform: scale(1); }
+
+/* rewards: the daily gift opens like a starburst */
+.gift { overflow: hidden; }
+.burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; z-index: 2; }
+.burst i { position: absolute; left: -1px; top: -60px; width: 2px; height: 60px; border-radius: 2px; transform-origin: 1px 60px;
+  background: linear-gradient(0deg, rgba(240,210,142,0), rgba(255,240,200,.95)); transform: rotate(var(--a)) scaleY(0); opacity: 0;
+  animation: ray var(--t3) var(--ease) forwards; }
+@keyframes ray { 30% { opacity: 1; } to { transform: rotate(var(--a)) translateY(-26px) scaleY(1); opacity: 0; } }
+
+/* loading: a slowly turning astrolabe ring instead of a spinner */
+.ring-loader { width: 58px; height: 58px; display: block; overflow: visible; }
+.ring-loader .r1 { transform-origin: 32px 32px; animation: spin 7s linear infinite; }
+.ring-loader .r2 { transform-origin: 32px 32px; animation: spin 11s linear infinite reverse; }
+.msg.ai.typing .ring-loader { width: 22px; height: 22px; }
+
 /* paused while the user scrolls, or while the element is off screen */
 .scrolling .la-img, .scrolling .la-shine::before, .scrolling .fog, .scrolling #astrolabe, .scrolling .pcard img, .scrolling .fan .fc,
 .scrolling #sky canvas, .scrolling .oracle img, [data-off] *, [data-off] { animation-play-state: paused !important; }
@@ -810,6 +908,8 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <p class="quote" id="quote">…</p>
         <p class="focus" id="focus"></p>
         <p class="affirm" id="affirm"></p>
+        <p class="energy-why" id="energyWhy" hidden></p>
+        <p class="energy-day" id="energyDay" hidden></p>
       </div>
       <div class="sec sky-sec" id="skySec" hidden>
         <div class="sec-head"><h2 data-i18n="skyNow"></h2><span id="skyAt"></span></div>
@@ -904,6 +1004,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <button class="ball" id="ball" aria-describedby="answer"></button>
       </div>
       <p class="answer" id="answer" aria-live="polite"></p>
+      <p class="sphere-cloud" id="sphereCloud"></p>
       <p class="sphere-advice" id="sphereAdvice" aria-live="polite"></p>
       <button class="btn wide" id="sphereBtn" data-i18n="sphereBtn"></button>
       <p class="muted center" id="sphereLeft"></p>
@@ -1053,7 +1154,7 @@ const I18N = {
   ka: {
     waking:"ცა იღვიძებს…", wakeSlow:"სერვერი იღვიძებს. ამას ნახევარი წუთი შეიძლება დასჭირდეს.", wakeFail:"ვარსკვლავებს ვერ დავუკავშირდით.", retry:"თავიდან ცდა",
     demo:"დემო რეჟიმი", tHome:"ცა", tHoro:"ჰოროსკოპი", tTarot:"ტარო", tDream:"სიზმრები", tProfile:"პროფილი",
-    energy:"დღის ენერგია", lucky:"დღის იღბლიანი რიცხვები", giftTitle:"დღის საჩუქარი", focusLbl:"დღის თემა",
+    energy:"დღის ენერგია", lucky:"დღის რიცხვები", giftTitle:"დღის საჩუქარი", focusLbl:"დღის თემა",
     giftBtn:"მიიღე +{n} $AST", giftDone:"დღევანდელი საჩუქარი მიღებულია. ხვალ ისევ შემოიარე.", streak:"სერია: {n} დღე",
     cardOfDay:"დღის კარტი", cardOfDaySub:"ერთი კარტი, ერთი გზავნილი დღევანდელი დღისთვის.", open:"გაშლა",
     morning:"დილა მშვიდობისა", day:"გამარჯობა", evening:"საღამო მშვიდობისა", night:"ღამე მშვიდობისა",
@@ -1137,6 +1238,10 @@ const I18N = {
     repDoneL:"პრაქტიკა 7 დღეში", repWax:"მთვარე იზრდება: კარგი კვირაა დასაწყებად და ახალი ჩანაფიქრებისთვის.",
     repWane:"მთვარე კლებულობს: კარგი კვირაა დასასრულებლად და ზედმეტისგან გასათავისუფლებლად.",
     shareStory:"ისტორიაში გაზიარება", shareMaking:"ბარათს ვამზადებ…", shareSaved:"სურათი შენახულია",
+    personalBadge:"პერსონალური · შენი ნატალური რუკით", whyL:"რატომ ამბობენ ასე ვარსკვლავები", skyBehind:"ცა შენი ჰოროსკოპის უკან",
+    nat_harmonious:"ხელსაყრელი", nat_challenging:"რთული", nat_blend:"ძლიერი", retroNow:"რეტროგრადული:",
+    personalHint:"მიუთითე დაბადების თარიღი, დრო და ქალაქი და ჰოროსკოპი შენს ნატალურ რუკაზე აეწყობა.",
+    housesHint:"დაბადების დრო და ქალაქიც თუ მიუთითე, ჰოროსკოპი სახლებსაც გაითვალისწინებს.", energyWhy:"დღის მთავარი ტრანზიტი", dayOf:"დღის პლანეტა",
     ab_sun:"მზ", ab_moon:"მთ", ab_mars:"მა", ab_mercury:"მე", ab_jupiter:"იუ", ab_venus:"ვე", ab_saturn:"სა", ab_rahu:"რა", ab_ketu:"კე",
     birthData:"დაბადების მონაცემები", birthTime:"დაბადების დრო (არასავალდებულო)", birthCity:"დაბადების ქალაქი (არასავალდებულო)", birthCityPh:"მაგ. თბილისი",
     birthHint:"დრო და ქალაქი კუნდლისთვის გვჭირდება: ლაგნასა და სახლებს ზუსტად ისინი განსაზღვრავს."
@@ -1144,7 +1249,7 @@ const I18N = {
   en: {
     waking:"The sky is waking…", wakeSlow:"The server is waking up. This can take up to half a minute.", wakeFail:"Couldn't reach the stars.", retry:"Try again",
     demo:"Demo mode", tHome:"Sky", tHoro:"Horoscope", tTarot:"Tarot", tDream:"Dreams", tProfile:"Profile",
-    energy:"Energy of the day", lucky:"Lucky numbers today", giftTitle:"Daily gift", focusLbl:"Theme of the day",
+    energy:"Energy of the day", lucky:"Numbers of the day", giftTitle:"Daily gift", focusLbl:"Theme of the day",
     giftBtn:"Claim +{n} $AST", giftDone:"Today's gift is claimed. Come back tomorrow.", streak:"Streak: {n} days",
     cardOfDay:"Card of the day", cardOfDaySub:"One card, one message for today.", open:"Open",
     morning:"Good morning", day:"Hello", evening:"Good evening", night:"Good night", illum:"{n}% illuminated",
@@ -1226,6 +1331,10 @@ const I18N = {
     repDoneL:"Practices in 7 days", repWax:"The Moon is growing: a good week to begin and plant new intentions.",
     repWane:"The Moon is waning: a good week to finish things and let go of what's extra.",
     shareStory:"Share to story", shareMaking:"Preparing the card…", shareSaved:"Image saved",
+    personalBadge:"Personal · from your natal chart", whyL:"Why the stars say this", skyBehind:"The sky behind your reading",
+    nat_harmonious:"supportive", nat_challenging:"challenging", nat_blend:"intense", retroNow:"Retrograde:",
+    personalHint:"Add your birth date, time and city, and your horoscope will be built on your own natal chart.",
+    housesHint:"Add your birth time and city as well, and the reading will include the houses.", energyWhy:"Today's main transit", dayOf:"Planet of the day",
     ab_sun:"Su", ab_moon:"Mo", ab_mars:"Ma", ab_mercury:"Me", ab_jupiter:"Ju", ab_venus:"Ve", ab_saturn:"Sa", ab_rahu:"Ra", ab_ketu:"Ke",
     birthData:"Birth details", birthTime:"Birth time (optional)", birthCity:"Birth city (optional)", birthCityPh:"e.g. Tbilisi",
     birthHint:"Time and city are used for your kundli: they fix the lagna and the houses."
@@ -1233,7 +1342,7 @@ const I18N = {
   ru: {
     waking:"Небо просыпается…", wakeSlow:"Сервер просыпается. Это может занять до полуминуты.", wakeFail:"Не удалось связаться со звёздами.", retry:"Повторить",
     demo:"Демо-режим", tHome:"Небо", tHoro:"Гороскоп", tTarot:"Таро", tDream:"Сны", tProfile:"Профиль",
-    energy:"Энергия дня", lucky:"Счастливые числа дня", giftTitle:"Подарок дня", focusLbl:"Тема дня",
+    energy:"Энергия дня", lucky:"Числа дня", giftTitle:"Подарок дня", focusLbl:"Тема дня",
     giftBtn:"Получить +{n} $AST", giftDone:"Сегодняшний подарок получен. Заходи завтра.", streak:"Серия: {n} дн.",
     cardOfDay:"Карта дня", cardOfDaySub:"Одна карта и одно послание на сегодня.", open:"Открыть",
     morning:"Доброе утро", day:"Здравствуй", evening:"Добрый вечер", night:"Доброй ночи", illum:"освещена на {n}%",
@@ -1315,6 +1424,10 @@ const I18N = {
     repDoneL:"Практик за 7 дней", repWax:"Луна растёт: хорошая неделя, чтобы начинать и загадывать новое.",
     repWane:"Луна убывает: хорошая неделя, чтобы завершать дела и отпускать лишнее.",
     shareStory:"Поделиться в истории", shareMaking:"Готовлю карточку…", shareSaved:"Изображение сохранено",
+    personalBadge:"Персонально · по твоей натальной карте", whyL:"Почему звёзды так говорят", skyBehind:"Небо за твоим гороскопом",
+    nat_harmonious:"благоприятный", nat_challenging:"напряжённый", nat_blend:"сильный", retroNow:"Ретроградные:",
+    personalHint:"Укажи дату, время и город рождения, и гороскоп будет построен по твоей натальной карте.",
+    housesHint:"Укажи также время и город рождения, чтобы учесть дома.", energyWhy:"Главный транзит дня", dayOf:"Планета дня",
     ab_sun:"Су", ab_moon:"Лу", ab_mars:"Ма", ab_mercury:"Ме", ab_jupiter:"Юп", ab_venus:"Ве", ab_saturn:"Са", ab_rahu:"Ра", ab_ketu:"Ке",
     birthData:"Данные рождения", birthTime:"Время рождения (необязательно)", birthCity:"Город рождения (необязательно)", birthCityPh:"напр. Тбилиси",
     birthHint:"Время и город нужны для кундли: они определяют лагну и дома."
@@ -1513,20 +1626,37 @@ const GOLD_GLOW = glowSprite("240,210,142");
 
 /* starfield: painted once per size into three layers; CSS fades layers 2 and 3 in and out (twinkle) */
 (function sky() {
-  const host = $("#sky"), layers = Array.from({ length: PERF.lite ? 1 : 3 }, () => host.appendChild(el("canvas")));
+  const host = $("#sky"), neb = host.appendChild(el("canvas")); neb.id = "nebula";
+  const layers = Array.from({ length: PERF.lite ? 1 : 3 }, (_, i) => host.appendChild(el("canvas", `layer l${i}`)));
+  /* a faint nebula painted once at low resolution (cheap "noise": overlapping soft clouds); CSS makes it breathe */
+  const paintNebula = () => { const c = neb, w = Math.max(1, Math.round(innerWidth / 3)), h = Math.max(1, Math.round(innerHeight / 3)); c.width = w; c.height = h;
+    const x = c.getContext("2d"), r = rng(11); x.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 26; i++) { const px = r() * w, py = h * (.1 + r() * .85), rad = (.12 + r() * .35) * Math.max(w, h),
+        col = i % 4 === 0 ? "226,189,106" : i % 4 === 1 ? "90,70,190" : "139,108,255", gr = x.createRadialGradient(px, py, 0, px, py, rad);
+      gr.addColorStop(0, `rgba(${col},${(.025 + r() * .05).toFixed(3)})`); gr.addColorStop(1, `rgba(${col},0)`); x.fillStyle = gr; x.fillRect(0, 0, w, h); } };
   let lastW = 0, lastH = 0, timer;
   const paint = () => {
     const w = innerWidth, h = innerHeight;
     if (Math.abs(w - lastW) < 2 && Math.abs(h - lastH) < 140 && lastW) return;   // ignore the mobile URL-bar jiggle
     lastW = w; lastH = h;
     const n = Math.round(w * h / (PERF.lite ? 5200 : 2600)), r = rng(7);
-    layers.forEach((c, li) => { const { ctx } = fitCanvas(c); ctx.clearRect(0, 0, w, h);
-      for (let i = li; i < n; i += layers.length) { const x = r() * w, y = r() * h * .92, big = r() < .08, gold = r() < .12;
-        ctx.globalAlpha = .45 + r() * .5; ctx.fillStyle = gold ? "#f0d28e" : "#e8e3ff";
-        ctx.beginPath(); ctx.arc(x, y, big ? 1.3 : .4 + r() * .7, 0, 6.283); ctx.fill();
+    paintNebula();
+    layers.forEach((c, li) => { const { ctx, w: cw, h: ch } = fitCanvas(c); ctx.clearRect(0, 0, cw, ch);
+      const near = (li + 1) / layers.length;   // far layer: small and dim; near layer: fewer, larger, brighter
+      for (let i = li; i < n; i += layers.length) { const x = r() * cw, y = r() * ch * .94, big = r() < .05 + near * .06, gold = r() < .12;
+        ctx.globalAlpha = (.3 + r() * .4) * (.6 + near * .5); ctx.fillStyle = gold ? "#f0d28e" : "#e8e3ff";
+        ctx.beginPath(); ctx.arc(x, y, (big ? 1.2 : .35 + r() * .55) * (.8 + near * .5), 0, 6.283); ctx.fill();
         if (big && gold) { ctx.globalAlpha = .5; ctx.drawImage(GOLD_GLOW, x - 7, y - 7, 14, 14); } } });
   };
   paint(); addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(paint, 200); });
+  /* a shooting star at most about once every 40-75 s, never while scrolling or hidden (full tier only) */
+  if (!PERF.lite && !reduced) {
+    const m = host.appendChild(el("i", "meteor"));
+    const fly = () => { if (!document.hidden && !Motion.scrolling) { m.style.left = `${10 + Math.random() * 60}%`; m.style.top = `${4 + Math.random() * 30}%`;
+        m.style.setProperty("--ang", `${18 + Math.random() * 22}deg`); m.classList.remove("go"); void m.offsetWidth; m.classList.add("go"); }
+      setTimeout(fly, 40000 + Math.random() * 35000); };
+    setTimeout(fly, 9000 + Math.random() * 12000);
+  }
 })();
 
 /* moon disc with the real lit fraction; p = phase 0..1 (0 new, .5 full) */
@@ -1605,6 +1735,7 @@ const TableFx = (() => { const fx = fxLayer($("#smoke"));
 
 /* ═════════════ Telegram + API ═════════════ */
 const haptic = { tap() { try { tg.HapticFeedback.impactOccurred("light"); } catch {} }, ok() { try { tg.HapticFeedback.notificationOccurred("success"); } catch {} },
+  flip() { try { tg.HapticFeedback.impactOccurred("medium"); } catch {} }, soft() { try { tg.HapticFeedback.impactOccurred("soft"); } catch {} },
   err() { try { tg.HapticFeedback.notificationOccurred("error"); } catch {} } };
 
 /* ═════════════ LIVING ART ═════════════
@@ -1905,20 +2036,28 @@ const Demo = (() => {
       lucky_color: pick(T.colors, seed + "c"), mood: pick(T.moods, seed + "m"),
       sections: ["love", "career", "health", "finance"].map((a, i) => ({ area: a, title: t(a), text: pick(T[a], seed + a), score: 2 + (hash(seed + a + i) % 4) })) };
   }
+  const KBD = /*DEMO_KB*/null;   // preview build only: tarot meanings, day correspondences, sphere lore
+  const kbl = (o) => o && (o[S.lang] || o.en);
   function tarot(spread, question) {
     const positions = spread === "three" ? ["past", "present", "future"] : [question ? "answer" : "today"];
     const deck = ARCANA.map((a) => a[0]).sort(() => Math.random() - .5);
-    const cards = positions.map((pos, i) => { const id = deck[i], a = ARC[id], rev = Math.random() < .25, kw = ka() ? a.kwKa : a.kwEn;
+    const qs = new URLSearchParams(location.search), forceRev = qs.has("rev");   // ?rev: the first card is reversed (motion video)
+    if (forceRev && qs.get("rev")) { const want = qs.get("rev"), j = deck.indexOf(want); if (j > 0) [deck[0], deck[j]] = [deck[j], deck[0]]; }
+    const cards = positions.map((pos, i) => { const id = deck[i], a = ARC[id], rev = forceRev ? i === 0 : Math.random() < .25, kw = ka() ? a.kwKa : a.kwEn;
       const posKa = { today: "დღევანდელი დღისთვის", past: "წარსულის პოზიციაში", present: "აწმყოს პოზიციაში", future: "მომავლის პოზიციაში", answer: "შენს კითხვაზე პასუხად" }[pos];
       const posEn = { today: "For today", past: "In the past position", present: "In the present position", future: "In the future position", answer: "In answer to your question" }[pos];
       const text = ka() ? `${posKa} „${a.ka}“ გამოჩნდა. ამ კარტის მთავარი თემებია: ${kw.join(", ")}. ის გეუბნება, რომ სწორედ ეს ძალები მოქმედებს ახლა შენს ცხოვრებაში.${rev ? " შებრუნებული კარტი მიუთითებს, რომ ეს ენერგია ჯერ ბოლომდე არ გახსნილა და შინაგან მუშაობას მოითხოვს." : ""}`
         : `${posEn}, ${a.en} appears. Its themes are ${kw.join(", ")}. These are the forces at work in your life right now.${rev ? " Reversed, it shows this energy has not fully opened yet and asks for inner work." : ""}`;
-      return { id, number: a.n, name: a.en, reversed: rev, position: pos, title: ka() ? a.ka : a.en, keywords: kw, interpretation: text }; });
+      const kb = KBD && kbl(KBD.tarot[id] && KBD.tarot[id][rev ? "reversed" : "upright"]);
+      const posRu = { today: "На сегодня", past: "В позиции прошлого", present: "В позиции настоящего", future: "В позиции будущего", answer: "В ответ на твой вопрос" }[pos];
+      const kbText = kb && `${{ ka: posKa, ru: posRu }[S.lang] || posEn}: ${kb.meaning} ${{ ka: "სიფრთხილე: ", ru: "Осторожно: " }[S.lang] || "Watch out: "}${kb.challenging}`;
+      return { id, number: a.n, name: a.en, reversed: rev, position: pos, title: ka() ? a.ka : a.en, keywords: kw, interpretation: kbText || text }; });
     const k0 = cards.map((c) => c.keywords[0]);
     const synthesis = spread === "three"
       ? (ka() ? `სამი კარტი ერთ ისტორიას ყვება. წარსულის თემაა „${k0[0]}“, აწმყოსი „${k0[1]}“, მომავლისა კი „${k0[2]}“. გზა დაბალანსებულია და გიჩვენებს, რომ სწორი მიმართულებით მიდიხარ.` : `Three cards tell one story: ${k0[0]} in the past, ${k0[1]} now, ${k0[2]} ahead. The path is balanced and shows you are moving the right way.`)
       : (ka() ? `დღის კარტი შენს ყურადღებას ერთ თემაზე ამახვილებს: „${k0[0]}“. ნება მიეცი, ეს სიტყვა მთელი დღე გაგყვეს.` : `Today's card turns your attention to one theme: ${k0[0]}. Let that word stay with you all day.`);
-    return { cards, synthesis, advice: ka() ? "დღეს ერთი პატარა ნაბიჯი გადადგი იმ მიმართულებით, რომელსაც კარტები გიჩვენებენ." : "Take one small step today in the direction the cards point." };
+    const lead = cards.find((c) => c.reversed) || cards[cards.length - 1], leadKb = KBD && kbl(KBD.tarot[lead.id] && KBD.tarot[lead.id][lead.reversed ? "reversed" : "upright"]);
+    return { cards, synthesis, advice: leadKb ? leadKb.advice : ka() ? "დღეს ერთი პატარა ნაბიჯი გადადგი იმ მიმართულებით, რომელსაც კარტები გიჩვენებენ." : "Take one small step today in the direction the cards point." };
   }
   function dream(text) {
     const low = text.toLowerCase(), L = ka() ? "ka" : "en";
@@ -1950,10 +2089,13 @@ const Demo = (() => {
       db.user.daily_reward_available = false; db.user.streak += 1; const r = reward(50); return { ok: true, reward: { ...r, streak: db.user.streak, freeze_used: fz } }; }
     if (p === "/api/daily/energy") { await wait(500); const T = tx(), d = todayIso(), sign = profile().sign;
       const nums = []; let h = hash("777" + d); while (nums.length < 3) { const n = (h % 49) + 1; if (!nums.includes(n)) nums.push(n); h = hash(String(h)); }
-      return { date: d, sign, moon: moonNow(), lucky_numbers: nums.sort((a, b) => a - b), quote: pick(T.quotes, d), affirmation: pick(T.affirm, d + "a"), focus: pick(T.focus, d + "f") }; }
+      return { date: d, sign, moon: moonNow(), lucky_numbers: nums.sort((a, b) => a - b), quote: pick(T.quotes, d), affirmation: pick(T.affirm, d + "a"), focus: pick(T.focus, d + "f"),
+        personal: !!sign, why: sign ? DEMO_TR()[0].label : null, day: KBD ? kbl(KBD.days[new Date().getDay()]) : null }; }
     if (p === "/api/horoscope") { await wait(1300); const sign = q.get("sign") || (profile().sign || {}).id; if (!sign) throw new ApiError(400, "needs_birth_date");
       const own = profile().sign && profile().sign.id === sign, period = q.get("period") || "day";
-      return { sign: { id: sign, name: sname(sign), element: ELEMENT[sign] }, period, is_own_sign: own, horoscope: horoscope(sign, period), moon: moonNow(),
+      const hz = horoscope(sign, period); if (own) { const tr = DEMO_TR(); hz.transits = tr; hz.retrograde = DEMO_RETRO();
+        hz.sections = hz.sections.map((x, i) => ({ ...x, why: [tr[i % tr.length].label] })); }
+      return { sign: { id: sign, name: sname(sign), element: ELEMENT[sign] }, period, is_own_sign: own, personal: own, horoscope: hz, moon: moonNow(),
         reward: own ? (db["h" + period] ? { coins_earned: 0, balance: db.user.coins } : (db["h" + period] = 1, reward(20))) : null }; }
     if (p === "/api/tarot/draw") { await wait(1500);
       if (body.spread === "daily" && db.tarotToday) return { ...db.tarotToday, repeated: true, reward: null };
@@ -1980,7 +2122,8 @@ const Demo = (() => {
         advice: L === "ka" ? "დაისახე ერთი მიზანი, რომელიც ამ წლის ენერგიას შეესაბამება." : "Set one goal that fits this year's energy." };
       return { life_path: lp, is_master: [11, 22, 33].includes(lp), personal_year: py, year, reading, year_reading, reward: limited("num", 35, 1) }; }
     if (p === "/api/sphere") { await wait(300); const L = ka() ? "ka" : "en", r = Math.random(), tone = r < .42 ? "yes" : r < .75 ? "wait" : "no";
-      const list = SPH[L][tone]; return { answer: list[(Math.random() * list.length) | 0], tone, topic: "general", advice: SPH_ADV[L], reward: limited("sphere", 25, 5) }; }
+      const list = SPH[L][tone], lore = KBD ? kbl(KBD.sphere[tone]) : {};
+      return { answer: list[(Math.random() * list.length) | 0], tone, topic: "general", advice: SPH_ADV[L], cloud: lore.cloud, lore: lore.lore, reward: limited("sphere", 25, 5) }; }
     if (p === "/api/moon/ritual") { await wait(1100); const L = ka() ? "ka" : "en";
       return { moon: moonNow(), reward: limited("moon", 70, 1), ritual: L === "ka" ? { title: "ვერცხლის წყალი",
           intention: "ეს ფაზა განზრახვების დროა. რასაც ახლა დათესავ, სავსემთვარეობისას გაიფურჩქნება.",
@@ -2055,6 +2198,12 @@ const Demo = (() => {
     throw new ApiError(404, "not_found");
   }
   const Demo = { handle };
+  /* sample transits (the real ones come from the server's natal chart) */
+  function DEMO_TR() { const L = S.lang, P = { ka: ["იუპიტერი", "მზე", "პლუტონი", "ვენერა", "ნეპტუნი"], en: ["Jupiter", "Sun", "Pluto", "Venus", "Neptune"],
+      ru: ["Юпитер", "Солнце", "Плутон", "Венера", "Нептун"] }[L], your = (n, poss) => L === "ka" ? `შენი ${n}` : L === "ru" ? `${poss} ${n}` : `your ${n}`;
+    return [{ label: `${P[0]} ☌ ${your(P[1], "твоё")}`, nature: "blend" }, { label: `${P[2]} ☍ ${your(P[3], "твоя")}`, nature: "challenging" },
+      { label: `${P[4]} △ ${your(P[3], "твоя")}`, nature: "harmonious" }]; }
+  function DEMO_RETRO() { return { ka: ["ვენერა ℞", "სატურნი ℞"], en: ["Venus ℞", "Saturn ℞"], ru: ["Венера ℞", "Сатурн ℞"] }[S.lang]; }
   return Demo;
 })();
 
@@ -2064,6 +2213,9 @@ function toast(content, isErr) { const n = $("#toast"); n.replaceChildren(); n.c
   if (typeof content === "string") n.textContent = content; else n.append(content);
   n.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => n.classList.remove("show"), 2600); }
 function rewardToast(n) { haptic.ok(); const b = el("b", null, `+${n} $AST`); toast(b); const c = $("#coins"); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); sparkle(c); }
+function starburst(host) { if (reduced) return; const b = el("span", "burst"); b.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < (PERF.lite ? 10 : 18); i++) { const ray = el("i"); ray.style.setProperty("--a", `${i * 360 / (PERF.lite ? 10 : 18)}deg`); ray.style.animationDelay = `${(i % 3) * 40}ms`; b.append(ray); }
+  host.append(b); setTimeout(() => b.remove(), 1300); }
 function sparkle(host) { if (reduced) return; const n = PERF.lite ? 5 : 9;
   for (let i = 0; i < n; i++) { const s = el("i", "spark"); s.style.setProperty("--a", `${i * 360 / n + Math.random() * 25}deg`); s.style.setProperty("--d", `${20 + Math.random() * 16}px`);
     host.append(s); setTimeout(() => s.remove(), 900); } }
@@ -2076,18 +2228,22 @@ function setCoins(n, animate) {
   const t0 = performance.now(), dur = 900;
   const step = (now) => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3); $("#coinVal").textContent = fmt(from + (n - from) * e); if (k < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step); }
+const RING_LOADER = '<svg class="ring-loader" viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="#e2bd6a"><g class="r1"><circle cx="32" cy="32" r="28" stroke-width="1" stroke-opacity=".8"/><path d="M60.0 32.0 L56.5 32.0" stroke-width=".8"/><path d="M56.2 46.0 L53.2 44.3" stroke-width=".8"/><path d="M46.0 56.2 L44.2 53.2" stroke-width=".8"/><path d="M32.0 60.0 L32.0 56.5" stroke-width=".8"/><path d="M18.0 56.2 L19.7 53.2" stroke-width=".8"/><path d="M7.8 46.0 L10.8 44.2" stroke-width=".8"/><path d="M4.0 32.0 L7.5 32.0" stroke-width=".8"/><path d="M7.8 18.0 L10.8 19.7" stroke-width=".8"/><path d="M18.0 7.8 L19.8 10.8" stroke-width=".8"/><path d="M32.0 4.0 L32.0 7.5" stroke-width=".8"/><path d="M46.0 7.8 L44.3 10.8" stroke-width=".8"/><path d="M56.2 18.0 L53.2 19.8" stroke-width=".8"/><circle cx="60" cy="32" r="2" fill="#e2bd6a" stroke="none"/></g><g class="r2"><circle cx="32" cy="32" r="18" stroke-width=".7" stroke-dasharray="2 3" stroke-opacity=".7"/><circle cx="32" cy="14" r="1.6" fill="#fbe7b3" stroke="none"/></g><path d="M32 26 33.6 30.4 38 32 33.6 33.6 32 38 30.4 33.6 26 32 30.4 30.4Z" fill="#e2bd6a" stroke="none"/></g></svg>';
+function ringLoader() { const s = el("span"); s.innerHTML = RING_LOADER; return s.firstElementChild; }
 function loading(box, text) { const w = el("div", "loading"), sk = el("div", "sk");
   for (const wd of [94, 100, 82, 60]) { const l = el("i"); l.style.width = wd + "%"; sk.append(l); }
-  w.append(el("div", "orb"), el("span", null, text || t("reading")), sk); box.replaceChildren(w); }
+  w.append(ringLoader(), el("span", null, text || t("reading")), sk); box.replaceChildren(w); }
 const stars = (n) => { const s = el("span", "score"); s.setAttribute("aria-label", `${n}/5`); s.append("★".repeat(n)); const off = el("span", "off", "★".repeat(5 - n)); s.append(off); return s; };
 
 /* ═════════════ ink: the oracle's words surface one by one ═════════════ */
-const INK = ".quote, .advice, .synth, .answer";
+const INK = ".quote, .advice, .synth, .answer, .card-read > p, .sphere-advice";
 function ink(n) {
   const txt = n.textContent; if (reduced || !txt.trim() || n._ink === txt) return;
-  let i = 0; n.replaceChildren(...txt.split(/(\s+)/).map((w) => { if (!w || /^\s+$/.test(w)) return document.createTextNode(w);
-    const sp = el("span", "w", w); sp.style.setProperty("--d", `${Math.min(i++ * 45, 1500)}ms`); return sp; }));
-  n._ink = n.textContent; n.classList.remove("ink"); void n.offsetWidth; n.classList.add("ink"); }
+  const words = txt.split(/\s+/).filter(Boolean), long = words.length > 40, size = long ? 3 : 1, step = long ? 55 : 60, parts = [];
+  for (let k = 0; k < words.length; k += size) parts.push(words.slice(k, k + size).join(" "));
+  n.replaceChildren(...parts.flatMap((p, i) => { const sp = el("span", "w", p); sp.style.setProperty("--d", `${Math.min(i * step, 2200)}ms`);
+    return i ? [document.createTextNode(" "), sp] : [sp]; }));
+  n._ink = n.textContent; n.classList.remove("ink", "long"); void n.offsetWidth; n.classList.add("ink"); if (long) n.classList.add("long"); }
 new MutationObserver((ms) => { for (const m of ms) for (const n of m.addedNodes) {
   if (n.nodeType === 3) { const pe = n.parentElement; if (pe && pe.matches(INK)) ink(pe); }
   else if (n.nodeType === 1) { if (n.matches(INK)) ink(n); n.querySelectorAll(INK).forEach(ink); } } }).observe($("#app"), { childList: true, subtree: true });
@@ -2149,6 +2305,10 @@ async function loadHome() {
     if (gen !== S.homeGen) return;   // a newer Home load (e.g. after a profile change) owns the screen now
     if (e.moon) { S.moon = { ...S.moon, ...e.moon, name: MOON_NAMES[e.moon.code] ? MOON_NAMES[e.moon.code][S.lang] : e.moon.name }; }
     $("#quote").textContent = e.quote; $("#affirm").textContent = e.affirmation;
+    const ew = $("#energyWhy"); ew.hidden = !e.why; if (e.why) ew.replaceChildren(`${t("energyWhy")}: `, el("b", null, e.why));
+    const ed = $("#energyDay"), dd = e.day; ed.hidden = !dd;   // Agrippa's correspondences of the weekday
+    if (dd) { const dot = el("i"); dot.style.setProperty("--dc", dd.color);
+      ed.replaceChildren(dot, `${t("dayOf")}: `, el("b", null, dd.planet_name), ` · ${dd.color_name} · ${dd.stone} · ${dd.keyword}`); }
     const f = $("#focus"); f.replaceChildren(`${t("focusLbl")}: `, el("b", null, e.focus));
     $("#lucky").replaceChildren(...e.lucky_numbers.map((n) => el("span", null, n)));
   } catch (err) { if (gen === S.homeGen) $("#quote").textContent = t("e_ai"); }
@@ -2184,7 +2344,7 @@ function renderGift() {
 }
 $("#giftBtn").addEventListener("click", async () => {
   const b = $("#giftBtn"); b.disabled = true;
-  try { const r = await api("POST", "/api/user/daily-reward"); S.user.daily_reward_available = false; S.user.streak = r.reward.streak;
+  try { const r = await api("POST", "/api/user/daily-reward"); S.user.daily_reward_available = false; S.user.streak = r.reward.streak; starburst($("#gift"));
     if (S.user.streak_freeze) S.user.streak_freeze = { ready: S.user.streak_freeze.ready && !r.reward.freeze_used, saving: false };
     if (r.reward.freeze_used) setTimeout(() => toast(t("frzToast")), 2700); }
   catch (e) { if (e.code === "already_claimed") S.user.daily_reward_available = false; else { showError(e); b.disabled = false; return; } }
@@ -2218,10 +2378,23 @@ function renderHoro(out, r) {
   const h = r.horoscope, s = r.sign.id, root = el("div", "reading");
   const nameBlock = el("div", "sign-name"); nameBlock.append(el("h1", null, sname(s)), el("p", "sign-meta", `${rangeText(s)} · ${t("element")}: ${t(ELEMENT[s])}`));
   const card = el("div", "sign-card"); card.style.setProperty("--aura", ELEMENT_COLOR[ELEMENT[s]]); root.append(card, nameBlock); livingArt(card, s, { tilt: false });
+  if (r.personal) root.append(el("span", "pbadge", "✦ " + t("personalBadge")));
   root.append(el("h2", null, h.title), el("p", null, h.summary));
   const areas = el("div", "areas");
-  for (const a of h.sections) { const w = el("div", "area"), head = el("div", "area-head"); head.append(el("b", null, t(a.area)), stars(a.score)); w.append(head, el("p", null, a.text)); areas.append(w); }
+  for (const a of h.sections) { const w = el("div", "area"), head = el("div", "area-head"); head.append(el("b", null, t(a.area)), stars(a.score)); w.append(head, el("p", null, a.text));
+    if (a.why && a.why.length) { const why = el("div", "why"); why.append(el("span", "why-l", t("whyL")), ...a.why.map((x) => el("span", "wc", x))); w.append(why); }
+    areas.append(w); }
+  if (r.personal && h.transits && h.transits.length) {   // the real transits this reading was built on
+    const box = el("div", "sky-behind"), ul = el("ul");
+    h.transits.forEach((x) => { const li = el("li"), lab = el("span", null, x.label); if (x.dignity) lab.append(el("em", null, x.dignity));
+      li.append(lab, el("i", x.nature, t("nat_" + x.nature))); ul.append(li); });
+    box.append(el("span", "label", t("skyBehind")), ul);
+    if (h.retrograde && h.retrograde.length) box.append(el("p", "retro-line", `${t("retroNow")} ${h.retrograde.join(", ")}`));
+    root.append(box); }
   const chips = el("div", "chips"); chips.append(el("span", "chip", `${t("luckyColor")}: ${h.lucky_color}`), el("span", "chip", `${t("mood")}: ${h.mood}`));
+  const u = S.user || {};
+  if (!r.personal && !u.birth_date) { const n = el("p", "note"), b = el("button", null, t("toProfile")); b.type = "button"; b.addEventListener("click", () => go("profile")); n.append(t("personalHint") + " ", b); root.append(n); }
+  else if (r.personal && !(u.birth_time && u.birth_city)) root.append(el("p", "note", t("housesHint")));
   root.append(areas, chips, el("p", "advice", h.advice), shareButton("horoscope", { label: `${t("p" + S.period[0].toUpperCase() + S.period.slice(1))} · ${t("horoTitle")}`,
     images: [svgUrl(zodiacArt(s, { draw: false }))], title: sname(s), subtitle: h.title, text: h.advice }));
   out.replaceChildren(root);
@@ -2268,20 +2441,20 @@ $("#drawBtn").addEventListener("click", async () => {
   btn.disabled = true; out.replaceChildren(); haptic.tap();
   const fanCards = [...deck.querySelectorAll(".fc")];   // auto-pick what the user hasn't picked
   while (S.picked.length < needed()) { const free = fanCards.filter((c) => !c.classList.contains("picked")); const c = free[(Math.random() * free.length) | 0]; c.classList.add("picked"); S.picked.push(c); }
-  btn.textContent = t("shuffling");
+  btn.textContent = t("shuffling"); deck.classList.remove("dealing"); deck.classList.add("orbit"); haptic.soft();
   try {
     const q = $("#question").value.trim();
-    const [r] = await Promise.all([api("POST", "/api/tarot/draw", { spread: S.spread, question: S.spread === "three" && q ? q : null }), wait(1000)]);
-    deck.hidden = true; $("#fanHint").hidden = true; spread.replaceChildren(); spread.hidden = false;
+    const [r] = await Promise.all([api("POST", "/api/tarot/draw", { spread: S.spread, question: S.spread === "three" && q ? q : null }), wait(2000)]);
+    deck.hidden = true; deck.classList.remove("orbit"); $("#fanHint").hidden = true; spread.replaceChildren(); spread.hidden = false;
     await preload(r.cards.map((c) => TAROT_IMG[c.id]).filter(Boolean));
     const slots = r.cards.map((c, i) => { const slot = el("div", "slot"), card = el("div", "card enter"), inner = el("div", "card-inner"), back = el("div", "back"), face = el("div", "face" + (c.reversed ? " rev" : ""));
       card.style.animationDelay = `${i * 120}ms`; back.append(imgNode(BACK_IMG)); fillFace(face, c); inner.append(back, face); card.append(inner);
       slot.append(el("span", "pos", t(c.position) || c.position), card); spread.append(slot); return card; });
     await wait(700);
-    for (const card of slots) { card.classList.add("flipped"); haptic.tap(); await wait(350); TableFx.burst(card); await wait(450); }
+    for (const card of slots) { card.classList.add("flipped"); haptic.flip(); await wait(380); TableFx.burst(card); await wait(520); }
     if (r.repeated) toast(t("dailyDone"));
     renderTarotText(out, r); loadCollection();
-  } catch (e) { showError(e); deck.hidden = false; dealFan(); }
+  } catch (e) { showError(e); deck.classList.remove("orbit"); deck.hidden = false; dealFan(); }
   btn.disabled = false; btn.textContent = deck.hidden ? t("drawAgain") : (S.spread === "three" ? t("drawThree") : t("drawDaily"));
 });
 function renderTarotText(out, r) {
@@ -2350,14 +2523,14 @@ const SphereFx = (() => { const fx = fxLayer($("#sphereFx"));
 })();
 function loadSphere() { $("#sphereLeft").textContent = ""; }
 async function askSphere() {
-  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), adv = $("#sphereAdvice"), stage = $(".orb-stage");
+  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), adv = $("#sphereAdvice"), cloud = $("#sphereCloud"), stage = $(".orb-stage");
   if (btn.disabled) return; btn.disabled = true; haptic.tap();
-  ans.classList.remove("show"); ans.textContent = ""; adv.textContent = ""; delete stage.dataset.tone;
-  ball.classList.remove("charging"); void ball.offsetWidth; ball.classList.add("charging"); SphereFx.burst();
+  ans.classList.remove("show"); cloud.classList.remove("show"); ans.textContent = ""; adv.textContent = ""; cloud.textContent = ""; delete stage.dataset.tone;
+  ball.classList.remove("charging"); void ball.offsetWidth; ball.classList.add("charging"); SphereFx.burst(); Mist.excite();
   try { const q = $("#sphereQ").value.trim();
     const [r] = await Promise.all([api("POST", "/api/sphere", { question: q || null }), wait(1400)]);
-    ans.textContent = r.answer; void ans.offsetWidth; ans.classList.add("show");
-    stage.dataset.tone = r.tone; adv.textContent = r.advice || ""; ball.setAttribute("aria-label", t("tone_" + r.tone));
+    ans.textContent = r.answer; void ans.offsetWidth; ans.classList.add("show"); haptic.soft();
+    stage.dataset.tone = r.tone; adv.textContent = r.advice || ""; cloud.textContent = r.cloud || ""; cloud.title = r.lore || ""; cloud.classList.add("show"); ball.setAttribute("aria-label", t("tone_" + r.tone));
     if (r.reward) $("#sphereLeft").textContent = t("sphereLeft", { u: r.reward.used_today, l: r.reward.daily_limit });
   } catch (e) { showError(e); }
   btn.disabled = false;
@@ -2389,6 +2562,7 @@ function engraved(motif, { glow = "#8b6cff", live = false, draw = true, label = 
     <g fill="none" stroke="${G}"><circle cx="60" cy="60" r="55" stroke-width="1.1" stroke-opacity=".85"/><circle cx="60" cy="60" r="50.5" stroke-width=".6" stroke-opacity=".55" stroke-dasharray="1 3"/>
       <g stroke-width=".6" stroke-opacity=".6">${TICKS}</g></g>
     <g class="motif" fill="none" stroke="${G}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${m}</g>
+    ${live ? `<g class="sheen" fill="none" stroke-linecap="round" aria-hidden="true">${m.replace(/fill="[^"]*"/g, 'fill="none"').replace(/<text[\s\S]*?<\/text>/g, "")}</g>` : ""}
     <g fill="#fbe7b3">${DOTS.map(([x, y, r], i) => `<circle class="tw" style="--k:${i}" cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g></svg>`;
 }
 const heptagram = () => { const P = Array.from({ length: 7 }, (_, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 7; return [60 + Math.cos(a) * 27, 60 + Math.sin(a) * 27]; });
@@ -2430,7 +2604,7 @@ const practiceArt = (id, opts = {}) => engraved((MOTIF[id] || MOTIF.sphere)(), o
 function zodiacArt(sign, opts = {}) {
   const [pts, lines] = CONST[sign], X = (v) => (24 + v * 72).toFixed(1), Y = (v) => (20 + v * 62).toFixed(1);
   const L = lines.map(([a, b]) => `<path d="M${X(pts[a][0])} ${Y(pts[a][1])} L${X(pts[b][0])} ${Y(pts[b][1])}" stroke-width="1" stroke-opacity=".85"/>`).join("");
-  const P = pts.map(([x, y, m]) => `<circle cx="${X(x)}" cy="${Y(y)}" r="${m === 1 ? 2.6 : m === 2 ? 1.9 : 1.3}" fill="#fbe7b3" stroke="none"/>`
+  const P = pts.map(([x, y, m], i) => `<circle class="st" style="--s:${i}" cx="${X(x)}" cy="${Y(y)}" r="${m === 1 ? 2.6 : m === 2 ? 1.9 : 1.3}" fill="#fbe7b3" stroke="none"/>`
     + (m === 1 ? star4(+X(x), +Y(y), 5.5).replace(`fill="${G}"`, 'fill="#fbe7b3" fill-opacity=".55"') : "")).join("");
   const medal = `<circle cx="60" cy="97" r="9.5" fill="#0d0a24"/><text x="60" y="97" text-anchor="middle" dominant-baseline="central" font-size="11.5" fill="${G}" stroke="none"
     font-family="'Noto Sans Symbols','Segoe UI Symbol',serif">${GLYPH[sign]}&#xFE0E;</text>`;
@@ -2629,6 +2803,23 @@ async function shareStory(btn, kind, data) {
 }
 function shareButton(kind, data) { const b = el("button", "btn ghost share-btn", t("shareStory")); b.type = "button"; b.addEventListener("click", () => shareStory(b, kind, data)); return b; }
 
+/* mist inside the magic sphere: soft puffs circling the centre, drawn only while the orb is on screen */
+const Mist = (() => {
+  let c, ctx, w = 0, h = 0, on = false, boost = 0, vis = false;
+  const P = Array.from({ length: PERF.lite ? 5 : 9 }, (_, i) => ({ a: i * 2.1, r: .12 + (i % 4) * .08, sp: .25 + (i % 3) * .12, s: .32 + (i % 5) * .06, img: PUFFS[i % PUFFS.length] }));
+  function frame(ts) {
+    if (!w) { ({ ctx, w, h } = fitCanvas(c)); if (!w) return; }
+    const k = 1 + boost * 3.2; boost = Math.max(0, boost - .012);
+    ctx.clearRect(0, 0, w, h); ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 2, 0, 6.283); ctx.clip(); ctx.globalCompositeOperation = "lighter";
+    for (const p of P) { p.a += .004 * p.sp * k * 60 / PERF.fps; const x = w / 2 + Math.cos(p.a) * p.r * w, y = h / 2 + Math.sin(p.a * .8) * p.r * h, sz = p.s * w * (1 + boost * .4);
+      ctx.globalAlpha = .22 + boost * .3; ctx.drawImage(p.img, x - sz, y - sz, sz * 2, sz * 2); }
+    ctx.restore();
+  }
+  const run = (yes) => { if (yes && !on && !reduced) { on = true; startLoop(frame, PERF.lite ? 20 : 30); } else if (!yes && on) { on = false; stopLoop(frame); } };
+  return { attach(canvas) { c = canvas; if ("IntersectionObserver" in window) new IntersectionObserver((es) => es.forEach((e) => { vis = e.isIntersecting; w = 0; run(vis); })).observe(c); },
+    excite() { boost = 1; } };
+})();
+
 /* ═════════════ shared bits ═════════════ */
 const block = (label, text) => { const w = el("div", "area"); w.append(el("span", "label", label), el("p", null, text)); return w; };
 const bullets = (items) => { const ul = el("ul"); (items || []).forEach((i) => ul.append(el("li", null, i))); return ul; };
@@ -2678,7 +2869,7 @@ function loadAdvisor() { if (!S.chat.length) { $("#chat").replaceChildren(); bub
 async function sendAdvisor(text) {
   text = (text || "").trim(); const send = $("#advSend"); if (text.length < 2 || send.disabled) return;
   send.disabled = true; $("#advInput").value = ""; askChips([]); bubble("user", text); haptic.tap();
-  const typing = el("div", "msg ai typing"); typing.append(el("div", "orb"), el("span", null, t("reading"))); $("#chat").append(typing); typing.scrollIntoView({ block: "end", behavior: "smooth" });
+  const typing = el("div", "msg ai typing"); typing.append(ringLoader(), el("span", null, t("reading"))); $("#chat").append(typing); typing.scrollIntoView({ block: "end", behavior: "smooth" });
   try { const r = await api("POST", "/api/advisor", { message: text, history: S.chat.slice(-8) });
     typing.remove(); const b = bubble("assistant", r.answer); S.chat.push({ role: "user", text }, { role: "assistant", text: r.answer.slice(0, 1500) });
     askChips(r.follow_ups || []); if (r.messages_left != null) $("#advLeft").textContent = t("advLeft", { n: r.messages_left });
@@ -2863,7 +3054,8 @@ async function boot() {
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
   try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else go("home"); }); } catch {}
   watchAnim($("#heroCard")); watchAnim($(".num-hero")); watchAnim($(".oracle"));
-  $("#oracleArt").innerHTML = practiceArt("advisor", { glow: "#3fb8a8" }); $("#ball").innerHTML = practiceArt("sphere", { live: true });
+  $("#oracleArt").innerHTML = practiceArt("advisor", { glow: "#3fb8a8" }); $("#ball").innerHTML = practiceArt("sphere", { live: true }) + '<canvas class="mist" aria-hidden="true"></canvas>';
+  Mist.attach($("#ball .mist"));
   try { const r = await wakeAndVerify(); S.economy = r.economy; if (r.user && r.user.lang && !store.get("astro.lang")) { S.lang = r.user.lang; applyI18n(); } }
   catch (e) { return splashFail(e); }
   setCoins((S.user && S.user.coins) || 0);
