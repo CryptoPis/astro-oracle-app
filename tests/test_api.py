@@ -593,3 +593,69 @@ def test_ai_call_counters_have_no_user_data(client):
 def provider_mock():
     from app.ai.provider import MockProvider
     return MockProvider()
+
+
+def test_cache_version_and_purge_old(client, monkeypatch):
+    """Every shared AI text is stored under the current version; /purge_cache old counts and deletes the older
+    rows only (not geocoding, not the AI counters, never user readings)."""
+    import asyncio
+    from datetime import date
+    from sqlalchemy import func, select
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+    from app.bot import handlers
+    from app.db import engine as app_engine
+    from app.models import AICache, Reading, User
+    from app.services.content import CACHE_VERSION, vkey
+
+    uid = 840
+    client.post("/api/auth/verify", headers=auth(uid))
+    client.patch("/api/user/profile", headers=auth(uid), json={"birth_date": "1992-02-11", "lang": "ka"})
+    client.get("/api/numerology", headers=auth(uid))
+    client.get("/api/moon/ritual", headers=auth(uid))
+    assert vkey("numerology", "lp:1:ka") == f"{CACHE_VERSION}:lp:1:ka" and vkey("geo", "tbilisi") == "tbilisi"
+
+    class Msg:
+        def __init__(self):
+            self.replies = []
+
+        async def answer(self, text, **kw):
+            self.replies.append(text)
+
+    class Cmd:
+        def __init__(self, args):
+            self.args = args
+
+    async def go():
+        eng = create_async_engine(app_engine.url)
+        maker = async_sessionmaker(eng, class_=AsyncSession, expire_on_commit=False)
+        monkeypatch.setattr(handlers, "SessionLocal", maker)
+        try:
+            async with maker() as s:
+                new_keys = set(await s.scalars(select(AICache.cache_key).where(AICache.kind.in_(["numerology", "moon", "pyear"]))))
+                assert new_keys and all(k.startswith(f"{CACHE_VERSION}:") for k in new_keys)
+                s.add(User(telegram_id=841, lang="ka"))
+                s.add_all([AICache(kind="numerology", cache_key="lp:7:ka", payload={"title": "old"}),
+                           AICache(kind="compat", cache_key="Leo:Aries:ka", payload={"title": "old"}),
+                           AICache(kind="geo", cache_key="old-city", payload={"lat": 1}),
+                           AICache(kind="ai_stats", cache_key="2026-10-19", payload={"requests": 3})])
+                await s.flush()
+                s.add(Reading(user_id=841, kind="numerology", variant="lp", day=date(2026, 10, 20), payload={"title": "old"}))
+                await s.commit()
+            dry = Msg()
+            await handlers.cmd_purge_cache(dry, Cmd("old"))
+            assert "numerology: 1" in dry.replies[0] and "compat: 1" in dry.replies[0] and "Dry run" in dry.replies[0]
+            assert "geo" not in dry.replies[0] and "ai_stats" not in dry.replies[0]
+            done = Msg()
+            await handlers.cmd_purge_cache(done, Cmd("old apply"))
+            async with maker() as s:
+                keys = set(await s.scalars(select(AICache.cache_key)))
+                readings = await s.scalar(select(func.count()).select_from(Reading).where(Reading.user_id == 841))
+            assert "lp:7:ka" not in keys and "Leo:Aries:ka" not in keys            # old texts gone
+            assert {"old-city", "2026-10-19"} <= keys and new_keys <= keys          # geo, counters, v2 texts kept
+            assert readings == 1 and "Deleted " in done.replies[0]                 # history untouched
+            again = Msg()
+            await handlers.cmd_purge_cache(again, Cmd("old"))
+            assert "Nothing to delete" in again.replies[0]                          # every pre-v2 text is gone
+        finally:
+            await eng.dispose()
+    asyncio.run(go())

@@ -78,12 +78,17 @@ async def cmd_broadcast(message: Message, command: CommandObject, bot: Bot):
 @router.message(Command("purge_cache"), F.func(is_admin))
 async def cmd_purge_cache(message: Message, command: CommandObject):
     """/purge_cache = dry run; /purge_cache apply = delete the shared AI texts that fail the quality guard.
+    /purge_cache old = count the texts from before the current cache version; /purge_cache old apply = delete them.
     Replaces the Render Shell (not available on the free plan). User readings are never touched."""
-    from app.services.cache_quality import format_scan, scan_bad_cache
-    apply = (command.args or "").strip().lower() == "apply"
+    from app.services.cache_quality import format_old, format_scan, scan_bad_cache, scan_old_versions
+    args = (command.args or "").strip().lower().split()
+    old, apply = "old" in args, "apply" in args
     async with SessionLocal() as session:
-        scan = await scan_bad_cache(session, apply=apply)
-    await message.answer(html.escape(format_scan(scan, applied=apply)))
+        if old:
+            text = format_old(await scan_old_versions(session, apply=apply), applied=apply)
+        else:
+            text = format_scan(await scan_bad_cache(session, apply=apply), applied=apply)
+    await message.answer(html.escape(text))
 
 
 @router.message(Command("diag"), F.func(is_admin))

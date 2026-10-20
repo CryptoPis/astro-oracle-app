@@ -1,7 +1,6 @@
 import hashlib
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai import prompts as P
@@ -9,10 +8,10 @@ from app.ai.provider import get_ai
 from app.api.common import quota_exceeded
 from app.core.chart import Place, chart_summary, compute_chart
 from app.db import get_session
-from app.models import AICache, User
+from app.models import User
 from app.security import current_user
 from app.services import economy
-from app.services.content import cached_ai
+from app.services.content import cached_ai, is_cached
 from app.services.geo import geocode
 
 router = APIRouter(prefix="/api", tags=["kundli"])
@@ -40,8 +39,7 @@ async def kundli(user: User = Depends(current_user), session: AsyncSession = Dep
     summary = chart_summary(chart)
     key = hashlib.sha256(f"{user.lang}|{summary}".encode()).hexdigest()[:40]
 
-    cached = await session.scalar(select(AICache.id).where(AICache.kind == "kundli", AICache.cache_key == key))
-    if cached is None:
+    if not await is_cached(session, "kundli", key):
         if not await economy.consume_ai_quota(session, user.telegram_id, "kundli"):
             raise quota_exceeded("kundli")
         await session.commit()
