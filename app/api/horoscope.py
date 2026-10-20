@@ -1,6 +1,7 @@
 import logging
+from datetime import datetime, time, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.provider import AIError
@@ -67,6 +68,32 @@ async def horoscope(period: Period = "day", sign: str | None = Query(None, descr
 
     return {"sign": sign_info(sign, user.lang), "period": period, "is_own_sign": own, "personal": personal,
             "horoscope": data, "moon": astro.moon_phase(user.lang), "reward": reward}
+
+
+@router.get("/horoscope/chart")
+async def horoscope_chart(period: Period = "day", user: User = Depends(current_user), session: AsyncSession = Depends(get_session)):
+    """Read-only geometry for the oracle chamber's 3D dome: the natal points, the period's sky and the ranked
+    transits (the same ones the personal reading is built on) with their knowledge-base meanings.
+    No AI call, no reward, nothing stored."""
+    if not user.birth_date:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"code": "needs_birth_date"})
+    natal = await natal_of(session, user)
+    day = economy.today_utc()
+    tr = transits.transits_for(natal, period, day)
+    noon = transits.positions(datetime.combine(day, time(12, 0), tzinfo=timezone.utc))
+    lang = user.lang
+    items = []
+    for it in tr["transits"]:
+        pair = transits.pair_meaning(it, lang) or {}
+        items.append({"id": it["id"], "transit": it["transit"], "natal": it["natal"], "aspect": it["aspect"], "nature": it["nature"],
+                      "orb": it["orb"], "applying": it["applying"], "lon": round(it["lon"], 2), "date": it.get("date"),
+                      "motion": it.get("motion"), "house": it.get("house"), "label": transits.label(it, lang),
+                      "dignity": transits.dignity_label(it, lang),
+                      "meaning": {k: pair.get(k) for k in ("meaning", "supportive", "challenging", "advice")} if pair else None})
+    return {"period": period, "natal": {"points": {k: round(v, 2) for k, v in natal["points"].items()}, "asc": natal["asc"],
+                                        "time_known": natal["time_known"], "place_known": natal["place_known"]},
+            "sky": {pid: {"lon": round(lon, 2), "retro": speed < 0} for pid, (lon, speed) in noon.items()},
+            "transits": items, "retrograde": tr["retrograde"], "moon_sign": tr["moon_sign"]}
 
 
 @router.get("/daily/energy")

@@ -82,7 +82,7 @@ export async function createLite(B, ctx) {
       if (id === "horo") { api.lookUp(true); orb.style.transform = "translate3d(50vw, 22vh, 0)"; return; }
       if (up) api.lookUp(false); api.turnTo(STATIONS.findIndex((s) => s.id === id)); orb.style.transform = "translate3d(50vw, 40vh, 0)"; },
     endGuide() { orb.classList.remove("on"); if (up) api.lookUp(false); },
-    setStage() {}, kick() {},
+    setStage() {}, kick() {}, setSky() {},
     dispose() { document.removeEventListener("astro:sky", onSky); root.remove(); },
   };
   return api;

@@ -65,6 +65,9 @@ def smoke(page, cdp, tier, errors):
                 fails.append(f"{tier}: {sid} did not open")
             page.evaluate("window.__astro.back()")
             page.wait_for_timeout(1300)
+            if page.evaluate("!!window.__chamber.state.stage"):     # a stage: the first back closed its panel only
+                page.evaluate("window.__astro.back()")
+                page.wait_for_timeout(1300)
             closed = page.evaluate("!document.getElementById('scroller').classList.contains('ch-open') && !window.__chamber.engine.focused")
             if not closed:
                 fails.append(f"{tier}: {sid} did not close with back")
@@ -89,8 +92,9 @@ def deep_tarot(page, cdp):
     base = heap(page, cdp)
     for k in range(3):
         tarot_flow(page, three=k % 2 == 0)
-        page.evaluate("window.__astro.back()")
-        page.wait_for_timeout(1400)
+        for _ in range(2):                                          # the reading panel, then the table
+            page.evaluate("window.__astro.back()")
+            page.wait_for_timeout(1400)
     after = heap(page, cdp)
     ok = after["textures"] <= base["textures"] and after["geometries"] <= base["geometries"]
     return ok, base, after

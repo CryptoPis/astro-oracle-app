@@ -141,7 +141,30 @@ def scene_gift(page):
     page.wait_for_timeout(5200)
 
 
-SCENES = {"chamber-tour": (scene_tour, {"intro": True}), "chamber-tarot": (scene_tarot, {}),
+def scene_horoscope(page):
+    page.wait_for_timeout(1200)
+    swipe(page, 0, -220)                                           # look up at the dome: today's real sky
+    page.wait_for_timeout(2600)
+    page.evaluate("window.__chamber.open('horo')")
+    page.wait_for_function("window.__chamber.state.stage && window.__chamber.state.stage.debug && window.__chamber.state.stage.debug().n > 0", timeout=15000)
+    page.wait_for_timeout(4200)                                    # the wheel opens, the transits glide in, the beams light
+    for i in (1, 0):
+        b = dbg(page)["beams"][i]
+        page.mouse.click(b["x"], b["y"])
+        page.wait_for_timeout(3600)
+        page.evaluate("document.getElementById('scroller').scrollTo({ top: 360, behavior: 'smooth' })")
+        page.wait_for_timeout(2200)
+        page.click("#chPClose")                                     # back to the wheel
+        page.wait_for_timeout(1800)
+    page.click(".ch-hud .seg button[data-v='week']")
+    page.wait_for_timeout(4200)
+    page.click(".ch-hud-foot .btn")
+    page.wait_for_timeout(4500)
+    page.evaluate("document.getElementById('scroller').scrollTo({ top: 700, behavior: 'smooth' })")
+    page.wait_for_timeout(2500)
+
+
+SCENES = {"chamber-tour": (scene_tour, {"intro": True}), "chamber-horoscope": (scene_horoscope, {}), "chamber-tarot": (scene_tarot, {}),
           "chamber-tarot-reversed": (scene_tarot_reversed, {"query": "&rev=tower"}), "chamber-sphere": (scene_sphere, {}),
           "chamber-gift": (scene_gift, {})}
 

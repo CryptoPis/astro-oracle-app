@@ -246,7 +246,22 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     for (const s of stations.values()) if (s.newGlow) { const want = s.isNew ? .3 + .22 * Math.sin(t * 1.6 + s.grp.position.x) : 0; s.newGlow.material.opacity += (want - s.newGlow.material.opacity) * Math.min(1, dt * 3); }
     F.face(camera);
   }
-  return { scene, stations, update, central, flameLight, moonLight, ambient, birthday, night, engr,
+  /* ── the real sky on the dome (from /api/sky): planets on a gold ecliptic ring, retrogrades with a red halo ── */
+  const ALT = .78, ER = 5.7 * Math.cos(ALT), EY = 4.2 + 5.7 * Math.sin(ALT);
+  const ecl = new THREE.Mesh(new THREE.TorusGeometry(ER, .014, 6, 160), new THREE.MeshBasicMaterial({ color: 0xe2bd6a, transparent: true, opacity: .55, fog: false }));
+  ecl.rotation.x = Math.PI / 2; ecl.position.y = EY; scene.add(ecl);
+  const skyGroup = new THREE.Group(); scene.add(skyGroup);
+  const TINT = { sun: 0xffe7a0, moon: 0xe6e2ff, mercury: 0xc8d2ea, venus: 0xf6d6a8, mars: 0xff8a6a, jupiter: 0xf0c890, saturn: 0xe8d29a, uranus: 0x9fe6e0, neptune: 0x8fb0ff, pluto: 0xc9a6d8 };
+  const skyAt = (lon, lift = 0) => { const a = Math.PI + lon * Math.PI / 180; return new THREE.Vector3(Math.cos(a) * (ER - lift), EY + lift * .3, -Math.sin(a) * (ER - lift)); };
+  function setSky(sky) {
+    while (skyGroup.children.length) { const c = skyGroup.children.pop(); c.material.dispose(); }
+    if (!sky || !sky.planets) return;
+    for (const p of sky.planets) { const big = p.id === "sun" || p.id === "moon" ? .5 : .32;
+      const g = F.glow(T.glow, TINT[p.id] || 0xffffff, big, .95); g.position.copy(skyAt(p.lon)); skyGroup.add(g);
+      if (p.retro) { const r = F.glow(T.glow, 0xff5a6a, big * 1.9, .35); r.position.copy(g.position); skyGroup.add(r); } }
+  }
+
+  return { scene, stations, update, central, flameLight, moonLight, ambient, birthday, night, engr, setSky, skyAt,
     setBusy(on) { busy = on ? 1 : 0; }, mat };
 }
 

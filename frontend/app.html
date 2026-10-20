@@ -2135,6 +2135,19 @@ const Demo = (() => {
       const nums = []; let h = hash("777" + d); while (nums.length < 3) { const n = (h % 49) + 1; if (!nums.includes(n)) nums.push(n); h = hash(String(h)); }
       return { date: d, sign, moon: moonNow(), lucky_numbers: nums.sort((a, b) => a - b), quote: pick(T.quotes, d), affirmation: pick(T.affirm, d + "a"), focus: pick(T.focus, d + "f"),
         personal: !!sign, why: sign ? DEMO_TR()[0].label : null, day: KBD ? kbl(KBD.days[new Date().getDay()]) : null }; }
+    if (p === "/api/horoscope/chart") { await wait(500); if (!profile().sign) throw new ApiError(400, "needs_birth_date");   // the chamber's 3D dome
+      const tr = DEMO_TR(), K = ka(), M = (m, s, c, a) => ({ meaning: m, supportive: s, challenging: c, advice: a });
+      const mean = K ? [M("ზრდა, აღიარება და მხარდაჭერა.", "შესაძლებლობები, პატივი და ოპტიმიზმი.", "სიამაყე და ზედმეტი თავდაჯერება.", "ნამდვილ შესაძლებლობას უთხარი „კი“ და ზედმეტს ნუ დაჰპირდები."),
+          M("სიყვარული და ღირებულებები გარდაიქმნება.", "ღრმა კავშირები და ფინანსური განახლება.", "ეჭვიანობა და მესაკუთრეობა.", "სიყვარულს სუნთქვის საშუალება მიეცი."),
+          M("რომანტიკული იდეალიზმი.", "ნაზი, სულიერი სიყვარული და ხელოვნება.", "ჩახლართული ურთიერთობები და ილუზიები.", "გიყვარდეს, ოღონდ თვალები ღია გქონდეს.")]
+        : [M("Growth, recognition and support.", "Opportunities, honour and optimism.", "Pride and overconfidence.", "Say yes to a real opportunity and don't promise too much."),
+          M("Love and values transform.", "Deep bonds and financial renewal.", "Jealousy and possessiveness.", "Give love room to breathe."),
+          M("Romantic idealism.", "Tender, spiritual love and art.", "Entangled ties and illusions.", "Love with your eyes open.")];
+      const T3 = [["jupiter", "sun", "conjunction", "blend", 126.4], ["pluto", "venus", "opposition", "challenging", 275.6], ["neptune", "venus", "trine", "harmonious", 334.8]];
+      return { period: q.get("period") || "day", natal: { points: { sun: 126.2, moon: 48.5, mercury: 121.9, venus: 95.3, mars: 166.7, jupiter: 190.4, saturn: 328.6, asc: 152.1 }, asc: 152.1, time_known: true, place_known: true },
+        sky: { sun: 207.3, moon: 312.8, mercury: 224.6, venus: 196.2, mars: 271.4, jupiter: 126.4, saturn: 357.9, uranus: 61.3, neptune: 334.8, pluto: 275.6 },
+        transits: T3.map(([t1, n1, a, nat, lon], i) => ({ id: "T" + (i + 1), transit: t1, natal: n1, aspect: a, nature: nat, orb: [.2, 1.1, .5][i], applying: i !== 1, lon, label: tr[i].label, dignity: null, meaning: mean[i] })),
+        retrograde: ["saturn", "neptune"], moon_sign: "Aquarius" }; }
     if (p === "/api/horoscope") { await wait(1300); const sign = q.get("sign") || (profile().sign || {}).id; if (!sign) throw new ApiError(400, "needs_birth_date");
       const own = profile().sign && profile().sign.id === sign, period = q.get("period") || "day";
       const hz = horoscope(sign, period); if (own) { const tr = DEMO_TR(); hz.transits = tr; hz.retrograde = DEMO_RETRO();

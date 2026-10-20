@@ -35,7 +35,9 @@ export async function createFull(THREE, B, ctx, mods) {
 
   function focusPose(id, mode) {
     const st = room.stations.get(id);
-    if (id === "horo" || !st) { const look = roomLook(new THREE.Vector3()); return { pos: new THREE.Vector3(0, EYE, 0), look, off: mode === "panel" ? .3 : 0 }; }
+    if (id === "horo" || !st) {   // the dome: look up from the middle of the room (also when opened from the compass)
+      nav.up = true; nav.pitch = nav.pitchT = 1.02;
+      const look = roomLook(new THREE.Vector3()); return { pos: new THREE.Vector3(0, EYE, 0), look, off: mode === "panel" ? .3 : 0 }; }
     const c = st.center, flat = new THREE.Vector3(-c.x, 0, -c.z).normalize();
     const dist = st.dist * (mode === "stage" ? (st.stageDist || 1) : 1);
     const pos = c.clone().addScaledVector(flat, dist); pos.y = Math.max(.95, c.y + dist * (st.stageRise != null && mode === "stage" ? st.stageRise : .42));
@@ -148,11 +150,14 @@ export async function createFull(THREE, B, ctx, mods) {
       focused = id; await glide(focusPose(id, mode), 900);
     },
     async refocus(mode) { api.pause(false); if (focused) await glide(focusPose(focused, mode), 480); },
-    async unfocus() { if (!focused) return; api.pause(false); const to = { pos: pose.pos.clone(), look: roomLook(new THREE.Vector3()), off: 0 }; await glide(to, 900); focused = null; },
+    async unfocus() { if (!focused) return; api.pause(false);
+      if (focused === "horo") { nav.up = false; nav.pitch = nav.pitchT = -.1; ctx.onLook(false); }
+      const to = { pos: pose.pos.clone(), look: roomLook(new THREE.Vector3()), off: 0 }; await glide(to, 900); focused = null; },
     get focused() { return focused; },
     pause(on) { paused = on; if (!on) kick(); else if (raf) { cancelAnimationFrame(raf); raf = 0; } },
     setNew(map) { for (const [id, v] of Object.entries(map)) { const s = room.stations.get(id); if (s) s.isNew = !!v; } kick(); },
     setBusy(on) { room.setBusy(on); },
+    setSky(sky) { room.setSky(sky); kick(); },
     guide(step) { const ids = ["tarot", "sphere", "horo"], st = room.stations.get(ids[step]);
       if (!st) { orbTo = null; return; }
       if (ids[step] === "horo") { orbTo = new THREE.Vector3(0, 4.8, -2.4).applyAxisAngle(new THREE.Vector3(0, 1, 0), -nav.yaw); lookUp(true); }

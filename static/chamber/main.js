@@ -177,8 +177,12 @@ export async function start(B) {
     await engine.unfocus(); state.station = null; state.closing = false;
     refreshNew(); plaque(); syncBack();
   }
+  async function hidePanel() {   // inside a stage, closing the panel returns to the object (the cards, the wheel)
+    if (!state.panel) return; state.panel = false; clearTimeout(pauseTimer); scroller.classList.remove("ch-open"); $("#chCatch").hidden = true;
+    root.classList.remove("panel-on"); engine.pause(false); await engine.refocus("stage"); syncBack();
+  }
   B.S.onGo = (name) => {
-    if (name === "home") { closeAll(); return; }
+    if (name === "home") { if (state.stage && state.panel) hidePanel(); else closeAll(); return; }
     const s = name === "chamber" ? byId(state.station) : stationOfView(name);
     if (s && s.id !== "profile" && engine.focused !== s.id && !state.opening) { state.station = s.id; engine.focus(s.id, "panel"); }
     openPanel(name, s);
@@ -195,7 +199,7 @@ export async function start(B) {
   }
 
   /* ── interactive stages (FULL): the object itself is the interface; the panel comes for the reading ── */
-  const STAGES = { tarot: "stage-tarot", sphere: "stage-sphere", gift: "stage-gift" };
+  const STAGES = { tarot: "stage-tarot", sphere: "stage-sphere", gift: "stage-gift", horo: "stage-horo" };
   const sound = { play() {} };   // replaced by the sound module when sound is on
   async function openStage(id) {
     if (engine.tier !== "full" || !STAGES[id]) return false;
@@ -204,8 +208,7 @@ export async function start(B) {
     const ui = {
       hud, T,
       panel(nodes, title) { $("#chPanel").replaceChildren(...[].concat(nodes)); engine.refocus("panel"); B.go("chamber"); if (title) $("#chPTitle").textContent = title; },
-      async hidePanel() { if (!state.panel) return; state.panel = false; clearTimeout(pauseTimer); scroller.classList.remove("ch-open"); $("#chCatch").hidden = true;
-        root.classList.remove("panel-on"); engine.pause(false); await engine.refocus("stage"); syncBack(); },
+      hidePanel,
       sound: (name) => sound.play(name),
       coinsTarget: () => $("#chCoins"),
     };
@@ -270,6 +273,7 @@ export async function start(B) {
   });
   document.addEventListener("astro:busy", (e) => { state.busy = Math.max(0, state.busy + (e.detail.on ? 1 : -1)); engine.setBusy(state.busy > 0); });
   document.addEventListener("astro:energy", refreshNew);
+  const skyNow = () => { if (B.S.sky) engine.setSky(B.S.sky); }; skyNow(); document.addEventListener("astro:sky", skyNow);
   // the language can change in the Profile panel: re-label the chamber
   new MutationObserver(texts).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
 
