@@ -75,9 +75,13 @@
   quota: personal texts shared by transit signature, generated only on open, caps + fallback to the sign text,
   daily AI call counters in `/diag` (`app/ai/stats.py`). Tests: `tests/test_kb.py`, new transit/quota tests.
 
+- Deployed 2026-10-20: `mystic-motion-transits` merged into `main` (942ec32) and live on Render (healthz deep ok,
+  `/` matches the merged `static/index.html`, unauthenticated API 401); rollback tag `backup-before-mystic-motion`
+  (a3dce7c).
+
 ## Next
-- Review the motion videos (new: `tarot-reversed.webm`) and test the personal horoscope on a phone, then
-  deploy `mystic-motion-transits`; after deploy watch "AI calls today" in `/diag` for a few days.
+- Watch "AI calls today" in `/diag` for a few days and tune the caps if needed.
+- Test the personal horoscope, the dignity chips, the planet of the day and a reversed tarot card on a phone.
 - Send `/purge_cache`, then `/purge_cache apply` to the bot to remove old garbled shared AI texts.
 - Run `scripts/ai_benchmark.py` with the Groq key and set `GROQ_MODEL_KA` on Render (`docs/AI_QUALITY.md`).
 - Test the live version on a real phone and in Telegram Desktop (see the checklist in the last report).
