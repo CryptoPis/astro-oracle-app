@@ -8,20 +8,47 @@ GEORGIAN = re.compile(r"[ა-ჿ]")
 CYRILLIC = re.compile(r"[Ѐ-ӿ]")
 
 
+def _object_after(src: str, start: int) -> str:
+    """The text inside the {...} object that opens at or after `start` (braces inside strings are ignored)."""
+    i = src.index("{", start)
+    depth, j, quote = 0, i, None
+    while j < len(src):
+        ch = src[j]
+        if quote:
+            if ch == "\\":
+                j += 2
+                continue
+            if ch == quote:
+                quote = None
+        elif ch in "\"'`":
+            quote = ch
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return src[i + 1:j]
+        j += 1
+    raise AssertionError("unbalanced object")
+
+
 def lang_blocks(src: str) -> dict[str, dict[str, str]]:
     """Reads the TX = { ka: {...}, en: {...}, ru: {...} } object of a chamber module."""
+    tx = _object_after(src, src.index("const TX = {"))
     out = {}
     for lang in ("ka", "en", "ru"):
-        m = re.search(rf"\n  {lang}: \{{(.*?)\n  \}},", src, re.S)
+        m = re.search(r"(?:^|\n|,)\s*" + lang + r": \{", tx)
         assert m, f"no {lang} block"
-        out[lang] = dict(re.findall(r'(\w+): "((?:[^"\\]|\\.)*)"', m.group(1)))
+        out[lang] = dict(re.findall(r'(\w+): "((?:[^"\\]|\\.)*)"', _object_after(tx, m.end() - 1)))
     return out
 
 
 def test_chamber_texts_have_the_same_keys_in_three_languages():
-    for name in ("stations.js",) + tuple(p.name for p in CH.glob("*.js") if "const TX = {" in p.read_text(encoding="utf-8") and p.name != "stations.js"):
+    names = [p.name for p in CH.glob("*.js") if "const TX = {" in p.read_text(encoding="utf-8")]
+    assert "stations.js" in names and len(names) >= 4
+    for name in names:
         tx = lang_blocks((CH / name).read_text(encoding="utf-8"))
-        assert set(tx["ka"]) == set(tx["en"]) == set(tx["ru"]), name
+        assert tx["ka"] and set(tx["ka"]) == set(tx["en"]) == set(tx["ru"]), name
         for k, v in tx["ka"].items():
             assert GEORGIAN.search(v), f"{name} ka.{k} is not Georgian"
         for k, v in tx["ru"].items():
