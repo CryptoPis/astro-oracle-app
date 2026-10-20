@@ -2918,6 +2918,7 @@ function loadCompat() { const me = S.user && S.user.sign && S.user.sign.id; duo(
 $("#compatForm").addEventListener("submit", async (e) => { e.preventDefault();
   const d = $("#partnerDate").value, out = $("#compatOut"); if (!d) return; loading(out);
   try { const r = await api("POST", "/api/compatibility", { partner_birth_date: d, partner_name: $("#partnerName").value.trim() || null }), a = r.reading;
+    if (UI === "chamber") document.dispatchEvent(new CustomEvent("astro:compat", { detail: r }));   // two constellations merge on the scroll
     duo(r.you.id, r.partner, r.percent); haptic.ok();
     const root = el("div", "reading"), areas = el("div", "areas");
     a.areas.forEach((x) => { const w = el("div", "area"), h = el("div", "area-head"); h.append(el("b", null, t(x.area)), stars(x.score)); w.append(h, el("p", null, x.text)); areas.append(w); });
@@ -2964,6 +2965,7 @@ function setupPhoto(kind) {
   read.addEventListener("click", async () => { if (!file) return; read.disabled = true; loading(out);
     try { const fd = new FormData(); fd.append("file", await shrink(file), "photo.jpg");
       const r = await api("POST", `/api/vision/${kind}`, fd); out.replaceChildren(kind === "aura" ? auraView(r.reading) : coffeeView(r.reading)); haptic.ok();
+      if (UI === "chamber") document.dispatchEvent(new CustomEvent("astro:vision", { detail: { kind, reading: r.reading } }));   // the mirror blooms, symbols float round the cup
     } catch (e) { out.replaceChildren(); showError(e); }
     read.disabled = false; });
 }

@@ -83,6 +83,8 @@ export async function createLite(B, ctx) {
       if (up) api.lookUp(false); api.turnTo(STATIONS.findIndex((s) => s.id === id)); orb.style.transform = "translate3d(50vw, 40vh, 0)"; },
     endGuide() { orb.classList.remove("on"); if (up) api.lookUp(false); },
     setStage() {}, kick() {}, setSky() {},
+    react(kind, data) { if (kind === "aura") { const bay = bays[STATIONS.findIndex((s) => s.id === "aura")], cols = (data || []).map((c) => c.hex);
+      bay.style.setProperty("--a1", cols[0] || "#e2bd6a"); bay.style.setProperty("--a2", cols[1] || cols[0] || "#8b6cff"); bay.classList.add("bloom"); } },
     dispose() { document.removeEventListener("astro:sky", onSky); root.remove(); },
   };
   return api;

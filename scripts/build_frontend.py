@@ -64,7 +64,20 @@ def copy_chamber_for_preview() -> None:
         shutil.copytree(ROOT / d, dest)
 
 
+def chamber_kb() -> None:
+    """static/chamber/kb.json: the knowledge-base texts the chamber shows itself (moon-phase folklore after Harley),
+    generated from app/astro_kb so the KB stays the single source. Written before the version hash is taken."""
+    import json
+    data = json.loads((ROOT / "app" / "astro_kb" / "moon.json").read_text(encoding="utf-8"))
+    moon = {k: {lg: v[lg] for lg in ("ka", "en", "ru")} for k, v in data.items() if not k.startswith("_")}
+    out = json.dumps({"moon": moon}, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    path = ROOT / "static" / "chamber" / "kb.json"
+    if not path.exists() or path.read_text(encoding="utf-8") != out:
+        path.write_text(out, encoding="utf-8")
+
+
 def main() -> None:
+    chamber_kb()
     src = SRC.read_text(encoding="utf-8").replace("__CHV__", chamber_version())
     head, body = src.split("<!--BODY-->", 1)
 

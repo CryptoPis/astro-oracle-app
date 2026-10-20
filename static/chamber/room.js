@@ -51,6 +51,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   const moonDir = STATIONS.find((s) => s.id === "moon").slot * STEP;
   const moonLight = new THREE.DirectionalLight(0xa9b8ff, .25 + night.moon * .9);
   moonLight.position.set(Math.sin(moonDir) * 8, 5, -Math.cos(moonDir) * 8); moonLight.target.position.set(0, 0, 0); scene.add(moonLight, moonLight.target);
+  moonLight.userData.base = moonLight.intensity;
 
   // candle sconces on the pillars: a brass arm, a dish and a candle; their light is baked into glows on the stone
   const armGeo = new THREE.CylinderGeometry(.012, .012, .26, 6), dishGeo = new THREE.CylinderGeometry(.07, .045, .025, 14);
@@ -123,7 +124,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     const ritual = [-.3, 0, .3].map((x, i) => { const c = F.candle(.09 + i * .02, .02); c.position.set(x, 0, .16); c.userData.flame.visible = false; c.userData.glow.visible = false; g.add(c); return c; });
     place(g, S.moon.slot, WALL - .07, 1.35);
     const glowWin = F.glow(T.glowCool, 0x9fb0ff, 2.6, .35 + night.moon * .3); glowWin.position.set(0, .9, .2); g.add(glowWin);
-    register("moon", g, new THREE.Vector3(0, .75, 0), 2.0, hitBox(1.3, 2.0, .4, .8), { ritual, pane });
+    register("moon", g, new THREE.Vector3(0, .75, 0), 2.0, hitBox(1.3, 2.0, .4, .8), { ritual, pane, stageDist: .9, stageRise: .05, stageOff: .1 });
     const a = S.moon.slot * STEP, from = new THREE.Vector3(Math.sin(a) * 5.6, 2.3, -Math.cos(a) * 5.6), to = new THREE.Vector3(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2);
     scene.add(F.beam(from, to, 1.3, 0xb0c0ff, .05 + night.moon * .08));
     const mid = from.clone().lerp(to, .5), box = new THREE.Box3(new THREE.Vector3(mid.x - 1.2, .2, mid.z - 1.2), new THREE.Vector3(mid.x + 1.2, 2.6, mid.z + 1.2));
@@ -157,7 +158,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     const feather = new THREE.Mesh(new THREE.CircleGeometry(.05, 16), lam({ color: 0xece4d4, side: THREE.DoubleSide, emissive: 0x201810 }));
     feather.scale.set(.45, 2.2, 1); feather.position.y = .19; quill.add(feather);
     place(g, S.dream.slot, 2.9);
-    register("dream", g, new THREE.Vector3(0, 1.02, 0), .95, hitBox(.8, 1.3, .7, .7), { desk });
+    register("dream", g, new THREE.Vector3(0, 1.02, 0), .95, hitBox(.8, 1.3, .7, .7), { desk, quill, pageMat });
   }
   // 5 · the brass astrolabe on the wall: three rings and the rete turn to the person's numbers
   { const g = new THREE.Group();
@@ -195,14 +196,15 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   { const g = new THREE.Group();
     g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, .035, 32), mat.wood), 0, .68, 0));
     g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.04, .06, .66, 10), mat.dark), 0, .33, 0));
-    const saucer = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.1, 0], [.13, .012], [.135, .018]].map(([x, y]) => new THREE.Vector2(x, y)), 32), mat.ceramic);
+    const ceramic2 = Object.assign(mat.ceramic.clone(), { side: THREE.DoubleSide }); metal.push(ceramic2);   // a lathe surface seen from above: both sides
+    const saucer = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.1, 0], [.13, .012], [.135, .018]].map(([x, y]) => new THREE.Vector2(x, y)), 32), ceramic2);
     saucer.position.y = .7; g.add(saucer);
     const cup = new THREE.Group(); cup.position.y = .712; g.add(cup);
-    cup.add(new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.035, 0], [.05, .02], [.058, .06], [.06, .09], [.056, .09], [.054, .062], [.0, .062]].map(([x, y]) => new THREE.Vector2(x, y)), 32), mat.ceramic));
+    cup.add(new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.035, 0], [.05, .02], [.058, .06], [.06, .09], [.056, .09], [.054, .062], [.0, .062]].map(([x, y]) => new THREE.Vector2(x, y)), 32), ceramic2));
     const coffee = new THREE.Mesh(new THREE.CircleGeometry(.054, 24), lam({ color: 0x2a160c })); coffee.rotation.x = -Math.PI / 2; coffee.position.y = .07; cup.add(coffee);
     const handle = new THREE.Mesh(new THREE.TorusGeometry(.022, .006, 6, 16, Math.PI * 1.2), mat.ceramic); handle.position.set(.065, .05, 0); handle.rotation.z = -Math.PI * .6; cup.add(handle);
     place(g, S.coffee.slot, 2.8);
-    register("coffee", g, new THREE.Vector3(0, .76, 0), .75, hitBox(.6, .5, .6, .7), { cup, coffee });
+    register("coffee", g, new THREE.Vector3(0, .76, 0), .75, hitBox(.6, .5, .6, .7), { cup, coffee, stageDist: .7, stageRise: 1.2, stageOff: .02 });
   }
   // 9 · the gift chest: brass bands, a lock, a hinged lid
   { const g = new THREE.Group();
@@ -231,10 +233,32 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   const birthday = !!u.birth_date && u.birth_date.slice(5) === `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   if (birthday) { ambient.color.set(0x6a5020); ambient.intensity = 1.5; central.intensity *= 1.25; scene.add(F.dust(160, new THREE.Box3(new THREE.Vector3(-4, .2, -4), new THREE.Vector3(4, 3.8, 4)), 0xffd27a, 10)); }
 
+  /* ── reactions to readings: the mirror blooms, the astrolabe turns, constellations meet, the quill writes ── */
+  const R = { bloom: 0, bloomT: 0, quill: 0, book: 0, compat: null };
+  function constellation(r, seed) {
+    const pts = [], rnd = X.rng(seed); for (let i = 0; i < 6; i++) pts.push(new THREE.Vector3((rnd() - .5) * .2, (rnd() - .5) * .14, (rnd() - .5) * .04));
+    const g = new THREE.BufferGeometry().setFromPoints(pts), stars = new THREE.Points(g, new THREE.PointsMaterial({ map: T.glow, color: 0xffe2a8, size: .06, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const lg = new THREE.BufferGeometry().setFromPoints(pts.slice(0, -1).flatMap((p, i) => [p, pts[i + 1]]));
+    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xe2bd6a, transparent: true, opacity: .55 }));
+    const grp = new THREE.Group(); grp.add(stars, lines); return grp;
+  }
+  function react(kind, data) {
+    if (kind === "aura") { const u = stations.get("aura").glass.material.uniforms, cols = (data || []).map((c) => c.hex).filter(Boolean);
+      [u.uA, u.uB, u.uC].forEach((x, i) => x.value.set(cols[i] || cols[0] || "#e2bd6a")); R.bloom = 0; R.bloomT = 1; }
+    if (kind === "num") { const rings = stations.get("num").rings, vals = [[data.lp, data.lp > 9 ? 33 : 9], [data.py, 9], [data.lucky, 49]];
+      rings.forEach((rg, i) => { const [v, max] = vals[i] || []; if (v) rg.userData.target = Math.round(rg.rotation.z / (Math.PI * 2)) * Math.PI * 2 - v / max * Math.PI * 2; }); }
+    if (kind === "quill") R.quill = 1;
+    if (kind === "compat") { const st = stations.get("chart");
+      if (R.compat) st.grp.remove(R.compat.grp);
+      const a = constellation(.1, 5), b = constellation(.1, 9), grp = new THREE.Group(); grp.add(a, b); grp.position.set(0, 1.05, .05); st.grp.add(grp);
+      R.compat = { grp, a, b, t0: clockNow() }; }
+  }
+  let tNow = 0; const clockNow = () => tNow;
+
   /* ── every frame ── */
   const flick = (t, s) => .82 + Math.sin(t * 7.1 + s) * .06 + Math.sin(t * 13.3 + s * 3) * .05 + Math.sin(t * 2.3 + s * 5) * .07;
   const tint = new THREE.Color();
-  let busy = 0;
+  let busy = 0, busyBook = false;
   function update(t, dt, camera) {
     F.clock.value = t;
     const k = flick(t, 0), kf = flick(t * (1 + busy * .9), 2.1) * (1 + busy * .35);
@@ -242,7 +266,17 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     tint.setRGB(.75 + k * .3, .7 + k * .28, .68 + k * .25); for (const m of metal) m.color.copy(tint);
     for (let i = 0; i < sconces.length; i++) sconces[i].material.opacity = .22 * flick(t, i * 1.7);
     const st = stations.get("num"); st.rings.forEach((p, i) => { if (!p.userData.target) p.rotation.z += dt * (.02 + i * .015) * (i % 2 ? -1 : 1); });
-    smoke.userData.update(t);
+    smoke.userData.update(t); tNow = t;
+    // reactions
+    R.bloom += (R.bloomT - R.bloom) * Math.min(1, dt * .7); stations.get("aura").glass.material.uniforms.uBloom.value = R.bloom;
+    for (const rg of stations.get("num").rings) if (rg.userData.target != null) rg.rotation.z += (rg.userData.target - rg.rotation.z) * Math.min(1, dt * 1.4);
+    { const d = stations.get("dream"); R.quill *= Math.exp(-dt * 2.5); d.quill.rotation.z = -.35 + Math.sin(t * 22) * .12 * R.quill; d.quill.position.x = .26 + Math.sin(t * 9) * .015 * R.quill;
+      R.book += ((busyBook ? 1 : 0) - R.book) * Math.min(1, dt * 2); d.pageMat.emissive.setRGB(.25 * R.book * (.8 + .2 * Math.sin(t * 3)), .18 * R.book, .06 * R.book); }
+    { const fl = stations.get("advisor").candle.userData.flame, k2 = 1.5 * (1 + busy * .45 * (.85 + .15 * Math.sin(t * 9))); fl.scale.set(k2, k2, k2); }
+    if (R.compat) { const c = R.compat, k = Math.min(1, (t - c.t0) / 3.2), e2 = 1 - Math.pow(1 - k, 3), fade = t - c.t0 > 9 ? Math.max(0, 1 - (t - c.t0 - 9) / 2) : 1;
+      c.a.position.set(-.3 * (1 - e2), Math.sin(t) * .01, 0); c.b.position.set(.3 * (1 - e2), Math.cos(t) * .01, 0); c.a.rotation.z = (1 - e2) * .6; c.b.rotation.z = -(1 - e2) * .6;
+      for (const g of [c.a, c.b]) { g.children[0].material.size = .06 + (k >= 1 ? .03 * (1 + Math.sin(t * 3)) : 0); g.children[0].material.opacity = fade; g.children[1].material.opacity = .55 * fade; }
+      if (fade <= 0) { stations.get("chart").grp.remove(c.grp); c.grp.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); R.compat = null; } }
     for (const s of stations.values()) if (s.newGlow) { const want = s.isNew ? .3 + .22 * Math.sin(t * 1.6 + s.grp.position.x) : 0; s.newGlow.material.opacity += (want - s.newGlow.material.opacity) * Math.min(1, dt * 3); }
     F.face(camera);
   }
@@ -262,7 +296,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   }
 
   return { scene, stations, update, central, flameLight, moonLight, ambient, birthday, night, engr, setSky, skyAt,
-    setBusy(on) { busy = on ? 1 : 0; }, mat };
+    setBusy(on, path) { busy = on ? 1 : 0; busyBook = !!(on && path && path.startsWith("/api/dreams")); }, react, mat };
 }
 
 /* the dome's stars: points on the hemisphere, more near the horizon, a few gold, each twinkling on its own */

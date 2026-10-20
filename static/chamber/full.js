@@ -156,7 +156,8 @@ export async function createFull(THREE, B, ctx, mods) {
     get focused() { return focused; },
     pause(on) { paused = on; if (!on) kick(); else if (raf) { cancelAnimationFrame(raf); raf = 0; } },
     setNew(map) { for (const [id, v] of Object.entries(map)) { const s = room.stations.get(id); if (s) s.isNew = !!v; } kick(); },
-    setBusy(on) { room.setBusy(on); },
+    setBusy(on, path) { room.setBusy(on, path); kick(); },
+    react(kind, data) { room.react(kind, data); kick(); },
     setSky(sky) { room.setSky(sky); kick(); },
     guide(step) { const ids = ["tarot", "sphere", "horo"], st = room.stations.get(ids[step]);
       if (!st) { orbTo = null; return; }
