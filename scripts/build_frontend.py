@@ -41,8 +41,31 @@ def demo_kb() -> str:
     return json.dumps({"tarot": tarot, "days": days, "sphere": sphere}, ensure_ascii=False, separators=(",", ":"))
 
 
+CHAMBER_DIRS = ("static/chamber", "static/vendor")
+
+
+def chamber_version() -> str:
+    """Content hash of the oracle chamber's files: stamped into its import URL so phones never run stale modules."""
+    import hashlib
+    h = hashlib.sha256()
+    for d in CHAMBER_DIRS:
+        for f in sorted((ROOT / d).rglob("*")):
+            if f.is_file():
+                h.update(f.relative_to(ROOT).as_posix().encode()); h.update(f.read_bytes())
+    return h.hexdigest()[:10]
+
+
+def copy_chamber_for_preview() -> None:
+    """dist/preview.html loads the chamber from dist/static/... (the real app serves it from /static/)."""
+    import shutil
+    for d in CHAMBER_DIRS:
+        dest = ROOT / "dist" / d
+        shutil.rmtree(dest, ignore_errors=True)
+        shutil.copytree(ROOT / d, dest)
+
+
 def main() -> None:
-    src = SRC.read_text(encoding="utf-8")
+    src = SRC.read_text(encoding="utf-8").replace("__CHV__", chamber_version())
     head, body = src.split("<!--BODY-->", 1)
 
     (ROOT / "static" / "index.html").write_text(f"{HEAD}{head}</head>\n<body>{body}</body>\n</html>\n", encoding="utf-8")
@@ -61,6 +84,7 @@ def main() -> None:
                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' + preview)
     (ROOT / "dist").mkdir(exist_ok=True)
     (ROOT / "dist" / "preview.html").write_text(preview, encoding="utf-8")
+    copy_chamber_for_preview()
     print("built static/index.html and dist/preview.html")
 
 

@@ -448,6 +448,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .inline .field { flex: 1; min-width: 0; }
 .ledger { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .ledger td { padding: 9px 2px; border-bottom: 1px solid var(--veil); }
+.ch-opts { display: grid; gap: 8px; margin-top: 10px; }
 .ledger td:last-child { text-align: right; color: var(--gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ledger td small { color: var(--haze); }
 
@@ -1105,6 +1106,26 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
           <button data-lang="ru" aria-pressed="false">Русский</button>
         </div>
       </div>
+      <div class="form-row" id="uiRow">
+        <span class="label" data-i18n="uiLabel"></span>
+        <div class="seg" id="uiSeg">
+          <button data-ui="classic" aria-pressed="false" data-i18n="uiClassic"></button>
+          <button data-ui="chamber" aria-pressed="false" data-i18n="uiChamber"></button>
+        </div>
+        <div class="ch-opts" id="chOpts" hidden>
+          <span class="label" data-i18n="tierLabel"></span>
+          <div class="seg" id="tierSeg">
+            <button data-tier="auto" aria-pressed="false" data-i18n="tierAuto"></button>
+            <button data-tier="full" aria-pressed="false" data-i18n="tierFull"></button>
+            <button data-tier="lite" aria-pressed="false" data-i18n="tierLite"></button>
+          </div>
+          <span class="label" data-i18n="soundLabel"></span>
+          <div class="seg" id="soundSeg">
+            <button data-sound="off" aria-pressed="false" data-i18n="soundOff"></button>
+            <button data-sound="on" aria-pressed="false" data-i18n="soundOn"></button>
+          </div>
+        </div>
+      </div>
       <div class="form-row">
         <h2 data-i18n="inviteTitle"></h2>
         <p class="muted" data-i18n="inviteSub"></p>
@@ -1116,6 +1137,8 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <table class="ledger"><tbody id="ledger"></tbody></table>
       </div>
     </section>
+    <!-- ORACLE CHAMBER: the glass panel's own content (only used when the chamber UI is on) -->
+    <section class="view" id="v-chamber" hidden><div id="chPanel"></div></section>
   </main>
 </div>
 </div>
@@ -1249,6 +1272,8 @@ const I18N = {
     nat_harmonious:"ხელსაყრელი", nat_challenging:"რთული", nat_blend:"ძლიერი", retroNow:"რეტროგრადული:",
     personalHint:"მიუთითე დაბადების თარიღი, დრო და ქალაქი და ჰოროსკოპი შენს ნატალურ რუკაზე აეწყობა.",
     housesHint:"დაბადების დრო და ქალაქიც თუ მიუთითე, ჰოროსკოპი სახლებსაც გაითვალისწინებს.", energyWhy:"დღის მთავარი ტრანზიტი", dayOf:"დღის პლანეტა",
+    uiLabel:"ინტერფეისი", uiClassic:"კლასიკური", uiChamber:"მისნის ოთახი", tierLabel:"გრაფიკა", tierAuto:"ავტომატური", tierFull:"სრული 3D",
+    tierLite:"მსუბუქი", soundLabel:"ხმა", soundOff:"გამორთული", soundOn:"ჩართული", chFail:"ოთახი ვერ ჩაიტვირთა: გაიხსნა კლასიკური ინტერფეისი.",
     ab_sun:"მზ", ab_moon:"მთ", ab_mars:"მა", ab_mercury:"მე", ab_jupiter:"იუ", ab_venus:"ვე", ab_saturn:"სა", ab_rahu:"რა", ab_ketu:"კე",
     birthData:"დაბადების მონაცემები", birthTime:"დაბადების დრო (არასავალდებულო)", birthCity:"დაბადების ქალაქი (არასავალდებულო)", birthCityPh:"მაგ. თბილისი",
     birthHint:"დრო და ქალაქი კუნდლისთვის გვჭირდება: ლაგნასა და სახლებს ზუსტად ისინი განსაზღვრავს."
@@ -1342,6 +1367,8 @@ const I18N = {
     nat_harmonious:"supportive", nat_challenging:"challenging", nat_blend:"intense", retroNow:"Retrograde:",
     personalHint:"Add your birth date, time and city, and your horoscope will be built on your own natal chart.",
     housesHint:"Add your birth time and city as well, and the reading will include the houses.", energyWhy:"Today's main transit", dayOf:"Planet of the day",
+    uiLabel:"Interface", uiClassic:"Classic", uiChamber:"Oracle chamber", tierLabel:"Graphics", tierAuto:"Auto", tierFull:"Full 3D",
+    tierLite:"Light", soundLabel:"Sound", soundOff:"Off", soundOn:"On", chFail:"The chamber could not load: the classic interface is open.",
     ab_sun:"Su", ab_moon:"Mo", ab_mars:"Ma", ab_mercury:"Me", ab_jupiter:"Ju", ab_venus:"Ve", ab_saturn:"Sa", ab_rahu:"Ra", ab_ketu:"Ke",
     birthData:"Birth details", birthTime:"Birth time (optional)", birthCity:"Birth city (optional)", birthCityPh:"e.g. Tbilisi",
     birthHint:"Time and city are used for your kundli: they fix the lagna and the houses."
@@ -1435,6 +1462,8 @@ const I18N = {
     nat_harmonious:"благоприятный", nat_challenging:"напряжённый", nat_blend:"сильный", retroNow:"Ретроградные:",
     personalHint:"Укажи дату, время и город рождения, и гороскоп будет построен по твоей натальной карте.",
     housesHint:"Укажи также время и город рождения, чтобы учесть дома.", energyWhy:"Главный транзит дня", dayOf:"Планета дня",
+    uiLabel:"Интерфейс", uiClassic:"Классический", uiChamber:"Комната оракула", tierLabel:"Графика", tierAuto:"Авто", tierFull:"Полное 3D",
+    tierLite:"Лёгкая", soundLabel:"Звук", soundOff:"Выкл.", soundOn:"Вкл.", chFail:"Комната не загрузилась: открыт классический интерфейс.",
     ab_sun:"Су", ab_moon:"Лу", ab_mars:"Ма", ab_mercury:"Ме", ab_jupiter:"Юп", ab_venus:"Ве", ab_saturn:"Са", ab_rahu:"Ра", ab_ketu:"Ке",
     birthData:"Данные рождения", birthTime:"Время рождения (необязательно)", birthCity:"Город рождения (необязательно)", birthCityPh:"напр. Тбилиси",
     birthHint:"Время и город нужны для кундли: они определяют лагну и дома."
@@ -1462,6 +1491,17 @@ const PERF = (() => {
   document.documentElement.dataset.tier = tier;
   return { tier, lite: tier === "lite", plat, fps: tier === "lite" ? 30 : 60 };
 })();
+/* Interface: the classic UI is the default; the oracle chamber (static/chamber/) is opt-in and loads only when on */
+const UI = (() => {
+  let q = null; try { q = new URLSearchParams(location.search).get("ui"); } catch {}
+  const sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+  if (sp === "ui_chamber") q = q || "chamber";
+  if (q === "chamber" || q === "classic") store.set("astro.ui", q);
+  const ui = store.get("astro.ui") === "chamber" ? "chamber" : "classic";
+  document.documentElement.dataset.ui = ui;
+  return ui;
+})();
+const CHAMBER_URL = "./static/chamber/main.js?v=dd574e7cdb";   // the build stamps a content hash
 
 function applyI18n() {
   document.documentElement.lang = S.lang;
@@ -1633,6 +1673,7 @@ const GOLD_GLOW = glowSprite("240,210,142");
 
 /* starfield: painted once per size into three layers; CSS fades layers 2 and 3 in and out (twinkle) */
 (function sky() {
+  if (UI === "chamber") return;   // the chamber draws its own sky
   const host = $("#sky"), neb = host.appendChild(el("canvas")); neb.id = "nebula";
   const layers = Array.from({ length: PERF.lite ? 1 : 3 }, (_, i) => host.appendChild(el("canvas", `layer l${i}`)));
   /* a faint nebula painted once at low resolution (cheap "noise": overlapping soft clouds); CSS makes it breathe */
@@ -1931,7 +1972,10 @@ async function realApi(method, path, body, timeout = 45000) {
 }
 
 async function api(method, path, body, timeout) {
-  const data = S.demo ? await Demo.handle(method, path, body) : await realApi(method, path, body, timeout);
+  if (UI === "chamber") document.dispatchEvent(new CustomEvent("astro:busy", { detail: { path, on: true } }));
+  let data;
+  try { data = S.demo ? await Demo.handle(method, path, body) : await realApi(method, path, body, timeout); }
+  finally { if (UI === "chamber") document.dispatchEvent(new CustomEvent("astro:busy", { detail: { path, on: false } })); }
   if (data && data.user) S.user = data.user;
   const r = data && data.reward;
   if (r && typeof r.balance === "number") { setCoins(r.balance, r.coins_earned > 0); if (r.coins_earned > 0) rewardToast(r.coins_earned); }
@@ -2264,7 +2308,7 @@ const scroller = $("#scroller");
 const animIO = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) e.target.removeAttribute("data-off"); else e.target.setAttribute("data-off", ""); })) : null;
 const watchAnim = (n) => { if (animIO && n) animIO.observe(n); };
 const VIEWS = { home: "#v-home", horo: "#v-horo", tarot: "#v-tarot", dream: "#v-dream", profile: "#v-profile", num: "#v-num", sphere: "#v-sphere",
-  moon: "#v-moon", compat: "#v-compat", advisor: "#v-advisor", aura: "#v-aura", coffee: "#v-coffee", kundli: "#v-kundli" };
+  moon: "#v-moon", compat: "#v-compat", advisor: "#v-advisor", aura: "#v-aura", coffee: "#v-coffee", kundli: "#v-kundli", chamber: "#v-chamber" };
 const SUB_VIEWS = ["num", "sphere", "moon", "compat", "advisor", "aura", "coffee", "kundli"];
 const TABS = ["home", "horo", "tarot", "dream", "profile"];
 function enterView(v) { if (reduced || !v) return; [...v.children].forEach((c, i) => c.style.setProperty("--i", Math.min(i, 8)));
@@ -2286,9 +2330,11 @@ function go(name) {
   scroller.scrollTop = 0;
   if (name === "home") Astro.redraw();
   if (!S.loaded[name]) { S.loaded[name] = true; ({ home: loadHome, horo: loadHoro, tarot: loadTarot, dream: loadDreams, profile: loadProfile, num: loadNum, sphere: loadSphere,
-    moon: loadMoon, compat: loadCompat, advisor: loadAdvisor, aura: () => setupPhoto("aura"), coffee: () => setupPhoto("coffee"), kundli: loadKundli })[name](); }
+    moon: loadMoon, compat: loadCompat, advisor: loadAdvisor, aura: () => setupPhoto("aura"), coffee: () => setupPhoto("coffee"), kundli: loadKundli,
+    chamber: () => {} })[name](); }
   else if (name === "profile") loadProfile();
-  store.set("astro.view", name);
+  if (name !== "chamber") store.set("astro.view", name);
+  if (S.onGo) S.onGo(name);   // the chamber opens or closes its glass panel
 }
 document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => go(b.dataset.tab)));
 document.addEventListener("click", (e) => { const a = e.target.closest("[data-go]"); if (a) go(a.dataset.go); });
@@ -2310,6 +2356,7 @@ async function loadHome() {
   api("GET", "/api/sky").then((r) => { if (gen === S.homeGen) { renderSky(r); renderReport(r); } }).catch(() => { if (gen === S.homeGen) $("#skySec").hidden = true; });
   try { const e = await api("GET", "/api/daily/energy");
     if (gen !== S.homeGen) return;   // a newer Home load (e.g. after a profile change) owns the screen now
+    S.energy = e; document.dispatchEvent(new CustomEvent("astro:energy"));
     if (e.moon) { S.moon = { ...S.moon, ...e.moon, name: MOON_NAMES[e.moon.code] ? MOON_NAMES[e.moon.code][S.lang] : e.moon.name }; }
     $("#quote").textContent = e.quote; $("#affirm").textContent = e.affirmation;
     const ew = $("#energyWhy"); ew.hidden = !e.why; if (e.why) ew.replaceChildren(`${t("energyWhy")}: `, el("b", null, e.why));
@@ -2349,13 +2396,17 @@ function renderGift() {
   const f = u.streak_freeze, frz = $("#frz"); frz.hidden = !f;
   if (f) { frz.className = "frz" + (f.ready ? "" : " off"); frz.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2.5L15 4M9 20l3-2.5 3 2.5"/></svg>'; frz.append(t(f.saving && avail ? "frzSaving" : f.ready ? "frzReady" : "frzUsed")); }
 }
-$("#giftBtn").addEventListener("click", async () => {
-  const b = $("#giftBtn"); b.disabled = true;
-  try { const r = await api("POST", "/api/user/daily-reward"); S.user.daily_reward_available = false; S.user.streak = r.reward.streak; starburst($("#gift"));
+async function claimGift() {   // returns the reward, or null if it was already claimed or failed
+  let out = null;
+  try { const r = await api("POST", "/api/user/daily-reward"); S.user.daily_reward_available = false; S.user.streak = r.reward.streak; out = r.reward;
     if (S.user.streak_freeze) S.user.streak_freeze = { ready: S.user.streak_freeze.ready && !r.reward.freeze_used, saving: false };
     if (r.reward.freeze_used) setTimeout(() => toast(t("frzToast")), 2700); }
-  catch (e) { if (e.code === "already_claimed") S.user.daily_reward_available = false; else { showError(e); b.disabled = false; return; } }
-  renderGift();
+  catch (e) { if (e.code === "already_claimed") S.user.daily_reward_available = false; else { showError(e); throw e; } }
+  renderGift(); return out;
+}
+$("#giftBtn").addEventListener("click", async () => {
+  const b = $("#giftBtn"); b.disabled = true;
+  try { if (await claimGift()) starburst($("#gift")); } catch { b.disabled = false; }
 });
 
 /* ═════════════ HOROSCOPE ═════════════ */
@@ -2665,7 +2716,7 @@ const planetSvg = (id, phase) => `<svg viewBox="0 0 40 40" aria-hidden="true">${
 const pname = (id) => t("pl_" + id);
 
 function renderSky(r) {
-  S.sky = r; const sec = $("#skySec"); sec.hidden = false;
+  S.sky = r; document.dispatchEvent(new CustomEvent("astro:sky")); const sec = $("#skySec"); sec.hidden = false;
   const at = new Date(r.at); $("#skyAt").textContent = t("skyAt", { t: `${String(at.getHours()).padStart(2, "0")}:00` });
   const P = Object.fromEntries(r.planets.map((p) => [p.id, p])), phase = r.moon ? r.moon.phase : .5;
   // retrograde banner (Mercury first, it matters most in daily life)
@@ -2981,6 +3032,9 @@ function loadProfile() {
   $("#birthTime").value = u.birth_time || ""; $("#birthCity").value = u.birth_city || "";
   $("#refLink").value = u.referral_link || "";
   $("#langSeg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === S.lang)));
+  const press = (seg, key, val) => $(seg).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset[key] === val)));
+  press("#uiSeg", "ui", UI); $("#chOpts").hidden = UI !== "chamber";
+  press("#tierSeg", "tier", store.get("astro.chTier") || "auto"); press("#soundSeg", "sound", store.get("astro.sound") === "on" ? "on" : "off");
   const e = S.economy || {}, rows = [["a_daily", e.daily_reward || 50, 1], ["a_ref", 250, null]];
   for (const k of ["horoscope_day", "horoscope_week", "horoscope_month", "tarot", "dream", "numerology", "sphere", "compatibility", "moon", "advisor", "aura", "coffee", "kundli"]) if (e.action_rewards && e.action_rewards[k]) rows.push(["a_" + k, e.action_rewards[k], e.action_limits[k]]);
   $("#ledger").replaceChildren(...rows.map(([k, n, lim]) => { const tr = el("tr"), td = el("td", null, t(k)); if (lim) { td.append(" "); td.append(el("small", null, t("perDay", { n: lim }))); }
@@ -3012,6 +3066,15 @@ $("#langSeg").addEventListener("click", async (e) => { const b = e.target.closes
   S.lang = b.dataset.lang; store.set("astro.lang", S.lang); applyI18n(); paintBacks(); syncDrawBtn();
   try { await api("PATCH", "/api/user/profile", { lang: S.lang }); } catch (err) { showError(err); }
   finally { afterProfileChange(); loadProfile(); } });   // after the PATCH, so Home's texts come in the new language
+/* switching the interface or the chamber's graphics tier reloads the page (the chamber is a separate module) */
+const reloadClean = () => { try { const u = new URL(location.href); u.searchParams.delete("ui"); u.searchParams.delete("tier"); history.replaceState(null, "", u); } catch {} location.reload(); };
+$("#uiSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b || b.dataset.ui === UI) return;
+  haptic.tap(); store.set("astro.ui", b.dataset.ui); reloadClean(); });
+$("#tierSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return;
+  haptic.tap(); store.set("astro.chTier", b.dataset.tier); reloadClean(); });
+$("#soundSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; haptic.tap(); store.set("astro.sound", b.dataset.sound);
+  $("#soundSeg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  document.dispatchEvent(new CustomEvent("astro:sound", { detail: b.dataset.sound === "on" })); });
 $("#copyBtn").addEventListener("click", () => { const inp = $("#refLink");
   const done = () => toast(t("copied"));
   if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done, () => { inp.select(); });
@@ -3059,18 +3122,32 @@ async function boot() {
   const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
   S.lang = store.get("astro.lang") || (["ka", "ru", "en"].includes(tgLang) ? tgLang : "ka");
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
-  try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else go("home"); }); } catch {}
+  try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else if (S.onBack && S.onBack()) return; else go("home"); }); } catch {}
+  const chamberP = UI === "chamber" ? import(CHAMBER_URL).catch((e) => { console.warn("chamber module", e); return null; }) : null;
   watchAnim($("#heroCard")); watchAnim($(".num-hero")); watchAnim($(".oracle"));
   $("#oracleArt").innerHTML = practiceArt("advisor", { glow: "#3fb8a8" }); $("#ball").innerHTML = practiceArt("sphere", { live: true }) + '<canvas class="mist" aria-hidden="true"></canvas>';
   Mist.attach($("#ball .mist"));
   try { const r = await wakeAndVerify(); S.economy = r.economy; if (r.user && r.user.lang && !store.get("astro.lang")) { S.lang = r.user.lang; applyI18n(); } }
   catch (e) { return splashFail(e); }
   setCoins((S.user && S.user.coins) || 0);
-  Astro.start();
-  const first = location.hash.slice(1) || store.get("astro.view") || "home";
-  go(VIEWS[first] ? first : "home");
+  let chamberOn = false;
+  if (chamberP) {
+    const mod = await chamberP;
+    try { if (mod) { await mod.start(bridge()); chamberOn = true; } } catch (e) { console.warn("chamber start", e); }
+    if (!chamberOn) { document.documentElement.dataset.ui = "classic"; S.onGo = S.onBack = null; setTimeout(() => toast(t("chFail")), 800); }
+  }
+  if (!chamberOn) Astro.start();
+  const first = chamberOn ? "home" : location.hash.slice(1) || store.get("astro.view") || "home";
+  go(VIEWS[first] && first !== "chamber" ? first : "home");
   if (S.user && S.user.needs_onboarding) showOnboarding();
   requestAnimationFrame(() => { const sp = $("#splash"); sp.classList.add("gone"); setTimeout(() => { sp.hidden = true; }, 650); });   // display:none stops its SVG animations
+}
+/* Everything the chamber module may use: it renders the room and reuses these views, readings and API calls */
+function bridge() {
+  return { S, t, api, go, el, $, store, haptic, toast, rewardToast, setCoins, showError, errText, reduced, tg, PERF, UI, applyI18n,
+    ARCANA, ARC, cardName, cardTitle, TAROT_IMG, BACK_IMG, preload, practiceArt, planetArt, planetSvg, zodiacArt, drawMoon, moonNow,
+    MOON_NAMES, sname, g, SIGNS, ELEMENT, ELEMENT_COLOR, DAY_RULER, PLANET_TINT, PLANET_IDS, pname, fmtDate, signOf, lifePath, loading, wait,
+    renderTarotText, renderGift, claimGift, openPlanet, starburst, sparkle, Sheet, ink, shareButton, fetchHoro, openHoro, todayKey };
 }
 /* Cold start: Render's free server sleeps and needs ~50 s to wake. The splash stays up with a living orbit,
    explains the wait after a few seconds, retries with backoff and offers a button if the stars stay silent. */
@@ -3093,7 +3170,7 @@ function splashFail(e) {
   b.onclick = () => { b.hidden = true; boot(); };
 }
 boot();
-if (!(tg && tg.initData)) window.__astro = { go };   // demo only: lets scripts/screenshots.py navigate
+if (!(tg && tg.initData)) window.__astro = { go, back: () => { if (S.sheetOpen) Sheet.close(); else if (S.onBack && S.onBack()) return; else go("home"); } };   // demo only: lets scripts/screenshots.py navigate
 })();
 </script>
 </body>
