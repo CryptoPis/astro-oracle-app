@@ -752,6 +752,12 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 .sky-behind .retro-line { font-size: .82rem; color: var(--haze); }
 .energy-why { font-size: .78rem; color: var(--haze); }
 .energy-why b { color: var(--gold); font-weight: 500; }
+.energy-day { font-size: .78rem; line-height: 1.5; color: var(--haze); margin-top: 2px; }
+.energy-day i { display: inline-block; vertical-align: -1px; margin-right: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--dc, var(--gold)); box-shadow: 0 0 8px var(--dc, var(--gold)); }
+.energy-day b { color: var(--mist); font-weight: 500; }
+.sphere-cloud { min-height: 1.2em; text-align: center; font-size: .8rem; font-style: italic; color: var(--haze); margin: 2px 16px 0; opacity: 0; transition: opacity var(--t2) var(--ease); }
+.sphere-cloud.show { opacity: 1; }
+.sky-behind li em { font-style: normal; font-size: .7rem; color: var(--gold); margin-left: 6px; }
 
 
 /* ═════════ motion: slow celestial ritual ═════════ */
@@ -903,6 +909,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <p class="focus" id="focus"></p>
         <p class="affirm" id="affirm"></p>
         <p class="energy-why" id="energyWhy" hidden></p>
+        <p class="energy-day" id="energyDay" hidden></p>
       </div>
       <div class="sec sky-sec" id="skySec" hidden>
         <div class="sec-head"><h2 data-i18n="skyNow"></h2><span id="skyAt"></span></div>
@@ -997,6 +1004,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
         <button class="ball" id="ball" aria-describedby="answer"></button>
       </div>
       <p class="answer" id="answer" aria-live="polite"></p>
+      <p class="sphere-cloud" id="sphereCloud"></p>
       <p class="sphere-advice" id="sphereAdvice" aria-live="polite"></p>
       <button class="btn wide" id="sphereBtn" data-i18n="sphereBtn"></button>
       <p class="muted center" id="sphereLeft"></p>
@@ -1233,7 +1241,7 @@ const I18N = {
     personalBadge:"პერსონალური · შენი ნატალური რუკით", whyL:"რატომ ამბობენ ასე ვარსკვლავები", skyBehind:"ცა შენი ჰოროსკოპის უკან",
     nat_harmonious:"ხელსაყრელი", nat_challenging:"რთული", nat_blend:"ძლიერი", retroNow:"რეტროგრადული:",
     personalHint:"მიუთითე დაბადების თარიღი, დრო და ქალაქი და ჰოროსკოპი შენს ნატალურ რუკაზე აეწყობა.",
-    housesHint:"დაბადების დრო და ქალაქიც თუ მიუთითე, ჰოროსკოპი სახლებსაც გაითვალისწინებს.", energyWhy:"დღის მთავარი ტრანზიტი",
+    housesHint:"დაბადების დრო და ქალაქიც თუ მიუთითე, ჰოროსკოპი სახლებსაც გაითვალისწინებს.", energyWhy:"დღის მთავარი ტრანზიტი", dayOf:"დღის პლანეტა",
     ab_sun:"მზ", ab_moon:"მთ", ab_mars:"მა", ab_mercury:"მე", ab_jupiter:"იუ", ab_venus:"ვე", ab_saturn:"სა", ab_rahu:"რა", ab_ketu:"კე",
     birthData:"დაბადების მონაცემები", birthTime:"დაბადების დრო (არასავალდებულო)", birthCity:"დაბადების ქალაქი (არასავალდებულო)", birthCityPh:"მაგ. თბილისი",
     birthHint:"დრო და ქალაქი კუნდლისთვის გვჭირდება: ლაგნასა და სახლებს ზუსტად ისინი განსაზღვრავს."
@@ -1326,7 +1334,7 @@ const I18N = {
     personalBadge:"Personal · from your natal chart", whyL:"Why the stars say this", skyBehind:"The sky behind your reading",
     nat_harmonious:"supportive", nat_challenging:"challenging", nat_blend:"intense", retroNow:"Retrograde:",
     personalHint:"Add your birth date, time and city, and your horoscope will be built on your own natal chart.",
-    housesHint:"Add your birth time and city as well, and the reading will include the houses.", energyWhy:"Today's main transit",
+    housesHint:"Add your birth time and city as well, and the reading will include the houses.", energyWhy:"Today's main transit", dayOf:"Planet of the day",
     ab_sun:"Su", ab_moon:"Mo", ab_mars:"Ma", ab_mercury:"Me", ab_jupiter:"Ju", ab_venus:"Ve", ab_saturn:"Sa", ab_rahu:"Ra", ab_ketu:"Ke",
     birthData:"Birth details", birthTime:"Birth time (optional)", birthCity:"Birth city (optional)", birthCityPh:"e.g. Tbilisi",
     birthHint:"Time and city are used for your kundli: they fix the lagna and the houses."
@@ -1419,7 +1427,7 @@ const I18N = {
     personalBadge:"Персонально · по твоей натальной карте", whyL:"Почему звёзды так говорят", skyBehind:"Небо за твоим гороскопом",
     nat_harmonious:"благоприятный", nat_challenging:"напряжённый", nat_blend:"сильный", retroNow:"Ретроградные:",
     personalHint:"Укажи дату, время и город рождения, и гороскоп будет построен по твоей натальной карте.",
-    housesHint:"Укажи также время и город рождения, чтобы учесть дома.", energyWhy:"Главный транзит дня",
+    housesHint:"Укажи также время и город рождения, чтобы учесть дома.", energyWhy:"Главный транзит дня", dayOf:"Планета дня",
     ab_sun:"Су", ab_moon:"Лу", ab_mars:"Ма", ab_mercury:"Ме", ab_jupiter:"Юп", ab_venus:"Ве", ab_saturn:"Са", ab_rahu:"Ра", ab_ketu:"Ке",
     birthData:"Данные рождения", birthTime:"Время рождения (необязательно)", birthCity:"Город рождения (необязательно)", birthCityPh:"напр. Тбилиси",
     birthHint:"Время и город нужны для кундли: они определяют лагну и дома."
@@ -2028,20 +2036,28 @@ const Demo = (() => {
       lucky_color: pick(T.colors, seed + "c"), mood: pick(T.moods, seed + "m"),
       sections: ["love", "career", "health", "finance"].map((a, i) => ({ area: a, title: t(a), text: pick(T[a], seed + a), score: 2 + (hash(seed + a + i) % 4) })) };
   }
+  const KBD = /*DEMO_KB*/null;   // preview build only: tarot meanings, day correspondences, sphere lore
+  const kbl = (o) => o && (o[S.lang] || o.en);
   function tarot(spread, question) {
     const positions = spread === "three" ? ["past", "present", "future"] : [question ? "answer" : "today"];
     const deck = ARCANA.map((a) => a[0]).sort(() => Math.random() - .5);
-    const cards = positions.map((pos, i) => { const id = deck[i], a = ARC[id], rev = Math.random() < .25, kw = ka() ? a.kwKa : a.kwEn;
+    const qs = new URLSearchParams(location.search), forceRev = qs.has("rev");   // ?rev: the first card is reversed (motion video)
+    if (forceRev && qs.get("rev")) { const want = qs.get("rev"), j = deck.indexOf(want); if (j > 0) [deck[0], deck[j]] = [deck[j], deck[0]]; }
+    const cards = positions.map((pos, i) => { const id = deck[i], a = ARC[id], rev = forceRev ? i === 0 : Math.random() < .25, kw = ka() ? a.kwKa : a.kwEn;
       const posKa = { today: "დღევანდელი დღისთვის", past: "წარსულის პოზიციაში", present: "აწმყოს პოზიციაში", future: "მომავლის პოზიციაში", answer: "შენს კითხვაზე პასუხად" }[pos];
       const posEn = { today: "For today", past: "In the past position", present: "In the present position", future: "In the future position", answer: "In answer to your question" }[pos];
       const text = ka() ? `${posKa} „${a.ka}“ გამოჩნდა. ამ კარტის მთავარი თემებია: ${kw.join(", ")}. ის გეუბნება, რომ სწორედ ეს ძალები მოქმედებს ახლა შენს ცხოვრებაში.${rev ? " შებრუნებული კარტი მიუთითებს, რომ ეს ენერგია ჯერ ბოლომდე არ გახსნილა და შინაგან მუშაობას მოითხოვს." : ""}`
         : `${posEn}, ${a.en} appears. Its themes are ${kw.join(", ")}. These are the forces at work in your life right now.${rev ? " Reversed, it shows this energy has not fully opened yet and asks for inner work." : ""}`;
-      return { id, number: a.n, name: a.en, reversed: rev, position: pos, title: ka() ? a.ka : a.en, keywords: kw, interpretation: text }; });
+      const kb = KBD && kbl(KBD.tarot[id] && KBD.tarot[id][rev ? "reversed" : "upright"]);
+      const posRu = { today: "На сегодня", past: "В позиции прошлого", present: "В позиции настоящего", future: "В позиции будущего", answer: "В ответ на твой вопрос" }[pos];
+      const kbText = kb && `${{ ka: posKa, ru: posRu }[S.lang] || posEn}: ${kb.meaning} ${{ ka: "სიფრთხილე: ", ru: "Осторожно: " }[S.lang] || "Watch out: "}${kb.challenging}`;
+      return { id, number: a.n, name: a.en, reversed: rev, position: pos, title: ka() ? a.ka : a.en, keywords: kw, interpretation: kbText || text }; });
     const k0 = cards.map((c) => c.keywords[0]);
     const synthesis = spread === "three"
       ? (ka() ? `სამი კარტი ერთ ისტორიას ყვება. წარსულის თემაა „${k0[0]}“, აწმყოსი „${k0[1]}“, მომავლისა კი „${k0[2]}“. გზა დაბალანსებულია და გიჩვენებს, რომ სწორი მიმართულებით მიდიხარ.` : `Three cards tell one story: ${k0[0]} in the past, ${k0[1]} now, ${k0[2]} ahead. The path is balanced and shows you are moving the right way.`)
       : (ka() ? `დღის კარტი შენს ყურადღებას ერთ თემაზე ამახვილებს: „${k0[0]}“. ნება მიეცი, ეს სიტყვა მთელი დღე გაგყვეს.` : `Today's card turns your attention to one theme: ${k0[0]}. Let that word stay with you all day.`);
-    return { cards, synthesis, advice: ka() ? "დღეს ერთი პატარა ნაბიჯი გადადგი იმ მიმართულებით, რომელსაც კარტები გიჩვენებენ." : "Take one small step today in the direction the cards point." };
+    const lead = cards.find((c) => c.reversed) || cards[cards.length - 1], leadKb = KBD && kbl(KBD.tarot[lead.id] && KBD.tarot[lead.id][lead.reversed ? "reversed" : "upright"]);
+    return { cards, synthesis, advice: leadKb ? leadKb.advice : ka() ? "დღეს ერთი პატარა ნაბიჯი გადადგი იმ მიმართულებით, რომელსაც კარტები გიჩვენებენ." : "Take one small step today in the direction the cards point." };
   }
   function dream(text) {
     const low = text.toLowerCase(), L = ka() ? "ka" : "en";
@@ -2074,7 +2090,7 @@ const Demo = (() => {
     if (p === "/api/daily/energy") { await wait(500); const T = tx(), d = todayIso(), sign = profile().sign;
       const nums = []; let h = hash("777" + d); while (nums.length < 3) { const n = (h % 49) + 1; if (!nums.includes(n)) nums.push(n); h = hash(String(h)); }
       return { date: d, sign, moon: moonNow(), lucky_numbers: nums.sort((a, b) => a - b), quote: pick(T.quotes, d), affirmation: pick(T.affirm, d + "a"), focus: pick(T.focus, d + "f"),
-        personal: !!sign, why: sign ? DEMO_TR()[0].label : null }; }
+        personal: !!sign, why: sign ? DEMO_TR()[0].label : null, day: KBD ? kbl(KBD.days[new Date().getDay()]) : null }; }
     if (p === "/api/horoscope") { await wait(1300); const sign = q.get("sign") || (profile().sign || {}).id; if (!sign) throw new ApiError(400, "needs_birth_date");
       const own = profile().sign && profile().sign.id === sign, period = q.get("period") || "day";
       const hz = horoscope(sign, period); if (own) { const tr = DEMO_TR(); hz.transits = tr; hz.retrograde = DEMO_RETRO();
@@ -2106,7 +2122,8 @@ const Demo = (() => {
         advice: L === "ka" ? "დაისახე ერთი მიზანი, რომელიც ამ წლის ენერგიას შეესაბამება." : "Set one goal that fits this year's energy." };
       return { life_path: lp, is_master: [11, 22, 33].includes(lp), personal_year: py, year, reading, year_reading, reward: limited("num", 35, 1) }; }
     if (p === "/api/sphere") { await wait(300); const L = ka() ? "ka" : "en", r = Math.random(), tone = r < .42 ? "yes" : r < .75 ? "wait" : "no";
-      const list = SPH[L][tone]; return { answer: list[(Math.random() * list.length) | 0], tone, topic: "general", advice: SPH_ADV[L], reward: limited("sphere", 25, 5) }; }
+      const list = SPH[L][tone], lore = KBD ? kbl(KBD.sphere[tone]) : {};
+      return { answer: list[(Math.random() * list.length) | 0], tone, topic: "general", advice: SPH_ADV[L], cloud: lore.cloud, lore: lore.lore, reward: limited("sphere", 25, 5) }; }
     if (p === "/api/moon/ritual") { await wait(1100); const L = ka() ? "ka" : "en";
       return { moon: moonNow(), reward: limited("moon", 70, 1), ritual: L === "ka" ? { title: "ვერცხლის წყალი",
           intention: "ეს ფაზა განზრახვების დროა. რასაც ახლა დათესავ, სავსემთვარეობისას გაიფურჩქნება.",
@@ -2289,6 +2306,9 @@ async function loadHome() {
     if (e.moon) { S.moon = { ...S.moon, ...e.moon, name: MOON_NAMES[e.moon.code] ? MOON_NAMES[e.moon.code][S.lang] : e.moon.name }; }
     $("#quote").textContent = e.quote; $("#affirm").textContent = e.affirmation;
     const ew = $("#energyWhy"); ew.hidden = !e.why; if (e.why) ew.replaceChildren(`${t("energyWhy")}: `, el("b", null, e.why));
+    const ed = $("#energyDay"), dd = e.day; ed.hidden = !dd;   // Agrippa's correspondences of the weekday
+    if (dd) { const dot = el("i"); dot.style.setProperty("--dc", dd.color);
+      ed.replaceChildren(dot, `${t("dayOf")}: `, el("b", null, dd.planet_name), ` · ${dd.color_name} · ${dd.stone} · ${dd.keyword}`); }
     const f = $("#focus"); f.replaceChildren(`${t("focusLbl")}: `, el("b", null, e.focus));
     $("#lucky").replaceChildren(...e.lucky_numbers.map((n) => el("span", null, n)));
   } catch (err) { if (gen === S.homeGen) $("#quote").textContent = t("e_ai"); }
@@ -2366,7 +2386,8 @@ function renderHoro(out, r) {
     areas.append(w); }
   if (r.personal && h.transits && h.transits.length) {   // the real transits this reading was built on
     const box = el("div", "sky-behind"), ul = el("ul");
-    h.transits.forEach((x) => { const li = el("li"); li.append(el("span", null, x.label), el("i", x.nature, t("nat_" + x.nature))); ul.append(li); });
+    h.transits.forEach((x) => { const li = el("li"), lab = el("span", null, x.label); if (x.dignity) lab.append(el("em", null, x.dignity));
+      li.append(lab, el("i", x.nature, t("nat_" + x.nature))); ul.append(li); });
     box.append(el("span", "label", t("skyBehind")), ul);
     if (h.retrograde && h.retrograde.length) box.append(el("p", "retro-line", `${t("retroNow")} ${h.retrograde.join(", ")}`));
     root.append(box); }
@@ -2502,14 +2523,14 @@ const SphereFx = (() => { const fx = fxLayer($("#sphereFx"));
 })();
 function loadSphere() { $("#sphereLeft").textContent = ""; }
 async function askSphere() {
-  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), adv = $("#sphereAdvice"), stage = $(".orb-stage");
+  const btn = $("#sphereBtn"), ball = $("#ball"), ans = $("#answer"), adv = $("#sphereAdvice"), cloud = $("#sphereCloud"), stage = $(".orb-stage");
   if (btn.disabled) return; btn.disabled = true; haptic.tap();
-  ans.classList.remove("show"); ans.textContent = ""; adv.textContent = ""; delete stage.dataset.tone;
+  ans.classList.remove("show"); cloud.classList.remove("show"); ans.textContent = ""; adv.textContent = ""; cloud.textContent = ""; delete stage.dataset.tone;
   ball.classList.remove("charging"); void ball.offsetWidth; ball.classList.add("charging"); SphereFx.burst(); Mist.excite();
   try { const q = $("#sphereQ").value.trim();
     const [r] = await Promise.all([api("POST", "/api/sphere", { question: q || null }), wait(1400)]);
     ans.textContent = r.answer; void ans.offsetWidth; ans.classList.add("show"); haptic.soft();
-    stage.dataset.tone = r.tone; adv.textContent = r.advice || ""; ball.setAttribute("aria-label", t("tone_" + r.tone));
+    stage.dataset.tone = r.tone; adv.textContent = r.advice || ""; cloud.textContent = r.cloud || ""; cloud.title = r.lore || ""; cloud.classList.add("show"); ball.setAttribute("aria-label", t("tone_" + r.tone));
     if (r.reward) $("#sphereLeft").textContent = t("sphereLeft", { u: r.reward.used_today, l: r.reward.daily_limit });
   } catch (e) { showError(e); }
   btn.disabled = false;

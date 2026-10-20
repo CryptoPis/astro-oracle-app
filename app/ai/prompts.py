@@ -7,9 +7,12 @@ instructions themselves written in that language. Here:
 - only the *values* are written in the user's language, so the UI can render
   cards, chips and scores directly.
 """
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+from app.astro_kb import context as KB
 
 LANG_NAMES = {"ka": "Georgian (ქართული, Mkhedruli script)", "ru": "Russian", "en": "English"}
 
@@ -175,6 +178,10 @@ def tarot_prompt(lang: str, spread: str, drawn: list[dict], positions: list[str]
             "and then give practical advice on how to meet it.")
     lines = [f"- position={pos}: {c['name']} = \"{c.get('local_name') or c['name']}\"{' (reversed)' if c['reversed'] else ''}"
              for pos, c in zip(positions, drawn)]
+    lines = [line + (f"\n  KB: {kb}" if (kb := KB.tarot_card(c.get("id", ""), c["reversed"], lang)) else "")
+             for line, c in zip(lines, drawn)]
+    task += (" Each card comes with its meaning from the knowledge base (after A. E. Waite, The Pictorial Key to "
+             "the Tarot, 1910, upright or reversed as drawn): build on that meaning, never replace it with another.")
     user = "Cards:\n" + "\n".join(lines)
     if sign:
         user += f"\nQuerent's sun sign: {sign}"
@@ -209,16 +216,25 @@ DREAM_SCHEMA = """{
 
 
 def dream_prompt(lang: str, dream: str, sign: str | None, moon_name: str) -> tuple[str, str]:
-    task = ("Interpret the dream using classic dream symbolism and Jungian archetypes. "
-            "2-5 symbols. If the dream mentions self-harm or a crisis, gently suggest talking "
-            "to someone they trust, in the advice field.")
-    user = f"Dream: <user_input>{dream}</user_input>\nMoon phase: {moon_name}"
+    task = ("Interpret the dream as one possible perspective, not a verdict. Follow the method below: the dreamer's "
+            "own feelings and recent days matter more than any dictionary. Use the known symbols' meanings when they "
+            "fit, and turn at least one of their reflective questions into the interpretation. 2-5 symbols. Keep it "
+            "family-friendly; never sexualise symbols. If the dream mentions self-harm or a crisis, gently suggest "
+            "talking to someone they trust, in the advice field.")
+    user = (f"Dream: <user_input>{dream}</user_input>\nMoon phase: {moon_name}\n\n"
+            f"Knowledge base:\n{KB.dream_context(dream, lang)}")
     if sign:
         user += f"\nDreamer's sun sign: {sign}"
     return _system(lang, task, DREAM_SCHEMA), user
 
 
 # ───────────────────────── Daily energy ─────────────────────────
+def _day_line(day: str, lang: str) -> str:
+    try:
+        return KB.day_line(date.fromisoformat(day), lang)
+    except ValueError:
+        return ""
+
 class EnergyAI(BaseModel):
     quote: str
     affirmation: str
@@ -236,12 +252,14 @@ def personal_energy_prompt(lang: str, transit_line: str, moon: str, day: str) ->
     task = ("Write today's energy message for this person from their single strongest transit below (computed "
             "against their natal chart). Stay faithful to its meaning; if it is a difficult aspect, say so gently but "
             "honestly and turn it into a useful focus. Do not mention degrees or the id.")
-    return _system(lang, task, ENERGY_SCHEMA), f"Date: {day}\nMoon: {moon}\nStrongest transit: {transit_line}"
+    return _system(lang, task, ENERGY_SCHEMA), (f"Date: {day}\nMoon: {moon}\nStrongest transit: {transit_line}\n"
+                                                f"{_day_line(day, lang)}")
 
 
 def energy_prompt(lang: str, sign: str, moon_name: str, day: str) -> tuple[str, str]:
-    task = "Write the daily cosmic energy message for this sign."
-    return _system(lang, task, ENERGY_SCHEMA), f"Sign: {sign}\nDate: {day}\nMoon phase: {moon_name}"
+    task = "Write the daily cosmic energy message for this sign; you may weave in the day's planet below."
+    return _system(lang, task, ENERGY_SCHEMA), (f"Sign: {sign}\nDate: {day}\nMoon phase: {moon_name}\n"
+                                                f"{_day_line(day, lang)}")
 
 
 # ───────────────────────── Numerology ─────────────────────────
@@ -270,9 +288,11 @@ NUMEROLOGY_SCHEMA = """{
 
 def numerology_prompt(lang: str, number: int) -> tuple[str, str]:
     master = number in (11, 22, 33)
-    task = (f"Explain Pythagorean numerology Life Path Number {number}"
-            f"{' (a master number: mention what makes it special)' if master else ''}.")
-    return _system(lang, task, NUMEROLOGY_SCHEMA), f"Life Path Number: {number}"
+    task = (f"Explain numerology Life Path Number {number}"
+            f"{' (a master number of modern numerology: mention what makes it special)' if master else ''}. "
+            "Stay faithful to the knowledge-base meaning below (after Sepharial, Cosmic Symbolism, where each number "
+            "has a ruling planet); name both its strengths and its real challenges.")
+    return _system(lang, task, NUMEROLOGY_SCHEMA), f"Life Path Number: {number}\nKB: {KB.number(number, lang)}"
 
 
 class PersonalYearAI(BaseModel):
@@ -289,8 +309,9 @@ PERSONAL_YEAR_SCHEMA = """{
 
 
 def personal_year_prompt(lang: str, number: int, year: int) -> tuple[str, str]:
-    task = f"Explain Personal Year Number {number} in numerology for the calendar year {year}."
-    return _system(lang, task, PERSONAL_YEAR_SCHEMA), f"Personal Year: {number}\nYear: {year}"
+    task = (f"Explain Personal Year Number {number} in numerology for the calendar year {year}, faithful to the "
+            "knowledge-base meaning below, with one honest challenge.")
+    return _system(lang, task, PERSONAL_YEAR_SCHEMA), f"Personal Year: {number}\nYear: {year}\nKB: {KB.number(number, lang)}"
 
 
 # ───────────────────────── Moon ritual ─────────────────────────
@@ -311,9 +332,12 @@ MOON_SCHEMA = """{
 }"""
 
 
-def moon_ritual_prompt(lang: str, phase: str, illumination: int, day: str) -> tuple[str, str]:
-    task = "Create one specific, safe home ritual for today's moon phase. No fire hazards beyond a single candle."
-    return _system(lang, task, MOON_SCHEMA), f"Moon phase: {phase}\nIllumination: {illumination}%\nDate: {day}"
+def moon_ritual_prompt(lang: str, phase: str, illumination: int, day: str, code: str = "") -> tuple[str, str]:
+    task = ("Create one specific, safe home ritual for today's moon phase. No fire hazards beyond a single candle. "
+            "Base its intention and 'avoid' on the folk lore below and present it as tradition, not as fact.")
+    lore = KB.moon_phase(code, lang)
+    return _system(lang, task, MOON_SCHEMA), (f"Moon phase: {phase}\nIllumination: {illumination}%\nDate: {day}"
+                                              + (f"\n{lore}" if lore else ""))
 
 
 # ───────────────────────── Compatibility ─────────────────────────
@@ -412,8 +436,10 @@ AURA_SCHEMA = """{
 
 def aura_prompt(lang: str) -> tuple[str, str]:
     task = ("Give an intuitive, playful aura reading inspired by the photo's light, colors, expression and mood. "
+            "Choose the 2-3 colours ONLY from the palette below, with its exact name and hex, and base each meaning "
+            "on the palette text (one supportive and, where it fits, one challenging side). "
             "Never comment on attractiveness, body, age, ethnicity or health, and never identify the person.")
-    return _system(lang, task, AURA_SCHEMA), "Read the aura in this photo."
+    return _system(lang, task, AURA_SCHEMA), "Read the aura in this photo.\n\n" + KB.aura_palette(lang)
 
 
 class CoffeeSymbol(BaseModel):
@@ -441,8 +467,10 @@ COFFEE_SCHEMA = """{
 
 
 def coffee_prompt(lang: str) -> tuple[str, str]:
-    task = "Read the coffee grounds in the photo in the traditional Georgian/Turkish style (tasseography)."
-    return _system(lang, task, COFFEE_SCHEMA), "Read my coffee cup."
+    task = ("Read the coffee grounds in the photo in the traditional style (tasseography). Name only shapes you "
+            "can plausibly see; take each symbol's meaning from the dictionary below and follow its reading rules "
+            "(position in the cup = time, clear or blurred shapes). Unfavourable symbols are said honestly, with advice.")
+    return _system(lang, task, COFFEE_SCHEMA), "Read my coffee cup.\n\n" + KB.coffee_dictionary(lang)
 
 
 # ───────────────────────── Kundli ─────────────────────────

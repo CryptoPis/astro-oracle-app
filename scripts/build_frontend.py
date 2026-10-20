@@ -23,6 +23,24 @@ HEAD = """<!doctype html>
 """
 
 
+def demo_kb() -> str:
+    """The knowledge base the browser demo needs (the real app gets these from the API, so the page served to
+    Telegram stays small): tarot meanings, the weekday correspondences (index = JS getDay) and the sphere lore."""
+    import json
+    from datetime import date, timedelta
+
+    sys.path.insert(0, str(ROOT))
+    from app.astro_kb import context, load
+
+    langs = ("ka", "en", "ru")
+    tarot = {slug: {side: {lg: {k: v[lg][k] for k in ("meaning", "challenging", "advice")} for lg in langs}
+                    for side, v in ((s, card[s]) for s in ("upright", "reversed"))} for slug, card in load("tarot").items()}
+    sunday = date(2026, 10, 18)
+    days = [{lg: context.day_correspondence(sunday + timedelta(days=i), lg) for lg in langs} for i in range(7)]
+    sphere = {tone: {lg: context.sphere_lore(tone, lg) for lg in langs} for tone in ("yes", "wait", "no")}
+    return json.dumps({"tarot": tarot, "days": days, "sphere": sphere}, ensure_ascii=False, separators=(",", ":"))
+
+
 def main() -> None:
     src = SRC.read_text(encoding="utf-8")
     head, body = src.split("<!--BODY-->", 1)
@@ -37,6 +55,7 @@ def main() -> None:
         print("built static/index.html")
         return
     preview = re.sub(r"(static/img/[\w/.-]+\.webp)", inline, src).replace("<!--BODY-->", "")
+    preview = preview.replace("/*DEMO_KB*/null", demo_kb())
     # without a charset a page served over HTTP is read as Windows-1252 (Georgian and ♌ become mojibake)
     preview = ('<!doctype html>\n<meta charset="utf-8">\n'
                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' + preview)
