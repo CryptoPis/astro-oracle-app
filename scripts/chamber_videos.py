@@ -164,7 +164,142 @@ def scene_horoscope(page):
     page.wait_for_timeout(2500)
 
 
-SCENES = {"chamber-tour": (scene_tour, {"intro": True}), "chamber-horoscope": (scene_horoscope, {}), "chamber-tarot": (scene_tarot, {}),
+PHOTO = str(Path(__file__).resolve().parent.parent / "static" / "img" / "tarot" / "sun.webp")   # any picture: the demo reads it
+
+
+def open_and_wait(page, sid, ms=2600):
+    page.evaluate(f"window.__chamber.open('{sid}')")
+    page.wait_for_timeout(ms)
+
+
+def scroll_panel(page, top, ms=2200):
+    page.evaluate(f"document.getElementById('scroller').scrollTo({{ top: {top}, behavior: 'smooth' }})")
+    page.wait_for_timeout(ms)
+
+
+def scene_moon(page):
+    open_and_wait(page, "moon", 3000)
+    page.click(".ch-hud-foot .btn")
+    page.wait_for_timeout(2600)
+    for _ in range(6):
+        if not page.evaluate("!!document.querySelector('.ch-step') && !document.querySelector('.ch-step').hidden && !document.getElementById('scroller').classList.contains('ch-open')"):
+            break
+        page.click(".ch-step .btn")
+        page.wait_for_timeout(2300)
+    page.wait_for_timeout(2400)
+    scroll_panel(page, 400)
+    page.click("#chPClose")
+    page.wait_for_timeout(2500)
+
+
+def scene_coffee(page):
+    import math
+    open_and_wait(page, "coffee", 2800)
+    c = dbg(page)["cup"]
+    page.mouse.move(c["x"] + 90, c["y"])
+    page.mouse.down()
+    for i in range(110):                                            # three calm circles round the cup
+        a = i / 110 * math.pi * 2 * 3
+        page.mouse.move(c["x"] + math.cos(a) * 90, c["y"] + math.sin(a) * 70)
+        page.wait_for_timeout(20)
+    page.mouse.up()
+    page.wait_for_timeout(1200)
+    drag(page, (c["x"], c["y"] - 60), (c["x"], c["y"] + 120), steps=10)   # turn the cup over
+    page.wait_for_timeout(2600)
+    page.click(".ch-hud-foot .btn")
+    page.wait_for_timeout(1800)
+    page.set_input_files("#coffeeFile", PHOTO)
+    page.wait_for_timeout(900)
+    page.click(".photo-pick[data-kind='coffee'] .btn.wide")
+    page.wait_for_timeout(4200)
+    scroll_panel(page, 380)
+    page.click("#chPClose")                                         # back to the cup: the symbols float round it
+    page.wait_for_timeout(4200)
+
+
+def scene_aura(page):
+    open_and_wait(page, "aura", 2800)
+    page.set_input_files("#auraFile", PHOTO)
+    page.wait_for_timeout(900)
+    page.click(".photo-pick[data-kind='aura'] .btn.wide")
+    page.wait_for_timeout(4400)
+    scroll_panel(page, 420)
+    back(page)                                                      # back in the room: the colours bloom in the mirror
+    page.wait_for_timeout(5200)
+
+
+def scene_dream(page):
+    open_and_wait(page, "dream", 2800)
+    page.click("#dreamText")
+    page.type("#dreamText", "მესიზმრა, რომ ზღვის თავზე დავფრინავდი და ძველი სახლის ფანჯრებში სინათლე ენთო.", delay=45)
+    page.wait_for_timeout(800)
+    page.click("#dreamBtn")
+    page.wait_for_timeout(4200)
+    scroll_panel(page, 520, 2600)
+
+
+def scene_num(page):
+    open_and_wait(page, "num", 4200)                                 # the astrolabe's rings turn to the numbers
+    scroll_panel(page, 420)
+    back(page)
+    page.wait_for_timeout(2600)
+
+
+def scene_chart(page):
+    open_and_wait(page, "chart", 3200)
+    scroll_panel(page, 360, 2000)
+    page.click("#chTabs button:nth-child(2)")
+    page.wait_for_timeout(2000)
+    page.fill("#partnerDate", "1991-03-08")
+    page.fill("#partnerName", "ნინო")
+    page.click("#compatForm button[type='submit'], #compatForm .btn")
+    page.wait_for_timeout(5600)                                     # the two constellations drift together on the scroll
+    scroll_panel(page, 500)
+
+
+def scene_advisor(page):
+    open_and_wait(page, "advisor", 3000)
+    page.fill("#advInput", "რა ენერგიაა დღეს ჩემთვის?")
+    page.wait_for_timeout(700)
+    page.click("#advSend")
+    page.wait_for_timeout(5200)                                     # the flame rises while the oracle thinks
+
+
+def scene_full(page):
+    """About a minute through everything: the room, the tarot table, the ball, the dome, the gift, the compass."""
+    import math
+    page.wait_for_timeout(1500)
+    swipe(page, -170); page.wait_for_timeout(1300)
+    swipe(page, 170); page.wait_for_timeout(1300)
+    open_and_wait(page, "tarot", 2200)                                 # the card of the day, by hand
+    d = dbg(page)["deck"]; drag(page, (d["x"] - 90, d["y"]), (d["x"] + 90, d["y"])); page.wait_for_timeout(2300)
+    c = dbg(page)["fan"][4]; drag(page, (c["x"], c["y"]), (c["x"], c["y"] - 150), steps=14); page.wait_for_timeout(2600)
+    for sl in dbg(page)["slots"]: drag(page, (sl["x"], sl["y"] + 30), (sl["x"], sl["y"] - 60), steps=12); page.wait_for_timeout(2600)
+    scroll_panel(page, 300, 1500)
+    back(page); page.wait_for_timeout(700); back(page); page.wait_for_timeout(1500)
+    open_and_wait(page, "sphere", 2000)                                # the ball: wipe the mist
+    b = dbg(page)["ball"]; page.mouse.move(b["x"] - 50, b["y"]); page.mouse.down()
+    for i in range(55): a = i / 6; page.mouse.move(b["x"] + math.cos(a) * 55, b["y"] + math.sin(a) * 40); page.wait_for_timeout(20)
+    page.mouse.up(); page.wait_for_timeout(4200)
+    back(page); page.wait_for_timeout(1500)
+    swipe(page, 0, -220); page.wait_for_timeout(1800)                  # the dome: the real sky, then the chart
+    page.evaluate("window.__chamber.open('horo')")
+    page.wait_for_function("window.__chamber.state.stage && window.__chamber.state.stage.debug && window.__chamber.state.stage.debug().n > 0", timeout=15000)
+    page.wait_for_timeout(3600)
+    bm = dbg(page)["beams"][0]; page.mouse.click(bm["x"], bm["y"]); page.wait_for_timeout(3200)
+    back(page); page.wait_for_timeout(700); back(page); page.wait_for_timeout(1600)
+    open_and_wait(page, "gift", 2400)                                  # the chest
+    ch = dbg(page)["chest"]; page.mouse.click(ch["x"], ch["y"]); page.wait_for_timeout(3600)
+    back(page); page.wait_for_timeout(1500)
+    page.click("#chCompassBtn"); page.wait_for_timeout(1800)          # the compass: every practice
+    page.click("#chList .ch-item[data-id='moon']"); page.wait_for_timeout(3000)
+    back(page); page.wait_for_timeout(2200)
+
+
+SCENES = {"chamber-tour": (scene_tour, {"intro": True}), "chamber-horoscope": (scene_horoscope, {}), "chamber-full": (scene_full, {}),
+          "chamber-moon": (scene_moon, {}), "chamber-coffee": (scene_coffee, {}), "chamber-mirror": (scene_aura, {}),
+          "chamber-book": (scene_dream, {}), "chamber-astrolabe": (scene_num, {}), "chamber-scroll": (scene_chart, {}),
+          "chamber-flame": (scene_advisor, {}), "chamber-tarot": (scene_tarot, {}),
           "chamber-tarot-reversed": (scene_tarot_reversed, {"query": "&rev=tower"}), "chamber-sphere": (scene_sphere, {}),
           "chamber-gift": (scene_gift, {})}
 

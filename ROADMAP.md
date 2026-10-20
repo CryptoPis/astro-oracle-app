@@ -82,7 +82,18 @@
   from the knowledge base); admin `/purge_cache old` (dry run) / `/purge_cache old apply` removes pre-v2 rows;
   rollback tag `backup-before-cache-v2` (58cad30).
 
+- Oracle chamber (2026-10-20, branch `oracle-chamber`, not deployed): an opt-in immersive UI (`?ui=chamber`,
+  `?startapp=ui_chamber` or Profile → Interface) on the same views, API, auth, i18n, economy and AI. FULL: a
+  procedural three.js room (0.160.0 vendored) with ten objects and the star dome; 3D stages for tarot, the crystal
+  ball, the gift chest, the horoscope (natal wheel + transit beams, read-only `GET /api/horoscope/chart`), the moon
+  ritual and the coffee cup; reactions for the mirror, astrolabe, scroll, book and flame. LITE: the same room in
+  2.5D for Telegram Desktop and weak phones. Web Audio sound (off by default). Compass list, guided intro, glass
+  panel, Telegram fullscreen/BackButton/haptics. Checks: `scripts/chamber_check.py`; videos
+  `scripts/chamber_videos.py` → `dist/motion/chamber/`; numbers in `docs/PERF_NOTES.md`.
+
 ## Next
+- Oracle chamber: test `?ui=chamber` on a real Android and iPhone (FULL) and in Telegram Desktop (LITE), then the
+  opt-in deploy (`docs/PERF_NOTES.md` has the numbers; the default UI is unchanged).
 - Send `/purge_cache old`, then `/purge_cache old apply` to the bot.
 - Watch "AI calls today" in `/diag` for a few days and tune the caps if needed.
 - Test the personal horoscope, the dignity chips, the planet of the day and a reversed tarot card on a phone.

@@ -229,3 +229,37 @@ html:has(#scroller.ch-open) .ch-hud-foot, html:has(#scroller.ch-open) .ch-answer
 .ch-why { display: grid; gap: 8px; margin-top: 6px; padding-top: 12px; border-top: 1px solid rgba(226,189,106,.2); }
 .ch-why .area { padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(226,189,106,.15); }
 .ch-why .area b { color: var(--gold-hi); } .ch-why .area p { margin: 4px 0 0; color: var(--mist); font-size: .9rem; }
+
+/* ── moon ritual, coffee symbols, the book, the flame's voice ── */
+.ch-moon { display: grid; gap: 6px; max-width: 360px; padding: 12px 16px; border-radius: 16px; text-align: center; background: rgba(13,10,36,.7); border: 1px solid rgba(170,190,255,.3); }
+.ch-moon b { font: 600 1.1rem var(--oracle); color: #dfe6ff; }
+.ch-lore { margin: 0; font: italic 500 1rem/1.45 var(--oracle); color: var(--mist); }
+.ch-moon small { font-size: .72rem; color: var(--haze); }
+.ch-step { display: grid; gap: 10px; justify-items: center; max-width: 380px; padding: 14px 16px; border-radius: 16px; text-align: center;
+  background: linear-gradient(180deg, rgba(31,23,72,.92), rgba(13,10,36,.95)); border: 1px solid rgba(226,189,106,.4); }
+.ch-step p { margin: 0; font-size: 1rem; line-height: 1.5; color: var(--mist); }
+.ch-step.on { animation: ch-rise var(--t3) var(--ease); }
+@keyframes ch-rise { from { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(4px); } }
+.ch-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; line-height: 1.5; }
+.ch-symbols span { position: fixed; z-index: 14; left: 0; top: 0; padding: 5px 12px; border-radius: 99px; font: 500 .82rem var(--body); color: var(--gold-hi); white-space: nowrap; pointer-events: none;
+  background: rgba(13,10,36,.7); border: 1px solid rgba(226,189,106,.45); box-shadow: 0 0 18px rgba(226,189,106,.25); animation: ch-rise 1.2s var(--ease) both; animation-delay: calc(var(--i) * 220ms); }
+html:has(#scroller.ch-open) .ch-symbols { opacity: 0; }
+/* the book: the dream is written on a page, the journal is the earlier pages */
+html[data-ui="chamber"] #dreamText { min-height: 150px; color: #3a2614; font-family: var(--oracle); font-size: 1.08rem; line-height: 1.5;
+  background: linear-gradient(180deg, #f1e3c2, #e3cf9f); border-color: rgba(120,80,30,.45); box-shadow: inset 0 0 24px rgba(110,70,20,.3); }
+html[data-ui="chamber"] #dreamText::placeholder { color: rgba(80,50,20,.55); }
+html[data-ui="chamber"] #dreamOut .reading { animation: ch-rise 1.4s var(--ease) both; }
+html[data-ui="chamber"] #journal > * { border-left: 2px solid rgba(226,189,106,.35); padding-left: 12px; }
+/* the oracle's voice comes from the flame */
+html[data-ui="chamber"] #chat .msg.ai { position: relative; color: #ffe9c4; background: linear-gradient(180deg, rgba(90,50,20,.45), rgba(40,22,10,.55)); border-color: rgba(255,190,110,.35);
+  box-shadow: 0 0 22px rgba(255,170,80,.12); }
+html[data-ui="chamber"] #chat .msg.ai::before { content: ""; position: absolute; left: -6px; top: -8px; width: 10px; height: 16px; border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
+  background: radial-gradient(ellipse at 50% 75%, #fffbe9 0 22%, #ffd27a 45%, rgba(255,120,40,.7) 70%, transparent 72%); }
+/* LITE: the aura mirror blooms with the reading's colours */
+.lt-bay[data-id="aura"].bloom .lt-art { filter: drop-shadow(0 0 18px var(--a1)) drop-shadow(0 0 30px var(--a2)); transition: filter 2s var(--ease); }
+/* the dome's transits as buttons */
+.ch-tr { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 380px; }
+.ch-trb { padding: 5px 11px; border-radius: 99px; font-size: .76rem; color: var(--mist); background: rgba(13,10,36,.66); border: 1px solid rgba(226,189,106,.3); }
+.ch-trb.harmonious { border-color: rgba(127,214,196,.5); } .ch-trb.challenging { border-color: rgba(224,96,122,.55); }
+/* focus: the gold ring of the app on every chamber control */
+.ch-btn:focus-visible, .ch-plaque:focus-visible, .ch-item:focus-visible, .ch-arrow:focus-visible, .ch-trb:focus-visible, .ch-tabs button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }

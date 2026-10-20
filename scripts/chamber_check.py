@@ -72,7 +72,19 @@ def smoke(page, cdp, tier, errors):
             if not closed:
                 fails.append(f"{tier}: {sid} did not close with back")
         if rnd == 0:
-            before = heap(page, cdp)
+            if tier == "full":   # jumping from one stage straight to another must end the first one
+                page.evaluate("window.__chamber.open('tarot')")
+                page.wait_for_timeout(2500)
+                page.evaluate("window.__chamber.compass()")
+                page.wait_for_timeout(400)
+                page.click("#chList .ch-item[data-id='sphere']")
+                page.wait_for_timeout(2600)
+                hud = page.evaluate("[...document.querySelectorAll('#chHud > *')].map((n) => n.className).join(' ')")
+                if "ch-seg" in hud or "ch-q" not in hud or page.evaluate("document.querySelectorAll('.ch-answer').length") != 1:
+                    fails.append(f"{tier}: the tarot stage survived a jump to the sphere ({hud})")
+                page.evaluate("window.__astro.back()")
+                page.wait_for_timeout(1500)
+            before = heap(page, cdp)   # after a warm-up: every object has been drawn once (GPU uploads are lazy)
     after = heap(page, cdp)
     grow = (after["heap"] - before["heap"]) / max(1, before["heap"])
     mem = {"before": before, "after": after, "heap_growth": round(grow, 3)}

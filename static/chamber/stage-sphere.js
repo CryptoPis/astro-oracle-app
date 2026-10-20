@@ -27,7 +27,7 @@ export function createStage({ THREE, engine, station, B, ui }) {
   q.maxLength = 200; q.placeholder = B.t("spherePh"); auto.type = "button";
   const ans = el("div", "ch-answer"), word = el("p", "ch-answer-word"), cloud = el("p", "ch-answer-cloud"), adv = el("p", "ch-answer-adv"), again = el("button", "btn ch-again", tx("again"));
   again.type = "button"; ans.append(word, cloud, adv, again); ans.hidden = true; ans.setAttribute("aria-live", "polite");
-  ui.hud.append(q, hint, auto); document.body.append(ans);
+  hint.setAttribute("aria-live", "polite"); ui.hud.append(q, hint, auto); document.body.append(ans);
 
   let phase = "ask", result = null, pending = null, wipeT = 0, fill = 0, fillT = 0, mist = 1, mistT = 1, tint = new THREE.Color(0x8b6cff), drag = null, autoT = 0;
   const ask = () => { if (pending) return pending; const question = q.value.trim() || null;

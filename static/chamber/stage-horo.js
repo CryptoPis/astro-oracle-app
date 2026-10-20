@@ -92,6 +92,7 @@ export function createStage({ THREE, engine, B, ui, F, X }) {
     if (chart && natal) for (const it of chart.transits) { if (natal[it.natal] == null) continue;
       beams.push(beam(it, at(it.lon, R_TRANSIT), at(natal[it.natal], it.natal === "asc" ? R_IN : R_NATAL))); }
     hint.textContent = !chart ? tx("noDate") : chart.transits.length ? tx("hint") : tx("calm");
+    list.replaceChildren(...(chart ? chart.transits : []).map((it) => { const b = el("button", `ch-trb ${it.nature}`, it.label); b.type = "button"; b.addEventListener("click", () => explain(it)); return b; }));
     btnProfile.hidden = !!chart;
   }
 
@@ -114,7 +115,8 @@ export function createStage({ THREE, engine, B, ui, F, X }) {
   btnRead.type = btnProfile.type = "button"; btnProfile.hidden = true;
   btnRead.addEventListener("click", () => { B.haptic.tap(); B.openHoro(period); });
   btnProfile.addEventListener("click", () => B.go("profile"));
-  row.append(btnRead, btnProfile); ui.hud.append(seg, day, hint); ui.hud.classList.add("ch-hud-dome");
+  const list = el("div", "ch-tr"); hint.setAttribute("aria-live", "polite");   // the beams as buttons too (screen readers, small hands)
+  row.append(btnRead, btnProfile); ui.hud.append(seg, day, hint, list); ui.hud.classList.add("ch-hud-dome");
   const foot = el("div", "ch-hud-foot"); foot.append(row); document.body.append(foot);
 
   /* ── a touched beam: its meaning and why ── */

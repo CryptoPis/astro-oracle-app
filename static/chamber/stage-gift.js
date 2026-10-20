@@ -3,9 +3,9 @@
    its seven pips and the weekly streak freeze are shown above the chest. */
 
 const TX = {
-  ka: { touch: "შეეხე ზარდახშას და გახსენი", empty: "ზარდახშა დღეს უკვე გაიხსნა. ხვალ ახალი საჩუქარი დაგხვდება." },
-  en: { touch: "Touch the chest to open it", empty: "The chest has been opened today. A new gift waits tomorrow." },
-  ru: { touch: "Коснись сундука, чтобы открыть его", empty: "Сундук сегодня уже открыт. Завтра тебя ждёт новый подарок." },
+  ka: { open: "ზარდახშის გახსნა", touch: "შეეხე ზარდახშას და გახსენი", empty: "ზარდახშა დღეს უკვე გაიხსნა. ხვალ ახალი საჩუქარი დაგხვდება." },
+  en: { open: "Open the chest", touch: "Touch the chest to open it", empty: "The chest has been opened today. A new gift waits tomorrow." },
+  ru: { open: "Открыть сундук", touch: "Коснись сундука, чтобы открыть его", empty: "Сундук сегодня уже открыт. Завтра тебя ждёт новый подарок." },
 };
 
 export function createStage({ THREE, engine, station, B, ui, F }) {
@@ -14,13 +14,14 @@ export function createStage({ THREE, engine, station, B, ui, F }) {
   const fx = new Set();
 
   const card = el("div", "ch-gift"), streak = el("b"), pips = el("div", "pips"), frz = el("p", "frz"), hint = el("p", "ch-stage-hint");
-  card.append(streak, pips, frz); ui.hud.append(card, hint);
+  const openBtn = el("button", "btn ch-act", tx("open")); openBtn.type = "button"; openBtn.addEventListener("click", () => open());
+  hint.setAttribute("aria-live", "polite"); card.append(streak, pips, frz); ui.hud.append(card, hint, openBtn);
   function render() {
     const u = B.S.user || {}, n = u.streak || 0, avail = u.daily_reward_available !== false;
     streak.textContent = B.t("streak", { n });
     pips.replaceChildren(...Array.from({ length: 7 }, (_, i) => el("i", i < n % 7 || (n && n % 7 === 0) ? "on" : "")));
     const f = u.streak_freeze; frz.hidden = !f; if (f) frz.textContent = B.t(f.saving && avail ? "frzSaving" : f.ready ? "frzReady" : "frzUsed");
-    hint.textContent = avail ? tx("touch") : tx("empty");
+    hint.textContent = avail ? tx("touch") : tx("empty"); openBtn.hidden = !avail;
     if (!avail && !opening) lidT = .35;
   }
   render();

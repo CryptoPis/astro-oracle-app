@@ -6,13 +6,16 @@
 const TX = {
   ka: { shuffle: "გადაუსვი თითი დასტას და აურიე კარტები", fanOne: "კარტები გაიშალა: ერთი კარტი ზემოთ ამოწიე",
     fanThree: "ამოწიე სამი კარტი: წარსული, აწმყო, მომავალი", speaking: "კარტები ლაპარაკობენ…", flip: "შეეხე კარტს და გადმოაბრუნე",
-    box: "გამოვლენილი კარტების ყუთი", boxHint: "აქ ინახება ყველა კარტი, რომელიც უკვე გაგიშლია.", shuffleBtn: "არევა", readAgain: "ამოკითხვის ნახვა" },
+    box: "გამოვლენილი კარტების ყუთი", boxHint: "აქ ინახება ყველა კარტი, რომელიც უკვე გაგიშლია.", shuffleBtn: "არევა", readAgain: "ამოკითხვის ნახვა",
+    choose: "ამირჩიე შენ", turn: "კარტის გადმობრუნება" },
   en: { shuffle: "Swipe across the deck to shuffle the cards", fanOne: "The cards are fanned: drag one card up",
     fanThree: "Drag three cards up: past, present, future", speaking: "The cards are speaking…", flip: "Touch a card to turn it over",
-    box: "The box of revealed cards", boxHint: "Every card you have drawn is kept here.", shuffleBtn: "Shuffle", readAgain: "Show the reading" },
+    box: "The box of revealed cards", boxHint: "Every card you have drawn is kept here.", shuffleBtn: "Shuffle", readAgain: "Show the reading",
+    choose: "Choose for me", turn: "Turn a card over" },
   ru: { shuffle: "Проведи по колоде, чтобы перетасовать карты", fanOne: "Карты разложены веером: вытяни одну карту вверх",
     fanThree: "Вытяни три карты: прошлое, настоящее, будущее", speaking: "Карты говорят…", flip: "Коснись карты, чтобы перевернуть её",
-    box: "Шкатулка открытых карт", boxHint: "Здесь хранятся все карты, которые ты уже открыл.", shuffleBtn: "Перетасовать", readAgain: "Показать толкование" },
+    box: "Шкатулка открытых карт", boxHint: "Здесь хранятся все карты, которые ты уже открыл.", shuffleBtn: "Перетасовать", readAgain: "Показать толкование",
+    choose: "Выбери за меня", turn: "Перевернуть карту" },
 };
 
 export function createStage({ THREE, engine, station, B, ui, F }) {
@@ -60,13 +63,19 @@ export function createStage({ THREE, engine, station, B, ui, F }) {
   [["daily", "sDaily"], ["three", "sThree"]].forEach(([v, k]) => { const b = el("button", null, B.t(k)); b.type = "button"; b.dataset.v = v;
     b.addEventListener("click", () => { if (busy || spread === v) return; spread = v; B.S.spread = v; B.haptic.tap(); syncHud(); reset(); }); seg.append(b); });
   qIn.maxLength = 300; qIn.placeholder = B.t("questionPh"); act.type = "button";
-  act.addEventListener("click", () => { if (mode === "deck") shuffle(); else if (mode === "read" && reading) showReading(); });
+  act.addEventListener("click", () => {   // every gesture has a button too (keyboard, screen readers, a tired hand)
+    if (mode === "deck") shuffle();
+    else if (mode === "fan" && !busy) { const free = fan.slice(); while (picked.length < need() && free.length) take(free.splice((Math.random() * free.length) | 0, 1)[0]); }
+    else if (mode === "flip") { const c = slots.find((x) => !x.userData.flipped); if (c) flip(c); }
+    else if (mode === "read" && reading) showReading(); });
+  hint.setAttribute("aria-live", "polite");
   ui.hud.append(seg, qIn, hint, act);
   function syncHud() {
     seg.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === spread)));
     qIn.hidden = !(spread === "three" && (mode === "deck" || mode === "fan"));
     hint.textContent = mode === "deck" ? tx("shuffle") : mode === "fan" ? tx(spread === "three" ? "fanThree" : "fanOne") : mode === "wait" ? tx("speaking") : mode === "flip" ? tx("flip") : "";
-    act.hidden = !(mode === "deck" || (mode === "read" && reading)); hint.hidden = !hint.textContent; act.textContent = mode === "deck" ? tx("shuffleBtn") : tx("readAgain");
+    act.hidden = mode === "wait" || (mode === "read" && !reading); hint.hidden = !hint.textContent;
+    act.textContent = mode === "deck" ? tx("shuffleBtn") : mode === "fan" ? tx("choose") : mode === "flip" ? tx("turn") : tx("readAgain");
     seg.hidden = mode === "wait" || mode === "flip";
   }
 
@@ -132,6 +141,7 @@ export function createStage({ THREE, engine, station, B, ui, F }) {
 
   /* ── the server draws the cards; the slotted cards shimmer while it does ── */
   async function draw() {
+    if (mode !== "fan") return;   // several cards may land at once: draw exactly one time
     busy = true; mode = "wait"; syncHud(); slots = picked.slice();
     await Promise.all(fan.map((c, i) => tween(c, { px: deckPos.x, py: TOP + (N + i) * .0016, pz: deckPos.z, rx: 0, ry: 0, rz: 0 }, 420, i * 20)));
     try {

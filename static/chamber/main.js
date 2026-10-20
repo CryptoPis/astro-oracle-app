@@ -168,12 +168,16 @@ export async function start(B) {
     clearTimeout(pauseTimer); pauseTimer = setTimeout(() => { if (state.panel) engine.pause(true); }, 1000);
     syncBack();
   }
-  async function closeAll() {
-    if (state.closing) return; state.closing = true;
+  /* end whatever is open (a stage, the panel) without moving the camera: the next glide starts from here */
+  function leaveCurrent() {
     clearTimeout(pauseTimer);
     if (state.panel) { state.panel = false; scroller.classList.remove("ch-open"); $("#chCatch").hidden = true; root.classList.remove("panel-on"); }
     engine.pause(false);
     if (state.stage) { try { state.stage.end(); } catch (e) { console.warn("stage end", e); } state.stage = null; engine.setStage(null); $("#chHud").hidden = true; root.classList.remove("stage-on"); }
+  }
+  async function closeAll() {
+    if (state.closing) return; state.closing = true;
+    leaveCurrent();
     await engine.unfocus(); state.station = null; state.closing = false;
     refreshNew(); plaque(); syncBack();
   }
@@ -199,8 +203,13 @@ export async function start(B) {
   }
 
   /* ── interactive stages (FULL): the object itself is the interface; the panel comes for the reading ── */
-  const STAGES = { tarot: "stage-tarot", sphere: "stage-sphere", gift: "stage-gift", horo: "stage-horo" };
-  const sound = { play() {} };   // replaced by the sound module when sound is on
+  const STAGES = { tarot: "stage-tarot", sphere: "stage-sphere", gift: "stage-gift", horo: "stage-horo", moon: "stage-moon", coffee: "stage-coffee" };
+  /* sound: off by default; the module loads on the first gesture after it is switched on (Profile) */
+  let soundMod = null;
+  const sound = { play(n) { if (soundMod) soundMod.play(n); } };
+  async function soundOn() { if (!soundMod) soundMod = (await load("sound")).createSound(); await soundMod.enable(); }
+  addEventListener("pointerdown", () => { if (B.store.get("astro.sound") === "on") soundOn(); }, { once: true, capture: true });
+  document.addEventListener("astro:sound", (e) => { if (e.detail) soundOn(); else if (soundMod) soundMod.disable(); });
   async function openStage(id) {
     if (engine.tier !== "full" || !STAGES[id]) return false;
     const [mod] = await Promise.all([load(STAGES[id]), engine.focus(id, "stage")]);
@@ -220,7 +229,9 @@ export async function start(B) {
   /* ── opening a station ── */
   async function open(id) {
     if (state.opening) return; const s = byId(id); if (!s) return;
-    state.opening = true; B.haptic.tap(); state.station = id;
+    state.opening = true; B.haptic.tap(); sound.play("pick");
+    if (state.stage || (state.panel && state.station !== id)) leaveCurrent();   // e.g. another object chosen from the compass
+    state.station = id;
     if (["tarot", "horo", "moon"].includes(id)) B.store.set("astro.chSeen." + id, B.todayKey());
     try {
       if (id === "profile") { B.go("profile"); return; }
@@ -229,6 +240,7 @@ export async function start(B) {
       await new Promise((r) => setTimeout(r, B.reduced ? 0 : 380));   // the panel rises while the camera arrives
       if (id === "gift") { B.renderGift(); $("#chPanel").replaceChildren(giftBox); B.go("chamber"); }
       else B.go(s.view);
+      if (id === "num") { const n = numbers(); if (n) { engine.react("num", n); awake(3500); } }
       await glide;
     } finally { state.opening = false; }
   }
@@ -271,7 +283,19 @@ export async function start(B) {
     else if (e.key === "ArrowUp") engine.lookUp(true); else if (e.key === "ArrowDown") engine.lookUp(false);
     else if (e.key === "Enter" && e.target === document.body) open(engine.up ? "horo" : STATIONS[engine.index()].id);
   });
-  document.addEventListener("astro:busy", (e) => { state.busy = Math.max(0, state.busy + (e.detail.on ? 1 : -1)); engine.setBusy(state.busy > 0); });
+  /* the room keeps rendering for a moment when something reacts behind the panel (the oracle thinking, a reading) */
+  function awake(ms) { engine.pause(false); clearTimeout(pauseTimer); pauseTimer = setTimeout(() => { if (state.panel && !state.busy) engine.pause(true); }, ms); }
+  document.addEventListener("astro:busy", (e) => { state.busy = Math.max(0, state.busy + (e.detail.on ? 1 : -1)); engine.setBusy(state.busy > 0, e.detail.path);
+    if (state.panel) awake(state.busy ? 60000 : 1500); });
+  document.addEventListener("astro:vision", (e) => { if (e.detail.kind === "aura") { engine.react("aura", e.detail.reading.colors); if (state.panel) awake(5000); } });
+  document.addEventListener("astro:compat", () => { engine.react("compat"); if (state.panel) awake(9000); });
+  { const d = $("#dreamText"); if (d) d.addEventListener("input", () => { engine.react("quill"); if (state.panel) awake(1200); }); }
+  function numbers() {   // life path, personal year (birth day + month + this year, reduced) and the first number of the day
+    const u = B.S.user || {}; if (!u.birth_date) return null;
+    const [, m, d] = u.birth_date.split("-").map(Number); let py = [...`${d}${m}${new Date().getFullYear()}`].reduce((a, c) => a + +c, 0);
+    while (py > 9) py = [...String(py)].reduce((a, c) => a + +c, 0);
+    return { lp: u.life_path, py, lucky: B.S.energy && B.S.energy.lucky_numbers ? B.S.energy.lucky_numbers[0] : null };
+  }
   document.addEventListener("astro:energy", refreshNew);
   const skyNow = () => { if (B.S.sky) engine.setSky(B.S.sky); }; skyNow(); document.addEventListener("astro:sky", skyNow);
   // the language can change in the Profile panel: re-label the chamber
