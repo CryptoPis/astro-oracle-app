@@ -20,9 +20,20 @@ from app.services.economy import _insert
 
 _locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
+# Version of the shared AI texts. Bump it when prompts or the knowledge base change what a text should say: every
+# key gets the new prefix, so new requests generate fresh texts; `/purge_cache old apply` deletes the old rows.
+# v2 = texts written from the source-based knowledge base (app/astro_kb). Rows that are not AI texts keep their keys.
+CACHE_VERSION = "v2"
+UNVERSIONED = {"geo", "ai_stats"}   # geocoding results and the daily AI call counters
+
+
+def vkey(kind: str, key: str) -> str:
+    return key if kind in UNVERSIONED else f"{CACHE_VERSION}:{key}"
+
 
 async def cached_ai(session: AsyncSession, kind: str, key: str, generate) -> tuple[dict, bool]:
     """Returns (payload, from_cache). Concurrent requests for one key share a single AI call."""
+    key = vkey(kind, key)
     q = select(AICache.payload).where(AICache.kind == kind, AICache.cache_key == key)
     if (hit := await session.scalar(q)) is not None:
         return hit, True
@@ -151,4 +162,4 @@ async def get_personal_energy(session: AsyncSession, plan: dict) -> dict:
 
 
 async def is_cached(session: AsyncSession, kind: str, key: str) -> bool:
-    return await session.scalar(select(AICache.id).where(AICache.kind == kind, AICache.cache_key == key)) is not None
+    return await session.scalar(select(AICache.id).where(AICache.kind == kind, AICache.cache_key == vkey(kind, key))) is not None

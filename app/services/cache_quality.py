@@ -51,6 +51,38 @@ async def scan_bad_cache(session: AsyncSession, apply: bool = False) -> CacheSca
     return out
 
 
+async def scan_old_versions(session: AsyncSession, apply: bool = False) -> CacheScan:
+    """Shared AI texts written before the current CACHE_VERSION (they can no longer be read: their keys lack
+    the version prefix). Only ai_cache rows; geocoding and the AI call counters are kept."""
+    from sqlalchemy import func
+
+    from app.services.content import CACHE_VERSION, UNVERSIONED
+    old = AICache.kind.not_in(UNVERSIONED) & ~AICache.cache_key.startswith(f"{CACHE_VERSION}:")
+    out = CacheScan(scanned=await session.scalar(select(func.count()).select_from(AICache)) or 0)
+    for kind, n in (await session.execute(select(AICache.kind, func.count()).where(old).group_by(AICache.kind))).all():
+        out.by_kind[kind] = n
+    out.bad_ids = [i for (i,) in (await session.execute(select(AICache.id).where(old))).all()]
+    if apply and out.bad_ids:
+        res = await session.execute(delete(AICache).where(old))
+        await session.commit()
+        out.deleted = res.rowcount or 0
+    return out
+
+
+def format_old(scan: CacheScan, applied: bool) -> str:
+    from app.services.content import CACHE_VERSION
+    lines = [f"ai_cache: {scan.scanned} rows, {len(scan.bad_ids)} written before {CACHE_VERSION} (no longer used)"]
+    lines += [f"• {k}: {n}" for k, n in sorted(scan.by_kind.items())]
+    if applied:
+        lines.append(f"Deleted {scan.deleted} rows. New texts come from the knowledge base.")
+    elif scan.bad_ids:
+        lines.append("Dry run: nothing deleted. Send /purge_cache old apply to delete them.")
+    else:
+        lines.append("Nothing to delete.")
+    lines.append("User readings and history are never changed.")
+    return "\n".join(lines)
+
+
 def format_scan(scan: CacheScan, applied: bool) -> str:
     lines = [f"ai_cache: {scan.scanned} rows scanned, {len(scan.bad_ids)} fail the quality guard"]
     lines += [f"• {k}: {n}" for k, n in sorted(scan.by_kind.items())]
