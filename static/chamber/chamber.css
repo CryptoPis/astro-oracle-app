@@ -11,6 +11,9 @@ html[data-ui="chamber"] body { background: #0d0a24; }
 .ch { position: fixed; inset: 0; user-select: none; -webkit-user-select: none; }
 .ch-stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; }
 .ch-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+/* FULL: a strong vignette over the room (a static layer: costs no repaint) */
+html[data-ctier="full"] .ch-stage::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 85% 70% at 50% 46%, rgba(11,7,16,0) 42%, rgba(11,7,16,.5) 74%, rgba(11,7,16,.88) 100%); }
 
 /* ── top bar: compass, coins, profile ── */
 .ch-top { position: fixed; z-index: 25; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; pointer-events: none;

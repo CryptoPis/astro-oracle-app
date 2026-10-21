@@ -152,3 +152,252 @@ Notes
   slowly (average > 45 ms) switches itself to LITE and remembers it.
 - GPU uploads are lazy (an object is uploaded the first time it is drawn), so the memory check warms up every
   station and stage first, then compares.
+
+# Chamber graphics, stage A (2026-10-21, branch `chamber-graphics`)
+
+The FULL room now has a real PBR shell (stone walls and pillars, an oak floor and wainscot, a rug and a velvet cloth:
+albedo + normal map, roughness derived from the albedo in the shader), shadows rendered once, a window plate with
+parallax and the real moon (NASA CGI Moon Kit, lit for the day's phase), a dome plate under a live shimmer (the
+planets and the ecliptic ring stay real meshes), a raised black point (#0b0710) and a haze (#352f35). Lights use the
+palette measured from the references (`scripts/chamber_assets.py`): candle amber #f2a958, moonlight #afb8d1. The
+references' own black point measures #000000 and their haze #14080b, crushed blacks that the raised values lift.
+
+Two graphics levels inside FULL (`static/chamber/full.js`, `GFX`):
+
+| | High | Medium |
+|---|---|---|
+| pixel ratio cap | 1.75 | 1.4 |
+| shadow casters (rendered once) | 2: moon (1024²) + central candle (512² cube) | 1: moon |
+| glow | half-res bloom (2× MSAA scene target, bright pass, 2 blur passes) + glow sprites | glow sprites only |
+| textures | 1024 px set, 2,431,590 bytes | 512 px set, 715,130 bytes |
+
+Choice: frames 10-50 are drawn at High. If their average frame time is over 45 ms the room switches to LITE (as
+before); over 20 ms it goes to Medium; otherwise it stays High. The WebP set for the chosen level is fetched only
+then, after the first paint, and swapped in one texture per frame; procedural textures stand in until it arrives.
+`?gfx=high|medium` forces a level and loads the textures from frame 2.
+
+## Measured
+
+`python -m scripts.chamber_check --perf` on the demo build: 390×844, device pixel ratio 2, **CPU throttled 4×**, real
+GPU (GeForce GT 630 through ANGLE/D3D11, the same machine as the "Oracle chamber" numbers above). "Before" =
+`main` at 1836db5, measured again in the same session.
+
+| | before: FULL | after: FULL High | after: FULL Medium | LITE (unchanged) |
+|---|---|---|---|---|
+| Interactive (page start → room usable) | 3.16 s | 3.54 s | 3.81 s | 2.18 s |
+| of which: the chamber's own boot | 1.11 s | 1.19 s | 1.47 s | 0.18 s |
+| Photographic textures applied, after interactive | none | 0.51 s (1.10 s cold) | 0.01 s (0.26 s cold) | none |
+| FPS, room idle | 60.3 (worst frame 17 ms) | 59.5 (worst 34 ms) | 60.3 (worst 17 ms) | 60.3 (worst 17 ms) |
+| FPS, turning between objects | 60.2 (worst 17 ms) | 56.8 (worst 117 ms) | 60.0 (worst 33 ms) | 60.2 (worst 17 ms) |
+| JS heap before → after 10 more station visits | 12.58 → 12.64 MB (+0.5 %) | 13.11 → 13.16 MB (+0.4 %) | (same engine as High) | 6.93 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 109 / 30 → 109 / 30 | 110 / 39 → 110 / 39 | | none |
+| Draw calls per frame (idle view) | | 1 to the screen (scene into the bloom target) | 34 | |
+| Auto level on this machine | | High (frames 10-50 averaged 16.7 ms) | | |
+
+What the High budget costs, one suspect off at a time (High, textures loaded, same probe):
+
+| experiment | idle FPS | turning FPS |
+|---|---|---|
+| High as first built (4× MSAA scene target) | 48.5 | 47.4 |
+| no bloom at all (direct render, both shadows kept) | 60.3 | 59.2 |
+| no candle shadow | 51.8 | 49.6 |
+| no normal maps | 51.0 | 50.4 |
+| pixel ratio 1.4 | 60.3 | 59.2 |
+| **bloom target 2× MSAA (shipped)** | **60.3** | **56.8** |
+| bloom target without MSAA | 60.3 | 59.2 |
+
+The 4× multisampled full-resolution target was the whole cost. 2× keeps smooth edges at a pixel ratio of 1.75 and
+holds 60 FPS idle. The worst frame while turning (117 ms in High, one frame) is the first time an object's 1024 px
+maps are drawn (GPU uploads are lazy). It also appears with the bloom off.
+
+Notes
+- High grows the download by up to 2.43 MB on capable phones, Medium by 0.72 MB, LITE by nothing. It is fetched after
+  the room is already interactive, so it never delays the first paint.
+- Shadows: `shadowMap.autoUpdate = false`. They are drawn once at boot and again only when the level changes. A
+  level change holds the last frame while the new light set's shaders compile (`compileAsync`).
+- Colour: one patched three.js chunk (`colorspace_fragment`) makes every built-in material write display-ready sRGB
+  with the raised black point. The bloom target therefore holds exactly what the screen shows, so High and Medium
+  match, and the hand-written shaders (flames, the sphere, the stages) needed no change.
+- Screenshots (phone 390×844 @3x): `dist/screens/chamber-graphics/` (`before-*`, `after-high-*`, `after-medium-*`:
+  room, window, astrolabe, dome), made with `python -m scripts.chamber_shots`.
+
+# Chamber graphics, stage A2 (2026-10-21, branch `chamber-graphics`)
+
+Lighting and the visible problems of stage A, with the same probe and machine (CPU 4×, GeForce GT 630 via ANGLE/D3D11,
+390×844 @2).
+
+What changed:
+- **Light:** the ambient is down to 0.16 (haze #352f35). The central candle is a downward spotlight (decay 2, gone by 9 m,
+  wide soft cone). The moon is a spotlight through the window (decay 2, 13 m), so its light stays near the window. Ten
+  instanced sconces on the pillars burn real flames, and their pools are computed in the shell's own shader
+  (inverse-square, gone by 3.6 m, one loop over ten points). So there are 3 three.js lights, of which 2 cast shadows. A
+  strong vignette sits on a static CSS layer.
+- **Shadows:** PCF with radius 6 (centre) / 4 (moon). One patched chunk keeps 38 % of a shadowed light, tinted warm,
+  so shadows are never a black blob. They are still drawn once, and again only when a stage starts or ends (objects move).
+- **Shell:**
+  - ten flat stone faces; the moon face has a real opening
+  - beveled gold moldings turned from real profiles (dado bead and cove, a crown under the dome, a skirting),
+    MeshStandard metal 0.8 / rough 0.35 with a small room environment for reflections, not emissive
+  - gold capitals on the pillars
+  - 20 instanced velvet drapes with folds, each with its own texture offset and rotation
+  - low-frequency variation on stone, oak and cloth (patches, soot above each flame, dark corners, grime at the
+    foot, a worn walk round the objects)
+- **Window:** 1.5× larger, set 0.42 m deep in a stone reveal. It has a carved dark-oak frame with two lancet lights, a
+  transom and an oculus (one extruded shape), gold bosses, plates and an oculus ring. The glass has a faint warm
+  reflection and a streak, and sits on a thick stone sill with three wax candles (drips, animated flames). The moon ritual
+  now makes the burning candles flare instead of lighting them.
+- **Dome:** the plate covers a cap of about 50° round the zenith (a view up holds most of it). It is blurred and
+  desaturated toward #121423 under three layers of procedural stars (anti-aliased to the pixel, varied size and colour,
+  a slow twinkle). The real planets and the ecliptic ring are unchanged.
+
+How High got back to 60 (each step measured as an interleaved A/B on fresh builds, High forced):
+
+| step | idle FPS | turning FPS |
+|---|---|---|
+| A2 as first built (point-light centre candle, drapes receive shadows, 2× MSAA bloom target) | 53.0–57.0 | 51.4–56.4 |
+| drapes do not receive shadows | 56.5 | 54.2 |
+| central candle: spotlight (one 2D shadow map) instead of a point light (6-face cube) | 60.0 | 58.8 |
+| walls, wainscot, pillars and the reveal skip shadow lookups (both shadow lights look down) | 57.0 / 60.2 vs 54.8 / 55.0 | |
+| bloom target without MSAA (2× cost 1.7 fps) | 60.2 / 60.2 vs 58.4 / 58.6 | 60.2 / 60.2 vs 57.7 / 56.7 |
+
+Removing the drapes' bump map made no difference (fill, not shading), so the bump stays. Some numbers on this machine
+drift by 2-3 FPS between runs (GPU heat), so every comparison above is interleaved in one session.
+
+The first-turn hitch (117 ms in stage A):
+- **Cause 1: shader compilation.** 33 programs took 2.4 s even without the throttle. compileAsync gave up at its 2.5 s cap,
+  and the rest compiled the first time they came into view. The roughness ranges became uniforms (materials with the
+  same variation share one program), the reveal and the moldings got their winding right (no double-sided variants),
+  and the sill candles' wax shares the sconce candles' instanced program.
+- **Cause 2: first draws.** ANGLE/D3D and many phone GPUs finish some shader variants and uploads only at an object's
+  first real draw, which no compile call reaches. Once the textures are in (each texture goes to the GPU the frame it is
+  swapped in, `initTexture`), the room is drawn once towards each object and up at the dome into a hidden 192 px target,
+  one view per frame, while nobody is turning yet.
+
+## Measured (`python -m scripts.chamber_check --perf`, final build)
+
+| | stage A: High | **A2: High** | **A2: Medium** | LITE |
+|---|---|---|---|---|
+| FPS idle | 59.5 (worst 34 ms) | **60.3 (worst 17 ms)** | **60.3 (worst 17 ms)** | 60.3 (worst 17 ms) |
+| FPS turning | 56.8 (worst 117 ms) | **60.2 (worst 18 ms)** | **60.2 (worst 17 ms)** | 60.2 (worst 17 ms) |
+| Worst frame per turn, first lap round the room (10 turns) | 100 ms | 33 ms (one turn), else 17 | 33 ms (one turn), else 17 | |
+| Interactive (page start → room usable) | 3.54 s | 3.30 s | 4.57 s * | 2.10 s |
+| of which: the chamber's own boot | 1.19 s | 1.23 s | 2.31 s * | 0.20 s |
+| JS heap before → after 10 more station visits | 13.11 → 13.16 MB | 13.64 → 13.71 MB (+0.5 %) | | 6.94 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 110 / 39 → 110 / 39 | 124 / 37 → 124 / 37 | | none |
+| Download (photographic set) | 2,431,590 B | **1,262,550 B** | **596,972 B** | none |
+
+\* Medium ran after High in the same browser. Its programs differ (one shadow light), so it compiled from a cold shader
+cache. On a phone every first visit is cold: expect about 2.3 s of chamber boot on this GPU, about 1.2 s once the browser
+has cached the shaders.
+
+Screenshots (phone 390×844 @3x) are in `dist/screens/chamber-graphics/`:
+- `a2-high-*`, `a2-medium-*`: room, tarot, window, dome, sconces
+- `a2-compare-room|window|dome.png`: the reference beside the High screenshot
+
+# Chamber graphics, stage A3 (2026-10-21, branch `chamber-graphics`)
+
+A second lighting and detail pass. Same rig: CPU 4×, GeForce GT 630 via ANGLE/D3D11, 390×844 @2 (screenshots @3).
+
+What changed:
+- **Brightness:** exposure ×1.3 in the colour finish (+0.38 stop), and a warm fill in the candles' own colour (0.55,
+  flickering with them) in place of the grey-violet haze ambient. The dark corners, soot and vignette stay.
+- **Candelabras:** two per pillar, 5 candles at head height and 3 lower (80 candles). Instanced: the gold (2 draws), the
+  wax (1), the flames (1: camera-facing in the vertex shader, noise flicker) and the cluster glows (1). The light is
+  still fake: one pool point per pillar in the shell shader, plus 31 soft additive decals (pools on the walls and pillars,
+  a cool glow round the window) and a window-shaped moonlight patch on the floor, all in 2 draws. The real three.js
+  lights are unchanged: 3, of which 2 cast shadows.
+- **Floor:**
+  - glossier (roughness 0.30-0.60)
+  - a reflection streak of every candelabra, the sill candles and the window, computed in the floor shader on both
+    levels: narrow across the view, long along it, on the boards' smooth plane, so they streak instead of glittering
+  - High also mirrors the room environment
+  - the rug is larger (radius 2.3 → 2.6 m) and 35 % brighter, so its gold pattern reads on a phone
+- **Window:**
+  - the moon is twice the size, brighter, with a soft halo
+  - the oculus is a quatrefoil (the union of four circles), with a gold ring round it
+  - fleur-cross fittings sit where the bars meet
+  - the frame has a carved lozenge relief (procedural normal map)
+  - a beveled stone arch molding runs round the opening, and the sill rests on two stepped corbels
+  - the sill candles light the reveal (an eleventh pool point)
+- **Dome:**
+  - gold ribs over each pillar meet at a boss; there are three rings and 20 medallions where ribs and rings cross. The
+    dome's gold has a faint warm self-light, since no candle reaches it.
+  - the stars are denser (4 layers) with blue and amber ones
+  - the Milky Way is purple with a warm pink-amber core
+- **Drapes:** a gold lozenge-chain border down both edges (it reads as metal), a darker centre and a candle rim on the
+  folds.
+- **Walls:** stronger soot over both candle clusters.
+
+## Measured (`python -m scripts.chamber_check --perf`, and 2 laps round the room)
+
+| | A2: High | **A3: High** | **A3: Medium** | LITE |
+|---|---|---|---|---|
+| FPS idle | 60.3 (worst 17 ms) | **60.3 (worst 17 ms)** | **60.0-60.3 (worst 17-33 ms)** | 60.3 |
+| FPS turning | 60.2 | **60.2 (worst 17 ms)** | **60.2 (worst 17 ms)** | 60.2 |
+| Worst frame per turn, first lap (10 turns) | 33 ms | **17 ms on every turn** | **17 ms on every turn** | |
+| Chamber boot, cold shader cache / cached | 2.3 s / 1.2 s | 3.9 s / 1.4 s | 4.5 s / 2.3 s | 0.17 s |
+| JS heap before → after 10 more station visits | 13.64 → 13.71 MB | 14.47 → 14.63 MB (+1.1 %) | | 6.93 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 124 / 37 → 124 / 37 | 124 / 38 → 124 / 38 | | none |
+| Download | 1,262,550 B | **1,262,550 B** | **596,972 B** | none |
+
+The cold boot grew: there are more programs to compile (the flames, glows, decals and floor patch), and compileAsync
+still finishes inside the first seconds, so the first lap stays clean.
+
+## Brightness (`python -m scripts.chamber_luma`)
+
+Mean Rec. 709 luma of the sRGB pixels, from 12 % to 80 % of the height (the app's header and name plaque excluded).
+Reference: the empty-chamber image (`03_59_46 PM.png`) = **34.2**.
+
+| view | A2 High | A3 High | A3 Medium |
+|---|---|---|---|
+| main room | 16.8 (49 %) | **29.4 (85.8 %)** | **29.8 (87.2 %)** |
+| wall with candelabras | 21.3 (62 %) | 35.1 (102.5 %) | 34.4 (100.6 %) |
+| tarot table | 18.8 (55 %) | 32.1 (93.8 %) | 30.4 (88.9 %) |
+| toward the window | | 43.3 (126.3 %) | 42.5 (124.0 %) |
+| dome | | 41.3 (120.5 %) | 39.6 (115.6 %) |
+
+Screenshots: `dist/screens/chamber-graphics/a3-high-*`, `a3-medium-*` (room, window, tarot, dome, candelabras,
+windowclose) and `a3-compare-room|window|dome.png`.
+
+# Chamber graphics, stage A3.1 (2026-10-21, branch `chamber-graphics`)
+
+Small fixes:
+- **Dome:**
+  - ribs and rings at about 45 % of their former thickness (tube radius 0.055 → 0.024 m; rings 0.05/0.07 → 0.022/0.032 m)
+  - real gold: MeshStandard, metalness 0.9, roughness 0.3, the environment map at 6.5 with a pale base, so the warm
+    room it reflects brings it to the palette gold instead of orange
+  - 30 small bosses where every rib crosses every ring
+- **Crown:** a thinner cove-and-bead profile (0.15 m high, 0.068 m deep; it was 0.25 × 0.11), in a darker, older gold,
+  with a soft shadow band on the stone under it.
+- **Window frame:** dark aged oak (the oak texture tinted darker and neutral, not red) with the carved relief, and a thin
+  gold strip along the edge of every opening (straight segments, so the strips follow the corners).
+- **Floor streaks:** longer towards the room's middle (falloff 0.06 → 0.022), about twice as wide and softer (peak
+  strength halved), one per candelabra.
+
+## Measured
+
+`python -m scripts.chamber_check --perf` (4× CPU, GT 630), first run of the session:
+
+| | A3.1 High | A3.1 Medium | LITE |
+|---|---|---|---|
+| FPS idle | 60.3 (worst 17 ms) | 60.5 (worst 17 ms) | 60.3 |
+| FPS turning | 60.0 (worst 33 ms) | 60.2 (worst 17 ms) | 60.0 |
+| Chamber boot (cached shaders) | 1.14 s | 2.54 s | 0.18 s |
+| JS heap before → after 10 more station visits | 15.23 → 15.57 MB (+2.2 %) | | 6.93 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 127 / 38 → 127 / 38 | | none |
+| Download | 1,262,550 B | 596,972 B | none |
+
+**Measurement conditions.** Later in the session another application on the test machine took about one CPU core (and
+possibly the GPU). With the CPU throttled 4× on 4 cores, the absolute numbers then wander by 5 FPS or more from run
+to run, for every build. So A3.1 was compared with A3 (`307941f`) in four interleaved rounds under the same load:
+
+| | idle FPS, 4 rounds (average) | turning FPS, 4 rounds (average) |
+|---|---|---|
+| A3 | 58.2 / 60.2 / 58.0 / 59.2 (58.9) | 58.7 / 59.7 / 55.3 / 53.8 (56.9) |
+| A3.1 | 60.0 / 59.0 / 58.2 / 59.6 (59.2) | 60.0 / 57.7 / 60.2 / 59.2 (59.3) |
+
+A3.1 costs nothing measurable against A3. Single frames of 50-117 ms appeared in both builds under that load and only
+then. The first-lap check (no frame above 40 ms) passed for A3 on a quiet machine. For A3.1 it should be repeated on a
+quiet machine or a real phone.
+
+Screenshots: `dist/screens/chamber-graphics/a31-high-*`, `a31-medium-*` (room, tarot, window, dome).

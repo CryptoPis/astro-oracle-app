@@ -2,10 +2,12 @@
 
     python -m scripts.build_frontend
     python -m scripts.chamber_check            # FULL and LITE, 390x844, Georgian
-    python -m scripts.chamber_check --perf     # also FPS / first-interactive / memory on a 4x throttled CPU
+    python -m scripts.chamber_check --perf     # also FPS / first-interactive / memory on a 4x throttled CPU,
+                                               # FULL at both graphics levels (High, Medium) and LITE
 
 Checks per tier: every station opens from the compass and closes with the back action (the same handler as
-Telegram's BackButton), no console errors, no WebGL context loss, no memory growth after 10 station visits.
+Telegram's BackButton), no console errors, no WebGL context loss, no memory growth after 10 station visits; FULL:
+the photographic textures load without a failure (the memory baseline is taken after they are on the GPU).
 Exit code 1 if anything fails.
 """
 import json
@@ -19,7 +21,7 @@ VP = {"width": 390, "height": 844}
 ARGS = ["--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=d3d11", "--enable-unsafe-swiftshader"]
 
 
-def open_page(browser, base, tier, throttle=None):
+def open_page(browser, base, tier, throttle=None, gfx=None):
     ctx = browser.new_context(viewport=VP, is_mobile=True, has_touch=True, device_scale_factor=2)
     ctx.add_init_script("try { localStorage.setItem('astro.lang', 'ka'); localStorage.setItem('astro.chIntro', '1') } catch (e) {}")
     page = ctx.new_page()
@@ -31,7 +33,7 @@ def open_page(browser, base, tier, throttle=None):
         cdp.send("Emulation.setCPUThrottlingRate", {"rate": throttle})
     page.add_init_script("""window.__lost = 0; document.addEventListener('webglcontextlost', () => window.__lost++, true);
       window.__t0 = performance.now();""")
-    page.goto(f"{base}&tier={tier}")
+    page.goto(f"{base}&tier={tier}" + (f"&gfx={gfx}" if gfx else ""))
     page.wait_for_function("window.__chamber && document.getElementById('splash').hidden", timeout=30000)
     first = page.evaluate("""() => { const s = performance.getEntriesByName('chamber-start')[0], r = performance.getEntriesByName('chamber-ready')[0],
       nav = performance.getEntriesByType('navigation')[0];
@@ -132,6 +134,13 @@ def main():
             got = page.evaluate("window.__chamber.tier()")
             if got != tier:
                 all_fails.append(f"asked for {tier}, got {got}")
+            if tier == "full":   # the level chosen from frames 10-50, and the lazy texture set
+                tex = page.evaluate("Promise.race([window.__chamber.engine.texReady, new Promise((r) => setTimeout(() => r(null), 30000))])")
+                lvl = page.evaluate("({ gfx: window.__chamber.engine.gfx, ms: window.__chamber.engine.gfxMeasuredMs })")
+                print(f"full: auto level {lvl['gfx']} (frames 10-50 averaged {lvl['ms']} ms) · textures {tex}")
+                if not tex or tex["failed"]:
+                    all_fails.append(f"full: textures did not load: {tex}")
+                report["full_auto"] = {**lvl, "textures": tex}
             fails, mem = smoke(page, cdp, tier, errors)
             if tier == "full":
                 ok, b0, b1 = deep_tarot(page, cdp)
@@ -145,14 +154,18 @@ def main():
             print(f"{tier}: {'ok' if not fails else fails} · heap {mem['before']['heap'] // 1024} -> {mem['after']['heap'] // 1024} KB"
                   f" · GPU geometries/textures {mem['after']['geometries']}/{mem['after']['textures']}")
             ctx.close()
-            if perf:
-                ctx, page, cdp, errors, first = open_page(browser, base, tier, throttle=4)
+            for gfx in (("high", "medium") if tier == "full" else (None,)) if perf else ():
+                name = f"{tier}-{gfx}" if gfx else tier
+                ctx, page, cdp, errors, first = open_page(browser, base, tier, throttle=4, gfx=gfx)
+                if gfx:   # measure the finished room: the textures are on the GPU
+                    page.evaluate("Promise.race([window.__chamber.engine.texReady, new Promise((r) => setTimeout(r, 30000))])")
                 page.wait_for_timeout(1500)
                 idle = fps(page, 4, turning=False)
                 moving = fps(page, 6, turning=True)
-                report[tier]["perf_4x_cpu"] = {"first_interactive_ms": first, "idle": idle, "turning": moving}
-                print(f"{tier} @4x CPU: interactive at {first['total']} ms (page parsed {first['dom']} ms, chamber boot {first['chamber']} ms)"
-                      f" · idle {idle} · turning {moving}")
+                gpu = page.evaluate("(() => { const r = window.__chamber.engine.renderer; return r ? { dpr: r.getPixelRatio(), calls: r.info.render.calls, triangles: r.info.render.triangles, textures: r.info.memory.textures } : null; })()")
+                report[name] = {**report.get(name, {}), "perf_4x_cpu": {"first_interactive_ms": first, "idle": idle, "turning": moving, "gpu": gpu}}
+                print(f"{name} @4x CPU: interactive at {first['total']} ms (page parsed {first['dom']} ms, chamber boot {first['chamber']} ms)"
+                      f" · idle {idle} · turning {moving} · {gpu}")
                 ctx.close()
         browser.close()
     httpd.shutdown()

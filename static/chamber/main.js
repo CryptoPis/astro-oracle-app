@@ -108,8 +108,8 @@ export async function start(B) {
   };
   async function makeEngine(tier) {
     if (tier === "full") {
-      const [THREE, tex, fx, room, full] = await Promise.all([import(THREE_URL), load("tex"), load("fx"), load("room"), load("full")]);
-      return full.createFull(THREE, B, ctx, { tex, fx, room });
+      const [THREE, tex, fx, room, full, post, shell] = await Promise.all([import(THREE_URL), load("tex"), load("fx"), load("room"), load("full"), load("post"), load("shell")]);
+      return full.createFull(THREE, B, ctx, { tex, fx, room, post, shell });
     }
     const lite = await load("lite"); return lite.createLite(B, ctx);
   }

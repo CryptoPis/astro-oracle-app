@@ -1,6 +1,9 @@
-/* Oracle chamber (FULL tier): procedural textures, drawn once on canvases. No image files and never any text:
-   stone, dark wood, the rug, velvet, parchment, a star chart, gold matcaps, glows, smoke, the dome's sky and gold
-   engravings made from the app's own line art (practiceArt). */
+/* Oracle chamber (FULL tier): textures. Procedural ones are drawn once on canvases at boot (never any text): stone,
+   dark wood, the rug, velvet, parchment, a star chart, gold matcaps, glows, smoke and gold engravings made from the
+   app's own line art (practiceArt). The room's photographic set (img/*.webp, built by scripts/chamber_assets.py) is
+   loaded after the first frames with load(); the shell shows the procedural stand-ins until then. */
+
+const V = new URL(import.meta.url).searchParams.get("v") || "dev";
 
 export function makeTextures(THREE, B) {
   const made = [];
@@ -55,17 +58,17 @@ export function makeTextures(THREE, B) {
   }
   /* the round rug: deep burgundy and indigo, gold rings, an eight-pointed star; transparent outside the circle */
   function rug() {
-    const S = 1024, [c, x] = canvas(S), cx = S / 2, R = S / 2 - 4;
+    const S = 512, [c, x] = canvas(S), cx = S / 2, R = S / 2 - 4;
     const g = x.createRadialGradient(cx, cx, 0, cx, cx, R); g.addColorStop(0, "#3a1630"); g.addColorStop(.55, "#2a1238"); g.addColorStop(1, "#1a0f33");
     x.fillStyle = g; x.beginPath(); x.arc(cx, cx, R, 0, 7); x.fill();
     x.strokeStyle = "rgba(226,189,106,.75)"; x.lineWidth = 3;
     for (const rr of [R - 10, R - 24, R * .62, R * .6, R * .3]) { x.beginPath(); x.arc(cx, cx, rr, 0, 7); x.stroke(); }
-    x.lineWidth = 2; x.strokeStyle = "rgba(226,189,106,.55)";
+    x.lineWidth = 1.5; x.strokeStyle = "rgba(226,189,106,.55)";
     for (let i = 0; i < 48; i++) { const a = i * Math.PI / 24, r1 = R - 24, r2 = R * .62; x.beginPath(); x.moveTo(cx + Math.cos(a) * r1, cx + Math.sin(a) * r1);
       x.lineTo(cx + Math.cos(a + Math.PI / 48) * (r1 + r2) / 2, cx + Math.sin(a + Math.PI / 48) * (r1 + r2) / 2); x.lineTo(cx + Math.cos(a) * r2, cx + Math.sin(a) * r2); x.stroke(); }
     x.beginPath(); for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8 - Math.PI / 2, rr = i % 2 ? R * .12 : R * .29; x.lineTo(cx + Math.cos(a) * rr, cx + Math.sin(a) * rr); }
     x.closePath(); x.fillStyle = "rgba(226,189,106,.16)"; x.fill(); x.lineWidth = 2.5; x.strokeStyle = "rgba(226,189,106,.8)"; x.stroke();
-    const r = rng(2); x.fillStyle = "rgba(0,0,0,.18)"; for (let i = 0; i < 3000; i++) x.fillRect(r() * S, r() * S, 1.5, 1.5);   // pile
+    const r = rng(2); x.fillStyle = "rgba(0,0,0,.18)"; for (let i = 0; i < 1500; i++) x.fillRect(r() * S, r() * S, 1, 1);   // pile
     return c;
   }
   function velvet() {
@@ -116,24 +119,6 @@ export function makeTextures(THREE, B) {
       const a = Math.max(0, n(i / 20, j / 20, 3) - .35) * f * f * 330; return [205, 195, 230, Math.min(255, a)]; });
     return c;
   }
-  /* the dome: a hemisphere texture (top row = zenith). Stars, a faint milky band, engraved gold circles and meridians */
-  function domeSky() {
-    const W = 2048, H = 512, [c, x] = canvas(W, H), r = rng(77);
-    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0b0820"); g.addColorStop(.7, "#120d33"); g.addColorStop(1, "#1c1442");
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    x.globalCompositeOperation = "lighter";
-    for (let i = 0; i < 40; i++) { const px = r() * W, py = H * (.25 + .5 * Math.sin(px / W * Math.PI * 2) * .3 + .3 + (r() - .5) * .25), rad = 40 + r() * 120;
-      const gg = x.createRadialGradient(px, py, 0, px, py, rad); gg.addColorStop(0, `rgba(${i % 3 ? "120,100,220" : "226,189,106"},.05)`); gg.addColorStop(1, "rgba(0,0,0,0)");
-      x.fillStyle = gg; x.fillRect(px - rad, py - rad, rad * 2, rad * 2); }
-    for (let i = 0; i < 700; i++) { const py = Math.acos(1 - r()) / (Math.PI / 2) * H, px = r() * W, big = r() < .04;   // denser near the horizon, as on a sphere
-      x.globalAlpha = .35 + r() * .6; x.fillStyle = r() < .15 ? "#f6dc9c" : "#e8e3ff"; x.beginPath(); x.arc(px, Math.min(H - 1, py), big ? 1.6 : .5 + r() * .7, 0, 7); x.fill(); }
-    x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
-    x.strokeStyle = "rgba(226,189,106,.38)"; x.lineWidth = 2;
-    for (const yy of [H * .34, H * .66, H - 6]) { x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke(); }
-    x.lineWidth = 1.2; x.strokeStyle = "rgba(226,189,106,.2)";
-    for (let i = 0; i < 12; i++) { const px = i * W / 12; x.beginPath(); x.moveTo(px, H * .12); x.lineTo(px, H); x.stroke(); }
-    return c;
-  }
   /* a gold engraving from the app's line art (SVG -> image -> canvas). Resolves to a texture. */
   function engraving(art, size = 256) {
     const svg = B.practiceArt(art, { draw: false, glow: "#e2bd6a" }).replace(/<svg class="[^"]*"/, `<svg width="${size}" height="${size}"`);
@@ -143,18 +128,6 @@ export function makeTextures(THREE, B) {
     img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
     return t;
   }
-  /* the window's night: gradient, stars and the real moon (B.drawMoon, phase p = age / 29.53) */
-  function nightWindow(p, illum) {
-    const W = 256, H = 384, [c, x] = canvas(W, H), r = rng(5), g = x.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#0a1030"); g.addColorStop(1, "#1a2050"); x.fillStyle = g; x.fillRect(0, 0, W, H);
-    for (let i = 0; i < 120; i++) { x.globalAlpha = .3 + r() * .6; x.fillStyle = "#e8e3ff"; x.fillRect(r() * W, r() * H, 1.2, 1.2); }
-    x.globalAlpha = 1;
-    const mg = x.createRadialGradient(W * .58, H * .3, 10, W * .58, H * .3, 110); mg.addColorStop(0, `rgba(200,215,255,${.12 + illum * .25})`); mg.addColorStop(1, "rgba(200,215,255,0)");
-    x.fillStyle = mg; x.fillRect(0, 0, W, H);
-    try { B.drawMoon(x, W * .58, H * .3, 34, p); } catch { /* the moon is decoration */ }
-    return c;
-  }
-
   const T = {
     stone: tex(stone(), { repeat: [12, 3] }), floor: tex(wood(), { repeat: [8, 8] }), table: tex(wood([58, 36, 26]), { repeat: [1, 1] }),
     rug: tex(rug()), velvet: tex(velvet()), parchment: tex(parchment()), chart: tex(starChart()),
@@ -165,8 +138,15 @@ export function makeTextures(THREE, B) {
     ceramic: tex(matcap([[0, "#fff8ee"], [.55, "#d9cfc0"], [1, "#5a5048"]], "rgba(255,255,255,.95)")),
     glow: tex(glow(), { srgb: false }), glowCool: tex(glow("235,240,255", "170,190,255"), { srgb: false }),
     glowViolet: tex(glow("240,230,255", "139,108,255"), { srgb: false }), smoke: tex(smoke(), { srgb: false }),
-    dome: tex(domeSky(), { mips: true }),
+    flatN: (() => { const [c, x] = canvas(4); x.fillStyle = "rgb(128,128,255)"; x.fillRect(0, 0, 4, 4); return tex(c, { srgb: false, mips: false }); })(),   // a flat normal map until the real one arrives
   };
-  T.dome.wrapS = THREE.RepeatWrapping;
-  return { T, tex, engraving, nightWindow: (p, i) => tex(nightWindow(p, i)), canvas, rng, dispose() { made.forEach((t) => t.dispose()); made.length = 0; } };
+  /* a runtime image (img/<name>.webp), decoded off the main thread where the browser can; sRGB for colour maps */
+  function load(name, { srgb = true } = {}) {
+    const img = new Image(); img.decoding = "async"; img.src = new URL(`./img/${name}.webp?v=${V}`, import.meta.url).href;
+    return img.decode().then(() => { const t = new THREE.Texture(img); if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 4; t.needsUpdate = true; made.push(t); return t; });
+  }
+  const track = (t) => { made.push(t); return t; };
+  const release = (t) => { if (!t) return; const i = made.indexOf(t); if (i >= 0) made.splice(i, 1); t.dispose(); };
+  return { T, tex, engraving, load, track, release, canvas, rng, dispose() { made.forEach((t) => t.dispose()); made.length = 0; } };
 }
