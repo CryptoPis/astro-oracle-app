@@ -60,9 +60,11 @@ export function createStage({ THREE, engine, station, B, ui, F }) {
     move() { return true; }, up() { return true; },
     update(t, dt) {
       lidA += (lidT - lidA) * Math.min(1, dt * 3.2); lid.rotation.x = -lidA * 1.9;
-      inner.material.opacity += (glowT * (.75 + .15 * Math.sin(t * 2)) - inner.material.opacity) * Math.min(1, dt * 2);
+      inner.material.opacity += (glowT * (.45 + .1 * Math.sin(t * 2)) - inner.material.opacity) * Math.min(1, dt * 2);
+      if (station.open) station.open.value += (Math.min(glowT, lidA * 1.4) - station.open.value) * Math.min(1, dt * 1.8);   // the cavity's glow and the rays follow the lid
+      if (station.rays) station.rays.rotation.y += dt * .05;
       for (const f of fx) if (!f.update(dt)) fx.delete(f);
     },
-    end() { for (const f of fx) f.dispose && f.dispose(); fx.clear(); lid.rotation.x = 0; inner.material.opacity = 0; ui.hud.replaceChildren(); },
+    end() { for (const f of fx) f.dispose && f.dispose(); fx.clear(); lid.rotation.x = 0; inner.material.opacity = 0; if (station.open) station.open.value = 0; ui.hud.replaceChildren(); },
   };
 }

@@ -217,18 +217,79 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     place(g, S.coffee.slot, 2.8);
     register("coffee", g, new THREE.Vector3(0, .76, 0), .75, hitBox(.6, .5, .6, .7), { cup, coffee, stageDist: .7, stageRise: 1.2, stageOff: .02 });
   }
-  // 9 · the gift chest: brass bands, a lock, a hinged lid
-  { const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.BoxGeometry(.52, .28, .34), lam({ map: T.table, color: 0xb08868 })); body.position.y = .14; g.add(body);
-    const lid = new THREE.Group(); lid.position.set(0, .28, -.17); g.add(lid);
-    const lidMesh = new THREE.Mesh(new THREE.CylinderGeometry(.17, .17, .52, 18, 1, false, 0, Math.PI), lam({ map: T.table, color: 0xb08868 }));
-    lidMesh.rotation.z = Math.PI / 2; lidMesh.position.z = .17; lid.add(lidMesh);   // a half cylinder along x, curved side up
-    for (const x of [-.17, .17]) { const band = new THREE.Mesh(new THREE.BoxGeometry(.035, .29, .35), mat.brass); band.position.set(x, .14, 0); g.add(band);
-      const lb = new THREE.Mesh(new THREE.TorusGeometry(.172, .012, 4, 18, Math.PI), mat.brass); lb.rotation.y = Math.PI / 2; lb.position.set(x, 0, .17); lid.add(lb); }
-    const lock = new THREE.Mesh(new THREE.BoxGeometry(.07, .08, .02), mat.gold); lock.position.set(0, .26, .175); g.add(lock);
-    const inner = F.glow(T.glow, 0xffd27a, .9, 0); inner.position.set(0, .3, 0); g.add(inner);
+  // 9 · the gift chest: a bevelled oak body on a plinth, a domed lid on a hinge, gilded bands with rivets, corner
+  // guards, an ornate lock plate with a keyhole; inside, a warm glow and soft god rays that rise when it opens
+  { const g = new THREE.Group(), Wc = .52, Dc = .34, Hc = .27, R = .15;   // width, depth, body height, lid rise
+    const oak = new THREE.MeshStandardMaterial({ map: T.table, color: 0xb88f6c, roughness: .58, metalness: 0, envMap: env, envMapIntensity: .3 });
+    const iron = new THREE.MeshStandardMaterial({ color: 0xa47c3e, metalness: .9, roughness: .38, envMap: env, envMapIntensity: 1.2 });   // gilded iron, darker than the lock
+    const rr = (w, h, r) => { const s = new THREE.Shape(), x = w / 2 - r, y = h / 2 - r;
+      s.absarc(x, y, r, 0, Math.PI / 2); s.absarc(-x, y, r, Math.PI / 2, Math.PI); s.absarc(-x, -y, r, Math.PI, Math.PI * 1.5); s.absarc(x, -y, r, Math.PI * 1.5, Math.PI * 2); return s; };
+    // the body: a rounded-corner block (bevelled), on a slightly wider plinth
+    const bodyG = new THREE.ExtrudeGeometry(rr(Wc - .02, Dc - .02, .02), { depth: Hc - .02, bevelEnabled: true, bevelThickness: .01, bevelSize: .01, bevelSegments: 2, curveSegments: 4 }).rotateX(-Math.PI / 2).translate(0, .01, 0);
+    const body = new THREE.Mesh(bodyG, oak); g.add(body);
+    g.add(new THREE.Mesh(new THREE.ExtrudeGeometry(rr(Wc + .03, Dc + .03, .02), { depth: .03, bevelEnabled: true, bevelThickness: .006, bevelSize: .006, bevelSegments: 1, curveSegments: 4 }).rotateX(-Math.PI / 2).translate(0, .006, 0), oak));
+    // the lid: an arch (half an ellipse over the depth) extruded across the width: closed, so it never vanishes when open
+    const arch = (d, h, n = 20) => { const s = new THREE.Shape(); s.moveTo(-d / 2, 0); for (let i = 1; i <= n; i++) { const a = Math.PI - i / n * Math.PI; s.lineTo(Math.cos(a) * d / 2, Math.sin(a) * h); } s.lineTo(-d / 2, 0); return s; };
+    const archPts = (d, h, n = 24) => Array.from({ length: n + 1 }, (_, i) => { const a = Math.PI - i / n * Math.PI; return [Math.cos(a) * d / 2, Math.sin(a) * h]; });
+    const lid = new THREE.Group(); lid.position.set(0, Hc, -Dc / 2); g.add(lid);
+    const lidG = new THREE.ExtrudeGeometry(arch(Dc, R), { depth: Wc, bevelEnabled: true, bevelThickness: .008, bevelSize: .008, bevelSegments: 2, curveSegments: 4 })
+      .rotateY(Math.PI / 2).translate(-Wc / 2, 0, Dc / 2);   // the arch's x runs along the depth; the hinge is at the back edge (z = 0)
+    const lidMesh = new THREE.Mesh(lidG, oak); lid.add(lidMesh);
+    const lining = new THREE.Mesh(new THREE.PlaneGeometry(Wc - .04, Dc - .04).rotateX(Math.PI / 2), shell.mats.velvet); lining.position.set(0, -.0095, Dc / 2); lid.add(lining);   // violet velvet under the lid (below the bevel)
+    // bands: over the lid (a tube along the arch) and down the body (front, under, back), with rivets
+    const rivets = [];
+    for (const x of [-.165, .165]) {
+      const curve = new THREE.CatmullRomCurve3(archPts(Dc + .022, R + .011).map(([z, y]) => new THREE.Vector3(x, y, z + Dc / 2)));
+      lid.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 32, .009, 6), iron));
+      for (const z of [Dc / 2 + .007, -Dc / 2 - .007]) { const b = new THREE.Mesh(new THREE.BoxGeometry(.04, Hc + .01, .008), iron); b.position.set(x, Hc / 2 + .006, z); g.add(b); }
+      for (let i = 0; i < 4; i++) { rivets.push([x - .012, .04 + i * .065, Dc / 2 + .012], [x + .012, .04 + i * .065, Dc / 2 + .012]); }
+      for (let i = 1; i < 6; i++) { const [z, y] = archPts(Dc + .03, R + .016, 6)[i]; rivets.push([x, y + Hc, z, true]); }
+    }
+    // corner guards: small gilded brackets on the four upright edges
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const cg = new THREE.Mesh(new THREE.BoxGeometry(.03, Hc - .04, .03), iron); cg.position.set(sx * (Wc / 2 - .004), Hc / 2 + .01, sz * (Dc / 2 - .004)); g.add(cg); }
+    { const rg = new THREE.SphereGeometry(.0065, 8, 6), im = new THREE.InstancedMesh(rg, mat.gold, rivets.length), m4 = new THREE.Matrix4(), body0 = [], lid0 = [];
+      rivets.forEach((r) => (r[3] ? lid0 : body0).push(r));
+      body0.forEach(([x, y, z], i) => im.setMatrixAt(i, m4.makeTranslation(x, y, z))); im.count = body0.length; g.add(im);
+      const il = new THREE.InstancedMesh(rg, mat.gold, lid0.length); lid0.forEach(([x, y, z], i) => il.setMatrixAt(i, m4.makeTranslation(x, y - Hc, z + Dc / 2))); lid.add(il); }
+    // the lock: an ornate plate (a shield with a scalloped top) and a keyhole cut through it, the hasp on the lid
+    const shield = new THREE.Shape(); { const w = .042, h = .07; shield.moveTo(-w, h * .4);
+      shield.quadraticCurveTo(-w * .55, h * .62, 0, h * .5); shield.quadraticCurveTo(w * .55, h * .62, w, h * .4);
+      shield.lineTo(w, -h * .05); shield.quadraticCurveTo(w * .9, -h * .45, 0, -h * .62); shield.quadraticCurveTo(-w * .9, -h * .45, -w, -h * .05); shield.lineTo(-w, h * .4); }
+    const hole = new THREE.Path(); hole.absarc(0, .012, .0085, -1.08, Math.PI + 1.08, false); hole.lineTo(-.008, -.02); hole.lineTo(.008, -.02); hole.closePath();   // one keyhole outline: the round head, the tapering slot
+    shield.holes.push(hole);
+    const lock = new THREE.Mesh(new THREE.ExtrudeGeometry(shield, { depth: .008, bevelEnabled: true, bevelThickness: .003, bevelSize: .003, bevelSegments: 2, curveSegments: 10 }), mat.gold);
+    lock.position.set(0, Hc - .05, Dc / 2 + .006); g.add(lock);
+    const keyhole = new THREE.Mesh(new THREE.PlaneGeometry(.03, .04), new THREE.MeshBasicMaterial({ color: 0x0a0604 })); keyhole.position.set(0, Hc - .05, Dc / 2 + .0055); g.add(keyhole);
+    const hasp = new THREE.Mesh(new THREE.BoxGeometry(.03, .045, .008), mat.gold); hasp.position.set(0, .02, Dc + .008); lid.add(hasp);
+    // inside: a warm glow over the opening (seen when the lid lifts), and the rays
+    const glowMat = new THREE.ShaderMaterial({ uniforms: { uOpen: { value: 0 }, uTime: F.clock }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+      fragmentShader: `uniform float uOpen, uTime; varying vec2 vUv; void main() { vec2 q = (vUv - 0.5) * vec2(1.0, 1.5); float a = exp(-dot(q, q) * 7.0) * uOpen * (0.9 + 0.1 * sin(uTime * 2.3));
+        gl_FragColor = vec4(vec3(1.0, 0.78, 0.42) * a, a); }` });
+    // the opening: a dark cavity and the glow over it, just above the body's top (the closed lid covers both)
+    const cavity = new THREE.Mesh(new THREE.PlaneGeometry(Wc - .05, Dc - .05).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x140b06 })); cavity.position.y = Hc + .0015; g.add(cavity);
+    const mouth = new THREE.Mesh(new THREE.PlaneGeometry(Wc - .05, Dc - .05).rotateX(-Math.PI / 2), glowMat); mouth.position.y = Hc + .003; mouth.renderOrder = 3; g.add(mouth);
+    /* god rays: twelve soft shafts in a fan rising from the opening, additive, gradient along and across each shaft
+       (no hard edges), turning very slowly; one draw */
+    const rays = new THREE.Group(); rays.position.y = Hc; g.add(rays);
+    { const n = 12, geos = [];
+      for (let i = 0; i < n; i++) { const pg = new THREE.PlaneGeometry(.12 + (i % 3) * .035, 1.15, 1, 1).translate(0, .575, 0), a = (i / n) * Math.PI * 2;
+        pg.rotateZ((((i * 7) % n) / n - .5) * .7).rotateY(a); const s = new Float32Array(pg.attributes.position.count).fill(i / n); pg.setAttribute("aSeed", new THREE.BufferAttribute(s, 1)); geos.push(pg); }
+      const geo = new THREE.BufferGeometry(), parts = geos.map((x) => x.toNonIndexed());
+      for (const [name, size] of [["position", 3], ["uv", 2], ["aSeed", 1]]) { const arr = new Float32Array(parts.reduce((s, x) => s + x.attributes[name].array.length, 0)); let o = 0;
+        for (const x of parts) { arr.set(x.attributes[name].array, o); o += x.attributes[name].array.length; } geo.setAttribute(name, new THREE.BufferAttribute(arr, size)); }
+      geos.forEach((x) => x.dispose()); parts.forEach((x) => x.dispose());
+      const rm = new THREE.ShaderMaterial({ uniforms: { uOpen: glowMat.uniforms.uOpen, uTime: F.clock }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+        vertexShader: "attribute float aSeed; varying vec2 vUv; varying float vSeed; void main() { vUv = uv; vSeed = aSeed; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+        fragmentShader: `uniform float uOpen, uTime; varying vec2 vUv; varying float vSeed;
+          void main() { float across = sin(vUv.x * 3.14159); across *= across;
+            float along = smoothstep(0.0, 0.08, vUv.y) * pow(1.0 - vUv.y, 1.6);
+            float pulse = 0.6 + 0.4 * sin(uTime * (0.7 + vSeed) + vSeed * 20.0);
+            float a = across * along * pulse * uOpen * 0.34; gl_FragColor = vec4(vec3(1.0, 0.82, 0.5) * a, a); }` });
+      const mesh = new THREE.Mesh(geo, rm); mesh.renderOrder = 6; mesh.frustumCulled = false; rays.add(mesh); rays.userData.mesh = mesh; }
+    const inner = F.glow(T.glow, 0xffd27a, .7, 0); inner.position.set(0, Hc + .06, 0); g.add(inner);
     place(g, S.gift.slot, 2.8);
-    register("gift", g, new THREE.Vector3(0, .3, 0), 1.05, hitBox(.7, .7, .55, .3), { lid, inner, body, stageDist: 1.35, stageRise: .7, stageOff: .02 });
+    register("gift", g, new THREE.Vector3(0, .3, 0), 1.05, hitBox(.7, .7, .55, .3), { lid, inner, body, rays, open: glowMat.uniforms.uOpen, stageDist: 1.0, stageRise: .7, stageOff: -.05 });
   }
 
   /* the objects cast and receive the shadows (not the moon window: the moonlight comes through it) */

@@ -95,14 +95,14 @@ export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = fa
         reflectedLight.directDiffuse += acc * uScCol * BRDF_Lambert(material.diffuseColor);
         ${macro === "cloth" ? "reflectedLight.directDiffuse += uScCol * pow(1.0 - max(dot(geometryNormal, geometryViewDir), 0.0), 3.0) * 0.07;   // candle rim on the folds" : ""}
         ${streaks ? `{ // the glossy floor: each light point leaves a long streak towards the eye (narrow across, long along the view)
-          vec3 nG = normalize(mix(inverseTransformDirection(nonPerturbedNormal, viewMatrix), nW, 0.15));   // the boards' plane, a hint of their relief
+          vec3 nG = normalize(mix(inverseTransformDirection(nonPerturbedNormal, viewMatrix), nW, 0.04));   // the boards' plane, a trace of their relief (more breaks the streak into hard bits)
           vec3 V = normalize(cameraPosition - vWPos), Rv = reflect(-V, nG), S = normalize(cross(vec3(0.0, 1.0, 0.0), V)), U = normalize(cross(S, Rv));
           vec3 sp = vec3(0.0);
           for (int i = 0; i < ${N}; i++) { vec3 L = uSc[i].xyz - vWPos; float d = length(L); vec3 D = L / d - Rv; float a = dot(D, S), b = dot(D, U);
-            sp += uScCol * (uSc[i].w * exp(-a * a / 0.0035 - b * b / 0.32) / (1.0 + d * d * 0.022)); }   // narrow across, long along the view
+            sp += uScCol * (uSc[i].w * exp(-a * a / 0.011 - b * b / 0.9) / (1.0 + d * d * 0.05)); }   // soft across, long along the view, fading with distance
           { vec3 L = uWin.xyz - vWPos; float d = length(L); vec3 D = L / d - Rv; float a = dot(D, S), b = dot(D, U);
-            sp += vec3(0.55, 0.62, 0.9) * (uWin.w * exp(-a * a / 0.006 - b * b / 0.12) / (1.0 + d * d * 0.05)); }
-          reflectedLight.directSpecular += sp * uStreak * 0.45 * (1.0 - roughnessFactor * 0.7); }` : ""}
+            sp += vec3(0.55, 0.62, 0.9) * (uWin.w * exp(-a * a / 0.014 - b * b / 0.4) / (1.0 + d * d * 0.08)); }
+          reflectedLight.directSpecular += sp * uStreak * 0.3 * (1.0 - roughnessFactor * 0.7); }   // wider streaks carry more light: a lower gain keeps the total` : ""}
       }`);
   };
   m.customProgramCacheKey = () => `ch-${macro}-${vary}-${streaks}`;   // few programs: each one costs compile time at boot

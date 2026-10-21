@@ -181,7 +181,8 @@ html[data-ui="chamber"] .back-link, html[data-ui="chamber"] #scroller .view-head
 .ch-q { width: min(100%, 360px); min-height: 44px; background: rgba(13,10,36,.72); }
 .ch-stage-hint { margin: 0; padding: 8px 14px; border-radius: 12px; font-size: .84rem; line-height: 1.4; text-align: center; color: var(--mist);
   background: rgba(13,10,36,.62); border: 1px solid rgba(226,189,106,.22); max-width: 340px; }
-.ch-act { min-height: 42px; padding: 0 18px; background: rgba(13,10,36,.6); }
+.ch-act { min-height: 42px; padding: 0 18px; }
+.ch-act.ghost { background: rgba(13,10,36,.6); }   /* the primary (gold) action keeps the app's gold button: dark text on a dark ground was unreadable */
 .ch-answer { position: fixed; z-index: 16; left: 0; right: 0; bottom: calc(var(--ch-bottom) + 26px); display: grid; gap: 8px; justify-items: center; padding: 0 22px; text-align: center; pointer-events: none; }
 .ch-answer > * { opacity: 0; transform: translate3d(0, 18px, 0); filter: blur(6px); transition: opacity var(--t3) var(--ease), transform var(--t3) var(--ease), filter var(--t3) var(--ease); }
 .ch-answer.on > * { opacity: 1; transform: none; filter: none; }
