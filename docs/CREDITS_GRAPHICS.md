@@ -99,6 +99,11 @@ The reference dome (`03_39_51 PM.png`, gold frame) was evaluated as a cut-out ri
 1536×1024 landscape, so its gold ring is cut off at the top and bottom and cannot form a full annulus, and its medallions
 are drawn sunburst emblems. The architecture is built from geometry instead (10 ribs, 3 rings, 20 medallions, a boss).
 
+## Stage A3.1: no new files
+
+The dome's thinner gold, the bosses, the crown's new profile and its soft shadow, the frame's gold strips and the
+longer floor streaks are all made in code. The runtime files are unchanged: **High 1,262,550 bytes, Medium 596,972 bytes**.
+
 ## Code
 
 three.js r160 (MIT), vendored in `static/vendor/` with its license (`three-LICENSE.txt`).

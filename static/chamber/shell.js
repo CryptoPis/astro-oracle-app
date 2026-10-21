@@ -99,10 +99,10 @@ export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = fa
           vec3 V = normalize(cameraPosition - vWPos), Rv = reflect(-V, nG), S = normalize(cross(vec3(0.0, 1.0, 0.0), V)), U = normalize(cross(S, Rv));
           vec3 sp = vec3(0.0);
           for (int i = 0; i < ${N}; i++) { vec3 L = uSc[i].xyz - vWPos; float d = length(L); vec3 D = L / d - Rv; float a = dot(D, S), b = dot(D, U);
-            sp += uScCol * (uSc[i].w * exp(-a * a / 0.0016 - b * b / 0.09) / (1.0 + d * d * 0.06)); }
+            sp += uScCol * (uSc[i].w * exp(-a * a / 0.0035 - b * b / 0.32) / (1.0 + d * d * 0.022)); }   // narrow across, long along the view
           { vec3 L = uWin.xyz - vWPos; float d = length(L); vec3 D = L / d - Rv; float a = dot(D, S), b = dot(D, U);
             sp += vec3(0.55, 0.62, 0.9) * (uWin.w * exp(-a * a / 0.006 - b * b / 0.12) / (1.0 + d * d * 0.05)); }
-          reflectedLight.directSpecular += sp * uStreak * 1.6 * (1.0 - roughnessFactor * 0.7); }` : ""}
+          reflectedLight.directSpecular += sp * uStreak * 0.45 * (1.0 - roughnessFactor * 0.7); }` : ""}
       }`);
   };
   m.customProgramCacheKey = () => `ch-${macro}-${vary}-${streaks}`;   // few programs: each one costs compile time at boot
@@ -263,14 +263,15 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
     pillar: surface(THREE, SC, { map: T.stone, normalMap: flatN, color: 0xb4aaae, macro: "wall", rough: [.72, .96] }),
     floor: surface(THREE, SC, { map: T.floor, normalMap: flatN, normalScale: new THREE.Vector2(.45, .45), macro: "floor", rough: [.3, .6], streaks: true }),
     wains: surface(THREE, SC, { map: T.floor, normalMap: flatN, color: 0xb8a698, macro: "wall", rough: [.5, .82] }),
-    frame: surface(THREE, SC, { map: T.floor, normalMap: carved, normalScale: new THREE.Vector2(.9, .9), color: 0x7a6656, macro: "none", rough: [.4, .7] }),
+    frame: surface(THREE, SC, { map: T.floor, normalMap: carved, normalScale: new THREE.Vector2(1.1, 1.1), color: 0x4e4640, macro: "none", rough: [.5, .78] }),   // dark aged oak
     rug: surface(THREE, SC, { map: T.rug, bumpMap: T.rug, bumpScale: 2, color: 0xffffff, macro: "none", rough: [.86, .98] }),
     velvet: surface(THREE, SC, { map: T.velvet, bumpMap: T.velvet, bumpScale: 1.5, macro: "none", rough: [.62, .95] }),
     drape: surface(THREE, SC, { map: T.velvet, bumpMap: T.velvet, bumpScale: 1.5, color: 0xd8d0ff, macro: "cloth", rough: [.55, .95], vary: true }),
     wax: surface(THREE, SC, { color: 0xeadcc0, emissive: 0x2a1406, macro: "none", rough: [.45, .6] }),
     gold: new THREE.MeshStandardMaterial({ color: 0xd4a84f, metalness: .8, roughness: .35, envMap: env.texture, envMapIntensity: 1.3 }),
     // the dome's gold: no candle reaches up there, so it carries a faint warm light of its own (the candles from below)
-    domeGold: new THREE.MeshStandardMaterial({ color: 0xf0c868, metalness: .8, roughness: .3, envMap: env.texture, envMapIntensity: 2.4, emissive: 0x8a5a1c }),
+    domeGold: new THREE.MeshStandardMaterial({ color: 0xeedcae, metalness: .9, roughness: .3, envMap: env.texture, envMapIntensity: 6.5, emissive: 0x1e1406 }),   // pale: the warm room it reflects brings it to the palette gold   // the palette's gold; a trace of warmth so it never goes black
+    moldGold: new THREE.MeshStandardMaterial({ color: 0x9c7a3a, metalness: .85, roughness: .38, envMap: env.texture, envMapIntensity: 1.2 }),   // the crown: a darker, older gold
     iron: new THREE.MeshStandardMaterial({ color: 0x2a2420, metalness: .7, roughness: .5, envMap: env.texture, envMapIntensity: .6 }),
   };
   mats.rug.color.setScalar(1.35);   // the rug must read on a phone: its gold pattern a little brighter than the photo
@@ -312,11 +313,17 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
   { const rug = new THREE.Mesh(new THREE.CircleGeometry(2.6, 80), mats.rug); rug.rotation.x = -Math.PI / 2; rug.position.y = .006; add(rug); }
 
   /* ── moldings: real profiles turned round the decagon (lathe, 10 sides), metal lit by the scene ── */
-  const molding = (prof, y) => { const g = new THREE.LatheGeometry(prof.map(([d, h]) => new THREE.Vector2(6 - d, y + h)).reverse(), 10, Math.PI / 10);   // reversed: faces look inwards
-    return add(new THREE.Mesh(g, mats.gold), { receive: false }); };
+  const molding = (prof, y, m = mats.gold) => { const g = new THREE.LatheGeometry(prof.map(([d, h]) => new THREE.Vector2(6 - d, y + h)).reverse(), 10, Math.PI / 10);   // reversed: faces look inwards
+    return add(new THREE.Mesh(g, m), { receive: false }); };
   molding([[0, -.06], [.012, -.056], [.018, -.042], [.016, -.03], [.028, -.022], [.036, -.008], [.038, .004], [.032, .016], [.02, .022], [.025, .032], [.012, .042], [0, .046]], .9);   // dado: bead and cove
-  molding([[0, 0], [.015, .01], [.02, .03], [.035, .05], [.05, .08], [.06, .11], [.058, .13], [.07, .15], [.09, .18], [.105, .2], [.11, .23], [0, .25]], 3.95);   // crown under the dome
+  molding([[0, .02], [.008, .022], [.012, .03], [.01, .04], [.014, .048], [.022, .052], [.03, .058], [.036, .07], [.042, .088], [.05, .104], [.06, .118], [.066, .128], [.068, .14], [.06, .148], [0, .15]], 4.05, mats.moldGold);   // crown: a small bead, then a cove up to the dome
   molding([[0, 0], [.03, 0], [.034, .012], [.03, .028], [.02, .036], [.02, .07], [0, .075]], 0);   // skirting
+  // a soft shadow cast by the crown on the stone below it (a dark band fading downwards, on every face)
+  { const bands = []; for (let k = 0; k < 10; k++) { const g = new THREE.PlaneGeometry(FW, .4); g.translate(0, 4.05 - .2, .014); bands.push(g.applyMatrix4(faceM(k * STEP))); }
+    const m = new THREE.Mesh(merge(THREE, bands), new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
+      vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+      fragmentShader: "varying vec2 vUv; void main() { gl_FragColor = vec4(0.03, 0.02, 0.03, smoothstep(0.0, 1.0, vUv.y) * 0.55); }" }));
+    m.renderOrder = 1; scene.add(m); }
   // pillars at the corners: stone shafts, a gold capital, a stone base
   const capG = new THREE.LatheGeometry([[.2, 0], [.2, .03], [.16, .05], [.17, .08], [.21, .11], [.24, .15], [.24, .18], [0, .18]].map(([r, y]) => new THREE.Vector2(r, y)), 20);
   const baseG = new THREE.LatheGeometry([[0, 0], [.25, 0], [.25, .06], [.21, .08], [.22, .11], [.18, .14], [.17, .2]].map(([r, y]) => new THREE.Vector2(r, y)), 20);
@@ -411,11 +418,16 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
     scaleUV(g, 1 / TILE.stone, 1 / TILE.stone); win.add(new THREE.Mesh(g, mats.reveal)); }
   // the frame: one carved piece of dark oak, the opening minus two lights (each split by a transom) and a quatrefoil
   const yT = 1.0, ys = 1.45, hwl = (W.hw - W.t - W.m / 2) / 2, xl = W.m / 2 + hwl, Rl = hwl * 1.5, qc = 2.12;
-  { const sh = new THREE.Shape(outline);
+  { const sh = new THREE.Shape(outline), holes = [];
     for (const side of [-1, 1]) { const cx = side * xl;
-      sh.holes.push(new THREE.Path([[cx - hwl, W.t], [cx + hwl, W.t], [cx + hwl, yT - .025], [cx - hwl, yT - .025]].map(([x, y]) => new THREE.Vector2(x, y))));
-      sh.holes.push(new THREE.Path(pointed(THREE, hwl, ys - yT - .025, Rl, 12).map((p) => new THREE.Vector2(p.x + cx, p.y + yT + .025)))); }
-    sh.holes.push(new THREE.Path(quatrefoil(THREE, 0, qc, .088, .092)));
+      holes.push([[cx - hwl, W.t], [cx + hwl, W.t], [cx + hwl, yT - .025], [cx - hwl, yT - .025]].map(([x, y]) => new THREE.Vector2(x, y)));
+      holes.push(pointed(THREE, hwl, ys - yT - .025, Rl, 12).map((p) => new THREE.Vector2(p.x + cx, p.y + yT + .025))); }
+    holes.push(quatrefoil(THREE, 0, qc, .088, .092));
+    holes.forEach((h) => sh.holes.push(new THREE.Path(h)));
+    // the gold edge strip: a thin rod along each opening, on the frame's face
+    const strips = holes.map((h) => { const path = new THREE.CurvePath(), v = h.map((p) => new THREE.Vector3(p.x, p.y, -W.D + .122));   // straight segments: a spline would bulge past the corners
+      v.forEach((p, i) => path.add(new THREE.LineCurve3(p, v[(i + 1) % v.length]))); return new THREE.TubeGeometry(path, Math.max(48, h.length * 4), .0055, 5, true); });
+    win.add(new THREE.Mesh(merge(THREE, strips), mats.gold));
     const g = new THREE.ExtrudeGeometry(sh, { depth: .07, bevelEnabled: true, bevelThickness: .014, bevelSize: .012, bevelSegments: 2, curveSegments: 28 });
     g.translate(0, 0, -W.D + .04); scaleUV(g, 1 / TILE.oak, 1 / TILE.oak);
     const m = new THREE.Mesh(g, mats.frame); win.add(m); casters.push(m); }
@@ -460,17 +472,22 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
      where they cross. The real planets and the ecliptic ring stay in front (room.js). ── */
   const RD = 5.9, Y0 = 4.2;
   { const pts = []; for (let i = 0; i <= 24; i++) { const e = (.03 + i / 24 * 1.49); pts.push(new THREE.Vector3(0, Y0 + RD * Math.sin(e), -RD * Math.cos(e))); }
-    const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, .055, 6), im = new THREE.InstancedMesh(g, mats.domeGold, 10);
+    const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, .024, 8), im = new THREE.InstancedMesh(g, mats.domeGold, 10);
     for (let k = 0; k < 10; k++) im.setMatrixAt(k, new THREE.Matrix4().makeRotationY(-(k + .5) * STEP)); add(im, { receive: false }); }
-  for (const e of [.07, .3, 1.05]) { const r = RD * Math.cos(e), t = new THREE.Mesh(new THREE.TorusGeometry(r, e < .1 ? .07 : .05, 8, 120), mats.domeGold);
+  for (const e of [.07, .3, 1.05]) { const r = RD * Math.cos(e), t = new THREE.Mesh(new THREE.TorusGeometry(r, e < .1 ? .032 : .022, 8, 160), mats.domeGold);
     t.rotation.x = Math.PI / 2; t.position.y = Y0 + RD * Math.sin(e); add(t, { receive: false }); }
   { const boss = new THREE.Mesh(new THREE.LatheGeometry([[0, -.16], [.1, -.15], [.18, -.11], [.25, -.07], [.3, -.03], [.33, 0]].map(([r, y]) => new THREE.Vector2(r, y)), 40), mats.domeGold);
     boss.position.y = Y0 + RD * Math.sin(1.515) + .01; add(boss, { receive: false });
-    const med = new THREE.LatheGeometry([[0, .045], [.05, .04], [.07, .02], [.1, .028], [.13, .012], [.15, 0]].map(([r, y]) => new THREE.Vector2(r, y)).reverse(), 28).rotateX(Math.PI / 2);
+    const med = new THREE.LatheGeometry([[0, .04], [.04, .036], [.06, .018], [.085, .024], [.11, .01], [.125, 0]].map(([r, y]) => new THREE.Vector2(r, y)).reverse(), 28).rotateX(Math.PI / 2);
     const spots = []; for (let k = 0; k < 10; k++) for (const e of [.3, 1.05]) spots.push([(k + .5) * STEP, e]);
     const im = new THREE.InstancedMesh(med, mats.domeGold, spots.length), o = new THREE.Object3D();
     spots.forEach(([a, e], i) => { o.position.set(Math.sin(a) * (RD - .06) * Math.cos(e), Y0 + (RD - .06) * Math.sin(e), -Math.cos(a) * (RD - .06) * Math.cos(e)); o.lookAt(0, Y0, 0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
-    add(im, { receive: false }); }
+    add(im, { receive: false });
+    // small bosses where every rib crosses every ring (the rim ring too)
+    const bossG = new THREE.SphereGeometry(.05, 16, 10).scale(1, 1, .55), bi = new THREE.InstancedMesh(bossG, mats.domeGold, 30);
+    let n = 0; for (let k = 0; k < 10; k++) for (const e of [.07, .3, 1.05]) { const a = (k + .5) * STEP;
+      o.position.set(Math.sin(a) * (RD - .03) * Math.cos(e), Y0 + (RD - .03) * Math.sin(e), -Math.cos(a) * (RD - .03) * Math.cos(e)); o.lookAt(0, Y0, 0); o.updateMatrix(); bi.setMatrixAt(n++, o.matrix); }
+    add(bi, { receive: false }); }
 
   /* every frame: the light points flicker (their pools and streaks follow), the sill candles flare during the ritual */
   const flick = (t, s) => .84 + Math.sin(t * 7.1 + s) * .05 + Math.sin(t * 13.3 + s * 3) * .04 + Math.sin(t * 2.3 + s * 5) * .07;

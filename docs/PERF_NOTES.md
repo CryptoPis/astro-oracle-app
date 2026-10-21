@@ -358,3 +358,46 @@ Reference: the empty-chamber image (`03_59_46 PM.png`) = **34.2**.
 
 Screenshots: `dist/screens/chamber-graphics/a3-high-*`, `a3-medium-*` (room, window, tarot, dome, candelabras,
 windowclose) and `a3-compare-room|window|dome.png`.
+
+# Chamber graphics, stage A3.1 (2026-10-21, branch `chamber-graphics`)
+
+Small fixes:
+- **Dome:**
+  - ribs and rings at about 45 % of their former thickness (tube radius 0.055 → 0.024 m; rings 0.05/0.07 → 0.022/0.032 m)
+  - real gold: MeshStandard, metalness 0.9, roughness 0.3, the environment map at 6.5 with a pale base, so the warm
+    room it reflects brings it to the palette gold instead of orange
+  - 30 small bosses where every rib crosses every ring
+- **Crown:** a thinner cove-and-bead profile (0.15 m high, 0.068 m deep; it was 0.25 × 0.11), in a darker, older gold,
+  with a soft shadow band on the stone under it.
+- **Window frame:** dark aged oak (the oak texture tinted darker and neutral, not red) with the carved relief, and a thin
+  gold strip along the edge of every opening (straight segments, so the strips follow the corners).
+- **Floor streaks:** longer towards the room's middle (falloff 0.06 → 0.022), about twice as wide and softer (peak
+  strength halved), one per candelabra.
+
+## Measured
+
+`python -m scripts.chamber_check --perf` (4× CPU, GT 630), first run of the session:
+
+| | A3.1 High | A3.1 Medium | LITE |
+|---|---|---|---|
+| FPS idle | 60.3 (worst 17 ms) | 60.5 (worst 17 ms) | 60.3 |
+| FPS turning | 60.0 (worst 33 ms) | 60.2 (worst 17 ms) | 60.0 |
+| Chamber boot (cached shaders) | 1.14 s | 2.54 s | 0.18 s |
+| JS heap before → after 10 more station visits | 15.23 → 15.57 MB (+2.2 %) | | 6.93 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 127 / 38 → 127 / 38 | | none |
+| Download | 1,262,550 B | 596,972 B | none |
+
+**Measurement conditions.** Later in the session another application on the test machine took about one CPU core (and
+possibly the GPU). With the CPU throttled 4× on 4 cores, the absolute numbers then wander by 5 FPS or more from run
+to run, for every build. So A3.1 was compared with A3 (`307941f`) in four interleaved rounds under the same load:
+
+| | idle FPS, 4 rounds (average) | turning FPS, 4 rounds (average) |
+|---|---|---|
+| A3 | 58.2 / 60.2 / 58.0 / 59.2 (58.9) | 58.7 / 59.7 / 55.3 / 53.8 (56.9) |
+| A3.1 | 60.0 / 59.0 / 58.2 / 59.6 (59.2) | 60.0 / 57.7 / 60.2 / 59.2 (59.3) |
+
+A3.1 costs nothing measurable against A3. Single frames of 50-117 ms appeared in both builds under that load and only
+then. The first-lap check (no frame above 40 ms) passed for A3 on a quiet machine. For A3.1 it should be repeated on a
+quiet machine or a real phone.
+
+Screenshots: `dist/screens/chamber-graphics/a31-high-*`, `a31-medium-*` (room, tarot, window, dome).
