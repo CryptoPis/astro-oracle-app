@@ -2273,9 +2273,9 @@ const Demo = (() => {
 
 /* ═════════════ UI helpers ═════════════ */
 let toastTimer;
-function toast(content, isErr) { const n = $("#toast"); n.replaceChildren(); n.classList.toggle("err", !!isErr);
+function toast(content, isErr, ms = 2600) { const n = $("#toast"); n.replaceChildren(); n.classList.toggle("err", !!isErr);
   if (typeof content === "string") n.textContent = content; else n.append(content);
-  n.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => n.classList.remove("show"), 2600); }
+  n.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => n.classList.remove("show"), ms); }
 function rewardToast(n) { haptic.ok(); const b = el("b", null, `+${n} $AST`); toast(b); const c = $("#coins"); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump"); sparkle(c); }
 function starburst(host) { if (reduced) return; const b = el("span", "burst"); b.setAttribute("aria-hidden", "true");
   for (let i = 0; i < (PERF.lite ? 10 : 18); i++) { const ray = el("i"); ray.style.setProperty("--a", `${i * 360 / (PERF.lite ? 10 : 18)}deg`); ray.style.animationDelay = `${(i % 3) * 40}ms`; b.append(ray); }
@@ -3138,7 +3138,8 @@ async function boot() {
   S.lang = store.get("astro.lang") || (["ka", "ru", "en"].includes(tgLang) ? tgLang : "ka");
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
   try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else if (S.onBack && S.onBack()) return; else go("home"); }); } catch {}
-  const chamberP = UI === "chamber" ? import(CHAMBER_URL).catch((e) => { console.warn("chamber module", e); return null; }) : null;
+  let chamberErr = "";
+  const chamberP = UI === "chamber" ? import(CHAMBER_URL).catch((e) => { chamberErr = "import: " + (e && e.message || e); console.warn("chamber module", e); return null; }) : null;
   watchAnim($("#heroCard")); watchAnim($(".num-hero")); watchAnim($(".oracle"));
   $("#oracleArt").innerHTML = practiceArt("advisor", { glow: "#3fb8a8" }); $("#ball").innerHTML = practiceArt("sphere", { live: true }) + '<canvas class="mist" aria-hidden="true"></canvas>';
   Mist.attach($("#ball .mist"));
@@ -3148,8 +3149,9 @@ async function boot() {
   let chamberOn = false;
   if (chamberP) {
     const mod = await chamberP;
-    try { if (mod) { await mod.start(bridge()); chamberOn = true; } } catch (e) { console.warn("chamber start", e); }
-    if (!chamberOn) { document.documentElement.dataset.ui = "classic"; S.onGo = S.onBack = null; setTimeout(() => toast(t("chFail")), 800); }
+    try { if (mod) { await mod.start(bridge()); chamberOn = true; } } catch (e) { chamberErr = "start: " + (e && e.message || e); console.warn("chamber start", e); }
+    if (!chamberOn) { document.documentElement.dataset.ui = "classic"; S.onGo = S.onBack = null; store.set("astro.chErr", chamberErr.slice(0, 200));
+      setTimeout(() => toast(`${t("chFail")} (${chamberErr.slice(0, 80)})`, true, 8000), 800); }   // the reason, readable for 8 s
   }
   if (!chamberOn) Astro.start();
   const first = chamberOn ? "home" : location.hash.slice(1) || store.get("astro.view") || "home";
