@@ -99,12 +99,20 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     place(g, S.tarot.slot, 2.7);
     register("tarot", g, new THREE.Vector3(0, .86, 0), 1.25, hitBox(1.3, .5, 1.3, .8), { deck, box, lid, candle: c, stageDist: .34, stageRise: 2.5, stageOff: -.02 });
   }
-  // 1 · crystal ball on a brass stand
+  // 1 · crystal ball on a turned gold stand: a stepped plinth, a bead, a baluster stem with knops, a cup with a lip
   { const g = new THREE.Group();
-    const prof = [[0, 0], [.2, 0], [.21, .03], [.09, .09], [.05, .35], [.075, .62], [.045, .8], [.05, .9], [.15, .97], [.17, 1.0]].map(([x, y]) => new THREE.Vector2(x, y));
-    g.add(new THREE.Mesh(new THREE.LatheGeometry(prof, 28), mat.brass));
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(.21, 48, 32), sphereMaterial(THREE, F.clock)); ball.position.y = 1.2; g.add(ball);
-    const halo = F.glow(T.glowViolet, 0x8b6cff, .95, .5); halo.position.y = 1.2; g.add(halo);
+    const prof = [[0, 0], [.215, 0], [.222, .012], [.222, .034], [.205, .046], [.19, .05], [.188, .066], [.165, .078], [.14, .082],   // plinth: two steps
+      [.128, .094], [.132, .106], [.122, .118], [.09, .13], [.072, .16],                                                             // a bead, the foot rises
+      [.058, .23], [.05, .32], [.062, .36], [.078, .38], [.062, .4], [.046, .44],                                                    // the lower knop
+      [.042, .58], [.05, .62], [.072, .66], [.084, .7], [.072, .74], [.05, .77], [.044, .8],                                          // the baluster
+      [.05, .84], [.068, .855], [.05, .87], [.046, .9],                                                                               // a ring under the cup
+      [.07, .93], [.1, .96], [.122, .99], [.13, 1.01], [.124, 1.024], [.112, 1.018], [.09, 1.0], [0, .99]]                             // the cup, its rolled lip
+      .map(([x, y]) => new THREE.Vector2(x, y));
+    const stand = new THREE.Mesh(new THREE.LatheGeometry(prof, 48), shell.mats.gold); g.add(stand);
+    for (const [y, r, t] of [[.38, .079, .008], [.7, .085, .007], [1.012, .127, .006]]) {   // bead rings on the knops and the lip
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(r, t, 8, 48), shell.mats.gold); ring.rotation.x = Math.PI / 2; ring.position.y = y; g.add(ring); }
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(.21, 64, 40), sphereMaterial(THREE, F.clock)); ball.position.y = 1.2; g.add(ball);
+    const halo = F.glow(T.glowViolet, 0x8b6cff, .78, .16); halo.position.y = 1.2; g.add(halo);   // restrained: the glass carries the glow
     place(g, S.sphere.slot, 2.9);
     register("sphere", g, new THREE.Vector3(0, 1.18, 0), .95, hitBox(.6, 1.4, .6, .7), { ball, halo, stageDist: 1.3, stageRise: .1, stageOff: .07 });
   }
@@ -286,6 +294,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     if (queue.length) queue.shift()();
     for (let i = fades.length - 1; i >= 0; i--) { const u = fades[i]; u.value = Math.min(1, u.value + dt * 1.6); if (u.value >= 1) fades.splice(i, 1); }
     { const st = stations.get("moon"); st.grp.worldToLocal(pane.uniforms.uCam.value.copy(camera.position)); }
+    { const b = stations.get("sphere").ball; b.worldToLocal(b.material.uniforms.uCam.value.copy(camera.position)); }
     const k = flick(t, 0), kf = flick(t * (1 + busy * .9), 2.1) * (1 + busy * .35);
     central.intensity = 11 * k * (birthday ? 1.25 : 1); flameLight.intensity = 2.6 * kf;
     tint.setRGB(.75 + k * .3, .7 + k * .28, .68 + k * .25); for (const m of metal) m.color.copy(tint);
@@ -403,25 +412,47 @@ function windowMaterial(THREE, p, illum, [w, h]) {
   });
 }
 
-/* the crystal ball: glass with a gold rim, a slow inner mist; uTint/uFill colour it; uMist hides the depths */
+/* the crystal ball: dark violet glass with a swirling nebula inside. The view ray is refracted into the ball and
+   the nebula sampled at three depths along it (real parallax: the swirl sits inside, not on the surface), a soft
+   fresnel rim, two small window highlights. Everything is mixed (never added past 1) and passed through a soft
+   shoulder, so the ball keeps its depth under the bloom: only the highlights cross its threshold.
+   uTint/uFill colour the nebula with the answer; uMist/uFog veil it (the stage's mist, wiped through uMask);
+   uCam = the camera in the ball's own space (room.update) */
 export function sphereMaterial(THREE, clock) {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: clock, uTint: { value: new THREE.Color(0x8b6cff) }, uFill: { value: 0 }, uMist: { value: 1 }, uFog: { value: 0 }, uMask: { value: null }, uUseMask: { value: 0 } },
-    vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vP; varying vec2 vUv;
-      void main() { vUv = uv; vP = position; vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: `uniform float uTime, uFill, uMist, uFog, uUseMask; uniform vec3 uTint; uniform sampler2D uMask; varying vec3 vN; varying vec3 vV; varying vec3 vP; varying vec2 vUv;
+    uniforms: { uTime: clock, uTint: { value: new THREE.Color(0x8b6cff) }, uFill: { value: 0 }, uMist: { value: 1 }, uFog: { value: 0 }, uMask: { value: null }, uUseMask: { value: 0 },
+      uCam: { value: new THREE.Vector3(0, 0, 3) }, uR: { value: .21 } },
+    vertexShader: `varying vec3 vP; varying vec2 vUv; void main() { vUv = uv; vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float uTime, uFill, uMist, uFog, uUseMask, uR; uniform vec3 uTint, uCam; uniform sampler2D uMask; varying vec3 vP; varying vec2 vUv;
       float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
-      float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * n(p); p *= 2.03; a *= 0.5; } return s; }
-      void main() { float fr = pow(1.0 - max(dot(vN, vV), 0.0), 2.4);
-        vec2 q = vP.xy * 7.0 + vec2(uTime * 0.07, -uTime * 0.05); float m = fbm(q + fbm(q * 1.7 + uTime * 0.04));
-        vec3 deep = vec3(0.07, 0.05, 0.2); vec3 mist = vec3(0.78, 0.74, 0.95) * smoothstep(0.35, 0.85, m);
-        float mask = mix(1.0, texture2D(uMask, vUv).a, clamp(uUseMask, 0.0, 1.0));   // alpha: wiped = transparent
-        vec3 col = deep + mist * uMist * mask * 0.9 + vec3(0.62, 0.58, 0.78) * uFog * mask * (0.75 + 0.25 * m);   // the stage's milky fog
-        col = mix(col, uTint * (0.55 + 0.45 * m), uFill * 0.85);
-        col += vec3(1.0, 0.86, 0.55) * fr * 0.9 + uTint * fr * 0.35;
-        float spec = pow(max(dot(reflect(-vV, vN), normalize(vec3(-0.4, 0.7, 0.6))), 0.0), 40.0);
-        gl_FragColor = vec4(col + spec * 0.8, 0.92); }`,
+      float fbm(vec2 p) { return n(p) * 0.55 + n(p * 2.07 + 5.3) * 0.28 + n(p * 4.3 + 1.7) * 0.17; }
+      /* the nebula at a point inside (q in units of the radius): arms wound round the vertical axis, turning slowly */
+      vec2 nebula(vec3 q) {
+        float r = length(q.xz), a = uTime * 0.12 + (1.0 - r) * 2.4 + q.y * 0.8, c = cos(a), s = sin(a);   // a whirl: the centre turns most
+        vec2 p = mat2(c, s, -s, c) * q.xz * 1.7 + vec2(q.y * 0.9, q.y * 0.5);
+        float d = fbm(p + fbm(p * 1.9 + uTime * 0.05) * 0.9);
+        float body = 1.0 - smoothstep(0.45, 1.05, length(q * vec3(1.0, 1.25, 1.0)));   // a flattened cloud, clear near the glass
+        return vec2(smoothstep(0.32, 0.72, d) * body, d); }
+      void main() {
+        vec3 N = normalize(vP), V = normalize(vP - uCam);   // V: the view ray, from the eye into the ball
+        float ndv = clamp(dot(N, -V), 0.0, 1.0), fr = pow(1.0 - ndv, 3.0);
+        vec3 R = refract(V, N, 0.68); float chord = max(-2.0 * dot(vP, R), 0.0);
+        vec3 deep = mix(vec3(0.028, 0.018, 0.075), vec3(0.075, 0.045, 0.16), ndv);   // darker towards the rim: a thick glass
+        vec3 tint = mix(vec3(0.5, 0.34, 1.0), uTint, uFill), rose = mix(vec3(0.92, 0.42, 0.86), uTint, uFill * 0.6), warm = vec3(1.0, 0.74, 0.42);
+        vec3 col = deep; float m = 0.0;
+        for (int i = 0; i < 3; i++) { vec3 q = (vP + R * chord * (0.2 + 0.3 * float(i))) / uR; vec2 s = nebula(q); m += s.y;
+          vec3 c = mix(mix(tint, rose, smoothstep(0.45, 0.7, s.y)) * 0.8, warm * 1.05, smoothstep(0.55, 1.0, s.x));   // violet, rose, a gold heart
+          col = mix(col, c, s.x * (0.78 - 0.14 * float(i))); }
+        m /= 3.0;
+        float mask = mix(1.0, texture2D(uMask, vUv).a, clamp(uUseMask, 0.0, 1.0));   // alpha: wiped = clear
+        vec3 milk = mix(vec3(0.42, 0.36, 0.62), vec3(0.74, 0.7, 0.88), smoothstep(0.3, 0.75, m));   // the mist keeps the swirl's shape
+        col = mix(col, milk, clamp(uFog * mask * (0.42 + 0.3 * smoothstep(0.35, 0.7, m)) + uMist * mask * 0.08 * smoothstep(0.4, 0.8, m), 0.0, 0.75));   // the veil, mixed in
+        col = mix(col, vec3(0.62, 0.5, 1.0) * 0.5 + warm * 0.3, fr * 0.55);   // the rim: violet-gold, soft
+        col = col / (1.0 + col * 0.55);   // a soft shoulder: the ball never flattens to white
+        vec3 L1 = normalize(vec3(-0.45, 0.62, 0.64)), L2 = normalize(vec3(0.5, 0.3, 0.8)), Rf = reflect(V, N);
+        col += warm * pow(max(dot(Rf, L1), 0.0), 90.0) * 0.9 + vec3(0.8, 0.85, 1.0) * pow(max(dot(Rf, L2), 0.0), 220.0) * 0.45;
+        gl_FragColor = vec4(col, 0.96); }`,
     transparent: true,
   });
 }

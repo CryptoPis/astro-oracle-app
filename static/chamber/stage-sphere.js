@@ -68,12 +68,12 @@ export function createStage({ THREE, engine, station, B, ui }) {
         cx.globalCompositeOperation = "destination-out"; cx.fillStyle = "rgba(0,0,0,.6)"; cx.beginPath(); cx.arc(x, y, 18, 0, 7); cx.fill(); mask.needsUpdate = true;
         cells.add(`${(x / S * 12) | 0}:${(y / S * 8) | 0}`); if (autoT <= 0 || cells.size >= 6) { autoT = 0; reveal(); } }
       fill += (fillT - fill) * Math.min(1, dt * 1.6); mist += (mistT - mist) * Math.min(1, dt * 1.2); fog += (fogT - fog) * Math.min(1, dt * 1.5); mat.uniforms.uFog.value = fog;
-      mat.uniforms.uFill.value = fill; mat.uniforms.uMist.value = mist; halo.material.opacity = .5 + fill * .4 + Math.sin(t * 1.3) * .05;
+      mat.uniforms.uFill.value = fill; mat.uniforms.uMist.value = mist; halo.material.opacity = .14 + fill * .16 + Math.sin(t * 1.3) * .03;
       if (phase === "done") mat.uniforms.uUseMask.value = Math.max(0, mat.uniforms.uUseMask.value - dt);
     },
     end() {
       mat.uniforms.uUseMask.value = 0; mat.uniforms.uMask.value = null; mat.uniforms.uFog.value = 0; mat.uniforms.uFill.value = 0; mat.uniforms.uMist.value = 1;
-      mat.uniforms.uTint.value.set(0x8b6cff); halo.material.color.set(0x8b6cff); halo.material.opacity = .5;
+      mat.uniforms.uTint.value.set(0x8b6cff); halo.material.color.set(0x8b6cff); halo.material.opacity = .16;
       mask.dispose(); ans.remove(); ui.hud.replaceChildren(); ui.hud.hidden = true;
     },
   };
