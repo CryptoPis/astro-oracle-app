@@ -1,0 +1,86 @@
+# Graphics credits: the oracle chamber
+
+The FULL room (`static/chamber/`) uses these images. Only optimized runtime copies are in the repository (WebP,
+at most 1024 px). They are built by `python -m scripts.chamber_assets` from the sources below and loaded after the
+room's first frames. The originals are not committed.
+
+## The Moon: NASA SVS CGI Moon Kit
+
+- **Source:** "CGI Moon Kit", NASA Scientific Visualization Studio, ID 4720 (released 2019-09-06, page last updated
+  2026-01-09). <https://svs.gsfc.nasa.gov/4720/>
+- **File used:** `lroc_color_poles_1k.jpg` (1024×512, 135.8 KB), the LROC WAC colour mosaic as an equirectangular
+  map. Download: <https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_1k.jpg>
+- **Credit line (as the SVS page asks):** NASA's Scientific Visualization Studio. Visualizer: Ernie Wright (USRA).
+  Scientist: Noah Petro (NASA/GSFC). Data: LRO LROC WAC colour mosaic; LRO LOLA.
+- **License:** the SVS page links NASA's media usage guidelines
+  (<https://www.nasa.gov/nasa-brand-center/images-and-media/>, reached from
+  <https://www.nasa.gov/multimedia/guidelines/index.html>). Checked 2026-10-21, they say:
+  > NASA content – images, audio, video, and media files used in the rendition of 3-dimensional models, such as
+  > texture maps and polygon data in any format – generally are not subject to copyright in the United States. You
+  > may use this material for educational or informational purposes, including photo collections, textbooks, public
+  > exhibits, computer graphical simulations and Internet Web pages.
+
+  > NASA content used in a factual manner that does not imply endorsement may be used without needing explicit
+  > permission. NASA should be acknowledged as the source of the material.
+
+  > If the NASA material is to be used for commercial purposes, including advertisements, it must not explicitly or
+  > implicitly convey NASA's endorsement of commercial goods or services.
+
+  How we comply: the map is a texture map (named explicitly above), it carries no NASA logo, insignia or person,
+  NASA is acknowledged here as the source, and the app does not suggest any NASA endorsement.
+- **Use:** `moon_1024.webp` / `moon_512.webp`, sampled in the moon window's shader on a sphere lit for the real
+  phase of the day.
+
+## The room: the project's own art references
+
+Generated images in the project's art-reference folder (made for this app, kept outside the repository with their
+original generated names). Each was identified by its content, and none contains text, letters, digits or drawn symbols:
+
+| original file (`ChatGPT Image Oct 21, 2026, …`) | content | runtime files |
+|---|---|---|
+| `03_40_46 PM.png` | dark rubble stone wall tile | `stone_*`, `stone_n_*` (walls, pillars) |
+| `03_58_40 PM.png` | aged oak planks | `floor_*`, `floor_n_*` (floor, wainscot) |
+| `04_05_18 PM.png` | crushed indigo velvet | `velvet_*`, `velvet_n_*` (tarot cloth) |
+| `04_06_48 PM.png` (rug A; `04_07_08 PM-1` and `04_07_28 PM-1` are byte-identical copies) | navy/violet rug, gold medallion | `rug_*`, `rug_n_*` (round rug, with a woven border ring added) |
+| `04_02_26 PM.png` | night landscape (mountains, lake, village lights), no frame, no moon | `window_*` (a portrait crop) |
+| `04_03_16 PM.png` | night sky with the Milky Way, no lines | `dome_*` |
+| `03_31_55 PM`, `03_33_18 PM`, `03_59_46 PM` | full-room scenes | none: palette measurement only |
+
+Seam test (wrap-around edge step ÷ average pixel step; 1.00 = seamless), before → after the repair: stone L/R
+1.37 → 1.07, T/B 0.99 → 0.99; oak T/B 1.29 → 1.03, L/R 1.04 → 1.03; velvet L/R 1.43 → 0.81, T/B 1.44 → 0.97.
+Rug A is not tiled (1.03 / 1.10). Normal maps are derived from the albedo. Roughness is derived from the albedo in the
+shader, so it needs no file.
+
+## Runtime files (exact sizes)
+
+| file | pixels | bytes |
+|---|---|---|
+| `dome_1024.webp` | 1024×1024 | 278,336 |
+| `dome_512.webp` | 512×512 | 74,066 |
+| `floor_1024.webp` | 1024×1024 | 265,526 |
+| `floor_512.webp` | 512×512 | 54,266 |
+| `floor_n_1024.webp` | 1024×1024 | 245,238 |
+| `floor_n_512.webp` | 512×512 | 87,552 |
+| `moon_1024.webp` | 1024×512 | 92,502 |
+| `moon_512.webp` | 512×256 | 19,574 |
+| `rug_1024.webp` | 1024×1024 | 395,960 |
+| `rug_512.webp` | 512×512 | 108,628 |
+| `rug_n_1024.webp` | 1024×1024 | 234,066 |
+| `rug_n_512.webp` | 512×512 | 91,238 |
+| `stone_1024.webp` | 1024×1024 | 330,850 |
+| `stone_512.webp` | 512×512 | 81,200 |
+| `stone_n_1024.webp` | 1024×1024 | 341,448 |
+| `stone_n_512.webp` | 512×512 | 121,270 |
+| `velvet_1024.webp` | 1024×1024 | 109,798 |
+| `velvet_512.webp` | 512×512 | 25,938 |
+| `velvet_n_1024.webp` | 1024×1024 | 74,208 |
+| `velvet_n_512.webp` | 512×512 | 26,920 |
+| `window_1024.webp` | 658×941 | 63,658 |
+| `window_512.webp` | 358×512 | 24,478 |
+
+A phone downloads one set: **High 2,431,590 bytes** (11 files, `*_1024`) or **Medium 715,130 bytes** (11 files,
+`*_512`). WebP is already compressed, so gzip saves nothing. LITE downloads none.
+
+## Code
+
+three.js r160 (MIT), vendored in `static/vendor/` with its license (`three-LICENSE.txt`).

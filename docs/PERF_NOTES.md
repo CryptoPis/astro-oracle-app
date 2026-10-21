@@ -152,3 +152,71 @@ Notes
   slowly (average > 45 ms) switches itself to LITE and remembers it.
 - GPU uploads are lazy (an object is uploaded the first time it is drawn), so the memory check warms up every
   station and stage first, then compares.
+
+# Chamber graphics, stage A (2026-10-21, branch `chamber-graphics`)
+
+The FULL room now has a real PBR shell (stone walls and pillars, an oak floor and wainscot, a rug and a velvet cloth:
+albedo + normal map, roughness derived from the albedo in the shader), shadows rendered once, a window plate with
+parallax and the real moon (NASA CGI Moon Kit, lit for the day's phase), a dome plate under a live shimmer (the
+planets and the ecliptic ring stay real meshes), a raised black point (#0b0710) and a haze (#352f35). Lights use the
+palette measured from the references (`scripts/chamber_assets.py`): candle amber #f2a958, moonlight #afb8d1. The
+references' own black point measures #000000 and their haze #14080b, crushed blacks that the raised values lift.
+
+Two graphics levels inside FULL (`static/chamber/full.js`, `GFX`):
+
+| | High | Medium |
+|---|---|---|
+| pixel ratio cap | 1.75 | 1.4 |
+| shadow casters (rendered once) | 2: moon (1024²) + central candle (512² cube) | 1: moon |
+| glow | half-res bloom (2× MSAA scene target, bright pass, 2 blur passes) + glow sprites | glow sprites only |
+| textures | 1024 px set, 2,431,590 bytes | 512 px set, 715,130 bytes |
+
+Choice: frames 10-50 are drawn at High. If their average frame time is over 45 ms the room switches to LITE (as
+before); over 20 ms it goes to Medium; otherwise it stays High. The WebP set for the chosen level is fetched only
+then, after the first paint, and swapped in one texture per frame; procedural textures stand in until it arrives.
+`?gfx=high|medium` forces a level and loads the textures from frame 2.
+
+## Measured
+
+`python -m scripts.chamber_check --perf` on the demo build: 390×844, device pixel ratio 2, **CPU throttled 4×**, real
+GPU (GeForce GT 630 through ANGLE/D3D11, the same machine as the "Oracle chamber" numbers above). "Before" =
+`main` at 1836db5, measured again in the same session.
+
+| | before: FULL | after: FULL High | after: FULL Medium | LITE (unchanged) |
+|---|---|---|---|---|
+| Interactive (page start → room usable) | 3.16 s | 3.54 s | 3.81 s | 2.18 s |
+| of which: the chamber's own boot | 1.11 s | 1.19 s | 1.47 s | 0.18 s |
+| Photographic textures applied, after interactive | none | 0.51 s (1.10 s cold) | 0.01 s (0.26 s cold) | none |
+| FPS, room idle | 60.3 (worst frame 17 ms) | 59.5 (worst 34 ms) | 60.3 (worst 17 ms) | 60.3 (worst 17 ms) |
+| FPS, turning between objects | 60.2 (worst 17 ms) | 56.8 (worst 117 ms) | 60.0 (worst 33 ms) | 60.2 (worst 17 ms) |
+| JS heap before → after 10 more station visits | 12.58 → 12.64 MB (+0.5 %) | 13.11 → 13.16 MB (+0.4 %) | (same engine as High) | 6.93 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 109 / 30 → 109 / 30 | 110 / 39 → 110 / 39 | | none |
+| Draw calls per frame (idle view) | | 1 to the screen (scene into the bloom target) | 34 | |
+| Auto level on this machine | | High (frames 10-50 averaged 16.7 ms) | | |
+
+What the High budget costs, one suspect off at a time (High, textures loaded, same probe):
+
+| experiment | idle FPS | turning FPS |
+|---|---|---|
+| High as first built (4× MSAA scene target) | 48.5 | 47.4 |
+| no bloom at all (direct render, both shadows kept) | 60.3 | 59.2 |
+| no candle shadow | 51.8 | 49.6 |
+| no normal maps | 51.0 | 50.4 |
+| pixel ratio 1.4 | 60.3 | 59.2 |
+| **bloom target 2× MSAA (shipped)** | **60.3** | **56.8** |
+| bloom target without MSAA | 60.3 | 59.2 |
+
+The 4× multisampled full-resolution target was the whole cost. 2× keeps smooth edges at a pixel ratio of 1.75 and
+holds 60 FPS idle. The worst frame while turning (117 ms in High, one frame) is the first time an object's 1024 px
+maps are drawn (GPU uploads are lazy). It also appears with the bloom off.
+
+Notes
+- High grows the download by up to 2.43 MB on capable phones, Medium by 0.72 MB, LITE by nothing. It is fetched after
+  the room is already interactive, so it never delays the first paint.
+- Shadows: `shadowMap.autoUpdate = false`. They are drawn once at boot and again only when the level changes. A
+  level change holds the last frame while the new light set's shaders compile (`compileAsync`).
+- Colour: one patched three.js chunk (`colorspace_fragment`) makes every built-in material write display-ready sRGB
+  with the raised black point. The bloom target therefore holds exactly what the screen shows, so High and Medium
+  match, and the hand-written shaders (flames, the sphere, the stages) needed no change.
+- Screenshots (phone 390×844 @3x): `dist/screens/chamber-graphics/` (`before-*`, `after-high-*`, `after-medium-*`:
+  room, window, astrolabe, dome), made with `python -m scripts.chamber_shots`.

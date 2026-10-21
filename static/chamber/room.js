@@ -1,21 +1,48 @@
-/* Oracle chamber (FULL tier): the room and its ten objects, built procedurally.
-   A decagon of dark stone, a wooden floor with a round rug, a candle chandelier, a star dome above, and one object
-   per practice. Lights: an ambient fill, two flickering candle lights and the moonlight (3 dynamic lights). */
+/* Oracle chamber (FULL tier): the room and its ten objects.
+   A decagon of rubble stone, an oak floor with a round rug, a star dome above, and one object per practice. The shell
+   is PBR (albedo + normal map; roughness derived from the albedo in the shader) from the art references, loaded after
+   the first frames (see upgrade); until then small procedural textures stand in. The window and the dome are
+   pre-rendered plates under live shaders (the real moon phase; the Milky Way shimmer, planets and the ecliptic).
+   Lights: an ambient haze, two flickering candle lights and the moonlight; shadows are rendered once. */
 
 const TAU = Math.PI * 2;
 const WALL = 6 * Math.cos(Math.PI / 10);   // the decagon's flat faces sit at the apothem (5.71 m), not at the 6 m radius
+/* palette measured from the art references (scripts/chamber_assets.py): candle amber, moonlight; the haze and the
+   raised black point (#0b0710, in full.js) lift the references' crushed blacks */
+export const PALETTE = { candle: 0xf2a958, moon: 0xafb8d1, haze: 0x352f35, night: 0x0b0710 };
+
+/* MeshStandardMaterial whose roughness follows the albedo: dark crevices rough, lighter worn tops smoother */
+function pbr(THREE, opts, [lo, hi]) {
+  const m = new THREE.MeshStandardMaterial({ metalness: 0, roughness: hi, ...opts });
+  const f = (v) => v.toFixed(3);
+  m.onBeforeCompile = (s) => { s.fragmentShader = s.fragmentShader.replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+    roughnessFactor = mix(${f(hi)}, ${f(lo)}, smoothstep(0.015, 0.25, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))));`); };
+  m.customProgramCacheKey = () => `rough${lo}-${hi}`;
+  return m;
+}
 
 export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   const T = X.T, scene = new THREE.Scene();
   const night = nightInfo();
-  scene.background = new THREE.Color(0x0d0a24);
-  scene.fog = new THREE.FogExp2(0x0d0a24, .085);
+  scene.background = new THREE.Color(PALETTE.night);
+  scene.fog = new THREE.FogExp2(PALETTE.haze, .045);
 
   const lam = (o) => new THREE.MeshLambertMaterial(o);
   const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
+  /* the shell's tiled textures: [procedural stand-in, repeat]; upgrade() swaps in the photographic set */
+  const rep = (t, x, y) => { const c = t.clone(); c.wrapS = c.wrapT = THREE.RepeatWrapping; c.repeat.set(x, y); c.needsUpdate = true; X.track(c); return c; };
+  const shell = {
+    stone: pbr(THREE, { map: rep(T.stone, 22, 2.6), color: 0xd6cfd8 }, [.72, .95]),
+    pillar: pbr(THREE, { map: rep(T.stone, .6, 2.6), color: 0xb8b0bc }, [.72, .95]),
+    floor: pbr(THREE, { map: rep(T.floor, 10, 10), color: 0xffffff }, [.42, .78]),
+    wains: pbr(THREE, { map: rep(T.floor, 34, .8), color: 0xc8b4a4, side: THREE.BackSide }, [.5, .8]),
+    rug: pbr(THREE, { map: T.rug }, [.86, .98]),
+    velvet: pbr(THREE, { map: T.velvet }, [.62, .95]),
+  };
+  shell.stone.side = THREE.BackSide;
   const mat = {
-    stone: lam({ map: T.stone, color: 0xe4dcff }),
-    floor: lam({ map: T.floor, color: 0xd8c0a8 }),
+    stone: shell.stone,
+    floor: shell.floor,
     wood: lam({ map: T.table, color: 0xe8d0b8 }),
     gold: new THREE.MeshMatcapMaterial({ matcap: T.gold }),
     brass: new THREE.MeshMatcapMaterial({ matcap: T.brass }),
@@ -24,34 +51,38 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     hidden: new THREE.MeshBasicMaterial({ visible: false }),
   };
   const metal = [mat.gold, mat.brass, mat.dark, mat.ceramic];   // matcaps ignore lights: tinted with the candlelight instead
-  T.stone.repeat.set(20, 4);
 
   /* ── shell ── */
+  const receivers = [], casters = [];
   const floor = new THREE.Mesh(new THREE.CircleGeometry(6.2, 10, Math.PI / 10), mat.floor); floor.rotation.x = -Math.PI / 2; scene.add(floor);
-  const rug = new THREE.Mesh(new THREE.CircleGeometry(2.3, 72), lam({ map: T.rug, transparent: true, alphaTest: .4 })); rug.rotation.x = -Math.PI / 2; rug.position.y = .006; scene.add(rug);
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(2.3, 72), shell.rug); rug.rotation.x = -Math.PI / 2; rug.position.y = .006; scene.add(rug);
   const wallGeo = new THREE.CylinderGeometry(6, 6, 4.2, 10, 1, true, Math.PI / 10);
-  const walls = new THREE.Mesh(wallGeo, Object.assign(mat.stone, { side: THREE.BackSide })); walls.position.y = 2.1; scene.add(walls);
-  const wains = new THREE.Mesh(new THREE.CylinderGeometry(5.94, 5.94, .9, 10, 1, true, Math.PI / 10), lam({ map: X.tex(X.T.table.image, { repeat: [20, 1] }), color: 0x9a7a62, side: THREE.BackSide }));
+  const walls = new THREE.Mesh(wallGeo, mat.stone); walls.position.y = 2.1; scene.add(walls);
+  const wains = new THREE.Mesh(new THREE.CylinderGeometry(5.94, 5.94, .9, 10, 1, true, Math.PI / 10), shell.wains);
   wains.position.y = .45; scene.add(wains);
+  receivers.push(floor, rug, walls, wains);
   for (const [y, h] of [[.92, .035], [3.9, .025]]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(5.9, 5.9, h, 10, 1, true, Math.PI / 10), Object.assign(mat.gold.clone(), { side: THREE.BackSide })); b.position.y = y; scene.add(b); metal.push(b.material); }
   // pillars at the corners, between the objects
   const pillarGeo = new THREE.CylinderGeometry(.13, .16, 4.2, 10), capGeo = new THREE.TorusGeometry(.17, .025, 6, 20);
-  for (let i = 0; i < 10; i++) { const a = (i + .5) * STEP, p = new THREE.Mesh(pillarGeo, lam({ map: T.stone, color: 0x8a82a8 }));
-    p.position.set(Math.sin(a) * 5.8, 2.1, -Math.cos(a) * 5.8); scene.add(p);
+  for (let i = 0; i < 10; i++) { const a = (i + .5) * STEP, p = new THREE.Mesh(pillarGeo, shell.pillar);
+    p.position.set(Math.sin(a) * 5.8, 2.1, -Math.cos(a) * 5.8); scene.add(p); casters.push(p); receivers.push(p);
     for (const y of [.95, 4.0]) { const c = new THREE.Mesh(capGeo, mat.gold); c.rotation.x = Math.PI / 2; c.position.set(p.position.x, y, p.position.z); scene.add(c); } }
-  // the star dome
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(6, 64, 20, 0, TAU, 0, Math.PI / 2),
-    new THREE.MeshBasicMaterial({ map: T.dome, side: THREE.BackSide, fog: false, color: 0xd8d0ff }));
+  // the star dome: the night-sky plate seen from below (azimuthal projection, zenith in the middle) under a live shimmer
+  const domeMat = domeMaterial(THREE, F.clock);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(6, 64, 20, 0, TAU, 0, Math.PI / 2), domeMat);
   dome.position.y = 4.2; scene.add(dome);
   scene.add(domeStars(THREE, F.clock, X.rng(91)));
 
   /* ── lights ── */
-  const ambient = new THREE.AmbientLight(0x3a3170, 1.15); scene.add(ambient);
+  const ambient = new THREE.AmbientLight(PALETTE.haze, .85); scene.add(ambient);
   const central = new THREE.PointLight(night.candle, 30, 0, 1.45); central.position.set(0, 3.0, 0); scene.add(central);
   const moonDir = STATIONS.find((s) => s.id === "moon").slot * STEP;
-  const moonLight = new THREE.DirectionalLight(0xa9b8ff, .25 + night.moon * .9);
+  const moonLight = new THREE.DirectionalLight(PALETTE.moon, .35 + night.moon * 1.1);
   moonLight.position.set(Math.sin(moonDir) * 8, 5, -Math.cos(moonDir) * 8); moonLight.target.position.set(0, 0, 0); scene.add(moonLight, moonLight.target);
   moonLight.userData.base = moonLight.intensity;
+  /* shadows: the moon (both graphics levels) and the central candle (High); drawn once, see setShadows */
+  { const s = moonLight.shadow; s.mapSize.set(1024, 1024); Object.assign(s.camera, { left: -6.5, right: 6.5, top: 6.5, bottom: -6.5, near: 1, far: 18 }); s.bias = -.0006; s.normalBias = .02; }
+  { const s = central.shadow; s.mapSize.set(512, 512); s.camera.near = .2; s.camera.far = 9; s.bias = -.002; s.normalBias = .02; }
 
   // candle sconces on the pillars: a brass arm, a dish and a candle; their light is baked into glows on the stone
   const armGeo = new THREE.CylinderGeometry(.012, .012, .26, 6), dishGeo = new THREE.CylinderGeometry(.07, .045, .025, 14);
@@ -88,7 +119,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   // 0 · tarot table: velvet cloth, the deck, a candle, the small box of revealed cards
   { const g = new THREE.Group();
     const top = new THREE.Mesh(new THREE.CylinderGeometry(.62, .62, .05, 40), mat.wood); top.position.y = .8; g.add(top);
-    const cloth = new THREE.Mesh(new THREE.CylinderGeometry(.58, .58, .012, 48), lam({ map: T.velvet })); cloth.position.y = .83; g.add(cloth);
+    const cloth = new THREE.Mesh(new THREE.CylinderGeometry(.58, .58, .012, 48), shell.velvet); cloth.position.y = .83; g.add(cloth);
     g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.07, .11, .78, 12), mat.dark), 0, .39, 0));
     g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.3, .36, .05, 24), mat.dark), 0, .025, 0));
     const side = lam({ color: 0xd8c9a6 }), back = lam({ color: 0x2a2060 });
@@ -114,8 +145,8 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     const shape = new THREE.Shape(); shape.moveTo(-r, 0); shape.lineTo(r, 0); shape.lineTo(r, Hr); shape.absarc(0, Hr, r, 0, Math.PI, false); shape.lineTo(-r, 0);
     const paneGeo = new THREE.ShapeGeometry(shape, 24), pos = paneGeo.attributes.position, uv = paneGeo.attributes.uv;
     for (let i = 0; i < pos.count; i++) uv.setXY(i, (pos.getX(i) + r) / W, pos.getY(i) / (Hr + r));
-    const moon = B.moonNow(), sky = X.nightWindow((moon.age_days || 0) / 29.53, (moon.illumination || 50) / 100);
-    const pane = new THREE.Mesh(paneGeo, new THREE.MeshBasicMaterial({ map: sky, fog: false })); g.add(pane);
+    const moon = B.moonNow();
+    const pane = new THREE.Mesh(paneGeo, windowMaterial(THREE, (moon.age_days || 0) / 29.53, (moon.illumination || 50) / 100, [W, Hr + r])); g.add(pane);
     const fr = mat.dark;
     for (const [w, h, x, y] of [[.06, Hr, -r, Hr / 2], [.06, Hr, r, Hr / 2], [W + .12, .07, 0, 0], [.03, Hr + r, 0, (Hr + r) / 2], [W, .03, 0, Hr * .55]]) {
       const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, .06), fr); b.position.set(x, y, .02); g.add(b); }
@@ -220,6 +251,13 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
     register("gift", g, new THREE.Vector3(0, .3, 0), 1.05, hitBox(.7, .7, .55, .3), { lid, inner, body, stageDist: 1.35, stageRise: .7, stageOff: .02 });
   }
 
+  /* the objects cast and receive the shadows (not the moon window: the moonlight comes through it) */
+  for (const s of stations.values()) if (s.id !== "moon") s.grp.traverse((o) => {
+    const m = o.material; if (!o.isMesh || o === s.hit || !m) return;
+    if (Array.isArray(m) || (m.visible && !m.transparent && m.blending === THREE.NormalBlending)) { o.castShadow = true; casters.push(o); } });
+  for (const s of stations.values()) s.grp.traverse((o) => { if (o.isMesh && o !== s.hit) o.receiveShadow = true; });
+  receivers.forEach((o) => { o.receiveShadow = true; }); casters.forEach((o) => { o.castShadow = true; });
+
   /* the dome as a station (look up, then touch it) */
   const domeHit = new THREE.Mesh(new THREE.SphereGeometry(5.6, 16, 6, 0, TAU, 0, Math.PI / 2.4), Object.assign(mat.hidden.clone(), { side: THREE.BackSide }));
   domeHit.position.y = 4.2; domeHit.userData.station = "horo"; scene.add(domeHit);
@@ -259,8 +297,41 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
   const flick = (t, s) => .82 + Math.sin(t * 7.1 + s) * .06 + Math.sin(t * 13.3 + s * 3) * .05 + Math.sin(t * 2.3 + s * 5) * .07;
   const tint = new THREE.Color();
   let busy = 0, busyBook = false;
+  /* ── graphics levels: shadows (rendered once) and the photographic textures, loaded after the first frames ── */
+  function setShadows(level) {   // "high": moon + central candle; "medium": the moon only
+    moonLight.castShadow = true;
+    const want = level === "high";
+    if (central.castShadow !== want) { central.castShadow = want; if (!want && central.shadow.map) { central.shadow.map.dispose(); central.shadow.map = null; } }
+  }
+  const queue = [], fades = [];
+  const pane = stations.get("moon").pane.material;
+  function upgrade(size) {   // resolves (with the failures, if any) when every image is applied; one swap per frame
+    const swap = (p, apply) => p.then((t) => new Promise((done) => queue.push(() => { apply(t); done(); })));
+    const fit = (t, like) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.copy(like.repeat); return t; };
+    // a tiled set (albedo + normal) shared by several materials, each keeping its own repeat (clones share one upload)
+    const tile = (name, scale, ...mats) => [
+      swap(X.load(`${name}_${size}`, { srgb: true }), (t) => mats.forEach((m, i) => {
+        const c = fit(i ? X.track(t.clone()) : t, m.map); X.release(m.map); m.map = c; m.needsUpdate = true; })),
+      swap(X.load(`${name}_n_${size}`, { srgb: false }), (t) => mats.forEach((m, i) => {
+        m.normalMap = fit(i ? X.track(t.clone()) : t, m.map); m.normalScale.set(scale, scale); m.needsUpdate = true; })),
+    ];
+    // a plate under a shader: raw colour (the shaders write display colour), faded in
+    const plate = (name, u, fade) => swap(X.load(`${name}_${size}`, { srgb: false }), (t) => {
+      if (name === "moon") t.wrapS = THREE.RepeatWrapping; u.value = t; fades.push(fade); });
+    const jobs = [
+      ...tile("stone", 1, shell.stone, shell.pillar), ...tile("floor", .8, shell.floor, shell.wains),
+      ...tile("rug", .8, shell.rug), ...tile("velvet", .6, shell.velvet),
+      plate("window", pane.uniforms.tView, pane.uniforms.uMix), plate("moon", pane.uniforms.tMoon, pane.uniforms.uMoonMix),
+      plate("dome", domeMat.uniforms.tSky, domeMat.uniforms.uMix),
+    ];
+    return Promise.allSettled(jobs).then((r) => r.filter((x) => x.status === "rejected").map((x) => String(x.reason)));
+  }
+
   function update(t, dt, camera) {
     F.clock.value = t;
+    if (queue.length) queue.shift()();
+    for (let i = fades.length - 1; i >= 0; i--) { const u = fades[i]; u.value = Math.min(1, u.value + dt * 1.6); if (u.value >= 1) fades.splice(i, 1); }
+    { const st = stations.get("moon"); st.grp.worldToLocal(pane.uniforms.uCam.value.copy(camera.position)); }
     const k = flick(t, 0), kf = flick(t * (1 + busy * .9), 2.1) * (1 + busy * .35);
     central.intensity = 30 * k * (birthday ? 1.25 : 1); flameLight.intensity = 4 * kf;
     tint.setRGB(.75 + k * .3, .7 + k * .28, .68 + k * .25); for (const m of metal) m.color.copy(tint);
@@ -295,7 +366,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS }) {
       if (p.retro) { const r = F.glow(T.glow, 0xff5a6a, big * 1.9, .35); r.position.copy(g.position); skyGroup.add(r); } }
   }
 
-  return { scene, stations, update, central, flameLight, moonLight, ambient, birthday, night, engr, setSky, skyAt,
+  return { scene, stations, update, central, flameLight, moonLight, ambient, birthday, night, engr, setSky, skyAt, setShadows, upgrade, shell,
     setBusy(on, path) { busy = on ? 1 : 0; busyBook = !!(on && path && path.startsWith("/api/dreams")); }, react, mat };
 }
 
@@ -319,10 +390,58 @@ function domeStars(THREE, clock, r) {
 /* candlelight warmer at night, cooler towards dawn (local time); moonlight stronger at night */
 function nightInfo() {
   const h = new Date().getHours() + new Date().getMinutes() / 60;
-  if (h >= 21 || h < 4.5) return { candle: 0xffa860, moon: 1, phase: "night" };
-  if (h < 8) return { candle: 0xffd2a8, moon: .6, phase: "dawn" };
-  if (h < 18) return { candle: 0xffe0bc, moon: .25, phase: "day" };
-  return { candle: 0xffb978, moon: .7, phase: "evening" };
+  if (h >= 21 || h < 4.5) return { candle: PALETTE.candle, moon: 1, phase: "night" };
+  if (h < 8) return { candle: 0xf8cc98, moon: .6, phase: "dawn" };
+  if (h < 18) return { candle: 0xfad8ae, moon: .25, phase: "day" };
+  return { candle: 0xf4b066, moon: .7, phase: "evening" };
+}
+
+/* the dome: the night-sky plate in an azimuthal projection (the zenith in the middle, the horizon on the inscribed
+   circle) under a live shimmer along its Milky Way; its brightest stars twinkle. Before the plate arrives a gradient
+   and the shimmer stand alone. The planets and the ecliptic ring are real meshes on top (setSky). */
+function domeMaterial(THREE, clock) {
+  return new THREE.ShaderMaterial({ side: THREE.BackSide,
+    uniforms: { uTime: clock, tSky: { value: null }, uMix: { value: 0 } },
+    vertexShader: "varying vec3 vDir; void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: `uniform sampler2D tSky; uniform float uMix, uTime; varying vec3 vDir;
+      float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      void main() { vec3 d = normalize(vDir); float th = acos(clamp(d.y, 0.0, 1.0)) / 1.5707963;
+        vec2 uv = 0.5 + d.xz / max(1e-4, length(d.xz)) * th * 0.5;
+        vec3 sky = texture2D(tSky, uv).rgb;
+        vec3 col = mix(mix(vec3(0.043, 0.031, 0.125), vec3(0.11, 0.078, 0.26), th), sky * vec3(0.9, 0.88, 1.0), uMix);
+        float b = dot(d, vec3(-0.7071, 0.0, -0.7071)), band = exp(-b * b / 0.035);   // the plate's band runs corner to corner
+        float m = n(uv * 7.0 + vec2(uTime * 0.012, -uTime * 0.008)) * 0.6 + n(uv * 19.0 - uTime * 0.02) * 0.4;
+        col += vec3(0.62, 0.5, 0.85) * band * m * mix(0.16, 0.07, uMix);
+        vec3 star = max(sky - texture2D(tSky, uv, 3.0).rgb, 0.0);   // brighter than its surroundings: a star, not the band
+        col += star * 0.6 * sin(uTime * 1.3 + h(floor(uv * 1024.0)) * 40.0) * uMix;
+        col *= mix(0.75, 1.0, smoothstep(1.0, 0.72, th));   // deeper towards the rim, where the dome meets the walls
+        gl_FragColor = vec4(col, 1.0); }`,
+  });
+}
+/* the moon window: the landscape plate with a gentle parallax (it is far away: it slides a little against the frame)
+   and the real moon, NASA's colour map on a sphere lit for today's phase (p = age / 29.53: 0 new, .5 full).
+   size = the pane in metres; uCam = the camera in the window's own space (set every frame) */
+function windowMaterial(THREE, p, illum, [w, h]) {
+  return new THREE.ShaderMaterial({
+    uniforms: { tView: { value: null }, tMoon: { value: null }, uMix: { value: 0 }, uMoonMix: { value: 0 }, uCam: { value: new THREE.Vector3(0, 1, 3) },
+      uAspect: { value: w / h }, uSun: { value: new THREE.Vector3(Math.sin(p * TAU), 0, -Math.cos(p * TAU)) }, uIllum: { value: illum } },
+    vertexShader: "varying vec2 vUv; varying vec3 vP; void main() { vUv = uv; vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+    fragmentShader: `uniform sampler2D tView, tMoon; uniform float uMix, uMoonMix, uIllum, uAspect; uniform vec3 uCam, uSun; varying vec2 vUv; varying vec3 vP;
+      void main() { vec3 v = normalize(vP - uCam);
+        vec2 par = clamp(v.xy / max(0.3, -v.z), -1.2, 1.2) * vec2(0.05, 0.03);
+        vec2 sc = vec2(0.8, 0.8 * 0.7 / uAspect);   // the plate is 0.7 wide per 1 high: fill the pane without stretching
+        vec2 uv = 0.5 + (vUv - 0.5) * sc + par;
+        vec3 col = mix(mix(vec3(0.1, 0.125, 0.31), vec3(0.04, 0.063, 0.19), vUv.y), texture2D(tView, uv).rgb, uMix);
+        vec2 q = (uv - vec2(0.66, 0.84)) * vec2(0.7, 1.0) / 0.05; float d = length(q);
+        if (d < 1.0) { vec3 nr = vec3(q, sqrt(1.0 - d * d));
+          vec2 mu = vec2(0.5 + atan(nr.x, nr.z) / 6.2831853, 0.5 + asin(nr.y) / 3.1415927);
+          vec3 alb = mix(vec3(0.78, 0.78, 0.8), texture2D(tMoon, mu).rgb, uMoonMix);
+          vec3 mc = alb * (smoothstep(-0.03, 0.12, dot(nr, uSun)) * 1.25 + 0.035);
+          col = mix(col, mc, smoothstep(1.0, 0.95, d)); }
+        else col += vec3(0.7, 0.76, 1.0) * uIllum * 0.16 * exp(-(d - 1.0) * 1.6);
+        gl_FragColor = vec4(col, 1.0); }`,
+  });
 }
 
 /* the crystal ball: glass with a gold rim, a slow inner mist; uTint/uFill colour it; uMist hides the depths */

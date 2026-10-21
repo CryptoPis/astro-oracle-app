@@ -12,16 +12,56 @@ export function ease(x) {
   return 3 * ay * t * (1 - t) ** 2 + 3 * by * t * t * (1 - t) + t ** 3;
 }
 
+/* Graphics levels inside FULL. High: pixel ratio up to 1.75, shadows from the moon and the central candle, half-res
+   bloom, 1024 px textures. Medium: up to 1.4, the moon's shadow only, glow sprites instead of bloom, 512 px textures.
+   The level is chosen from the frame times of frames 10-50 (drawn at High); a room too slow even for that switches to
+   LITE (ctx.onSlow). ?gfx=high|medium forces a level. */
+export const GFX = { high: { dpr: 1.75, tex: 1024, bloom: true }, medium: { dpr: 1.4, tex: 512, bloom: false } };
+const HIGH_MAX_MS = 20, LITE_MS = 45;   // average frame time over frames 10-50 (drawn before the 1024 px set: keep headroom)
+
+/* the colour finish, one line for every built-in material: write display-ready sRGB (also into the bloom's target,
+   so High and Medium look alike) and raise the black point to the palette's night (#0b0710) */
+function colourFinish(THREE) {
+  if (THREE.ShaderChunk.colorspace_fragment.includes("CH_FINISH")) return;
+  THREE.ShaderChunk.colorspace_fragment = "/* CH_FINISH */ gl_FragColor = sRGBTransferOETF( gl_FragColor );"
+    + " gl_FragColor.rgb = vec3(0.0431, 0.0275, 0.0627) + gl_FragColor.rgb * vec3(0.9569, 0.9725, 0.9373);";
+}
+
 export async function createFull(THREE, B, ctx, mods) {
   const { STATIONS, STEP } = ctx;
-  const host = ctx.host, dpr = Math.min(devicePixelRatio || 1, 1.75);
-  const renderer = new THREE.WebGLRenderer({ antialias: dpr < 1.5, powerPreference: "high-performance", stencil: false });
-  renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight);
+  let forcedGfx = null; try { forcedGfx = new URLSearchParams(location.search).get("gfx"); } catch {}
+  if (!GFX[forcedGfx]) forcedGfx = null;
+  let gfx = forcedGfx || "high";
+  const host = ctx.host, dprOf = (level) => Math.min(devicePixelRatio || 1, GFX[level].dpr);
+  colourFinish(THREE);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", stencil: false });
+  renderer.outputColorSpace = THREE.LinearSRGBColorSpace;   // the encoding happens in the colour finish
+  renderer.setPixelRatio(dprOf(gfx)); renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = false;
   const cv = renderer.domElement; cv.className = "ch-gl"; cv.setAttribute("aria-hidden", "true"); host.append(cv);
 
   const X = mods.tex.makeTextures(THREE, B), F = mods.fx.makeFx(THREE, X);
   const room = mods.room.buildRoom(THREE, B, X, F, { STEP, STATIONS });
   const scene = room.scene;
+  room.setShadows(gfx); renderer.shadowMap.needsUpdate = true;
+  let post = GFX[gfx].bloom && renderer.capabilities.isWebGL2 ? mods.post.makePost(THREE, renderer) : null;
+  let texSize = 0, texDone = null, compiling = false;
+  const texReady = new Promise((r) => { texDone = r; });
+  function loadTextures() {   // once, at the level's size, after the first frames
+    if (texSize) return; texSize = GFX[gfx].tex;
+    room.upgrade(texSize).then((failed) => { if (failed.length) console.warn("chamber textures", failed); texDone({ size: texSize, failed }); kick(); });
+  }
+  async function setGfx(level) {
+    if (level === gfx || !GFX[level]) return; gfx = level;
+    compiling = true;   // hold the last frame while the shaders for the new light set compile
+    renderer.setPixelRatio(dprOf(level)); renderer.setSize(innerWidth, innerHeight);
+    if (post && !GFX[level].bloom) { post.dispose(); post = null; }
+    else if (!post && GFX[level].bloom && renderer.capabilities.isWebGL2) post = mods.post.makePost(THREE, renderer);
+    if (post) post.setSize(...renderer.getDrawingBufferSize(new THREE.Vector2()).toArray());
+    room.setShadows(level); renderer.shadowMap.needsUpdate = true;
+    try { await Promise.race([renderer.compileAsync(scene, camera), new Promise((r) => setTimeout(r, 2500))]); } catch {}
+    compiling = false; kick();
+  }
   const camera = new THREE.PerspectiveCamera(66, innerWidth / innerHeight, .05, 40);
   const EYE = 1.45;
 
@@ -113,19 +153,28 @@ export async function createFull(THREE, B, ctx, mods) {
     if (orbTo) { orb.position.lerp(orbTo, 1 - Math.exp(-dt * 2.4)); orb.material.opacity += (.9 - orb.material.opacity) * k; orbCore.material.opacity = orb.material.opacity; }
     else if (orb.material.opacity > .001) { orb.material.opacity *= 1 - k; orbCore.material.opacity = orb.material.opacity; }
     const t = (now - t0) / 1000; room.update(t, dt, camera); if (stage && stage.update) stage.update(t, dt);
-    renderer.render(scene, camera);
-    frames++; if (frames === 2) ctx._ready();
-    if (frames > 10 && frames <= 50) { slowSum += dt; if (frames === 50 && slowSum / 40 > .045 && !ctx.forced) ctx.onSlow(); }
+    if (compiling) { raf = requestAnimationFrame(frame); return; }
+    if (post) post.render(scene, camera); else renderer.render(scene, camera);
+    frames++; if (frames === 2) { ctx._ready(); if (forcedGfx) loadTextures(); }   // a forced level needs no measuring
+    if (frames > 10 && frames <= 50) { slowSum += dt; if (frames === 50) decide(slowSum / 40 * 1000); }
     const moving = Math.abs(nav.yawT - nav.yaw) > 1e-4 || Math.abs(nav.pitchT - nav.pitch) > 1e-4 || focus || ptr;
     settled = moving ? 0 : settled + 1;
     raf = requestAnimationFrame(frame);   // the room is alive (candles, dust): keep drawing while visible and uncovered
+  }
+  let measured = null;
+  function decide(avgMs) {   // after frames 10-50: keep High, step down to Medium, or leave for LITE
+    measured = Math.round(avgMs * 10) / 10;
+    if (avgMs > LITE_MS && !ctx.forced) { ctx.onSlow(); return; }
+    if (!forcedGfx && gfx === "high" && avgMs > HIGH_MAX_MS) setGfx("medium").then(loadTextures);
+    else loadTextures();
   }
   let offW = 0;
   function applyOffset() { const w = innerWidth, h = innerHeight;
     if (Math.abs(pose.off) < .001) { if (camera.view && camera.view.enabled) camera.clearViewOffset(); }
     else camera.setViewOffset(w, h, 0, pose.off * h, w, h);
     if (offW !== w) { offW = w; } }
-  function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); kick(); }
+  function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    if (post) post.setSize(...renderer.getDrawingBufferSize(new THREE.Vector2()).toArray()); kick(); }
   addEventListener("resize", resize);
   const vis = () => { if (!document.hidden) kick(); }; document.addEventListener("visibilitychange", vis);
   cv.addEventListener("webglcontextlost", (e) => { e.preventDefault(); ctx.onLost && ctx.onLost(); });
@@ -138,6 +187,7 @@ export async function createFull(THREE, B, ctx, mods) {
 
   const api = {
     tier: "full", canvas: cv, room, THREE, F, X, camera, scene, renderer,
+    get gfx() { return gfx; }, get gfxMeasuredMs() { return measured; }, texReady, setGfx,
     index, get up() { return nav.up; },
     turnTo(i) { if (focused) return; nav.up = false; nav.pitchT = -.1; const cur = nav.yawT; let target = i * STEP; while (target - cur > Math.PI) target -= TAU; while (cur - target > Math.PI) target += TAU; nav.yawT = target; kick(); ctx.onTurned(((i % 10) + 10) % 10); },
     step(d) { api.turnTo(index() + d); },
@@ -179,6 +229,7 @@ export async function createFull(THREE, B, ctx, mods) {
       removeEventListener("resize", resize); document.removeEventListener("visibilitychange", vis); removeEventListener("deviceorientation", winTilt);
       try { if (tgo && tgo.stop) { tgo.stop(); B.tg.offEvent("deviceOrientationChanged", tgTilt); } } catch {}
       scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach((x) => { for (const v of Object.values(x)) if (v && v.isTexture) v.dispose(); x.dispose(); }); });
+      if (post) post.dispose(); post = null;
       X.dispose(); renderer.dispose(); try { renderer.forceContextLoss(); } catch {} cv.remove();
     },
   };

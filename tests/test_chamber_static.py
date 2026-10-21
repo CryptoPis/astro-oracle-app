@@ -67,3 +67,26 @@ def test_three_is_vendored_and_pinned():
     assert (ROOT / "static" / "vendor" / "three-0.160.0.module.min.js").stat().st_size > 500_000
     assert "three-0.160.0.module.min.js" in (CH / "main.js").read_text(encoding="utf-8")
     assert (ROOT / "static" / "vendor" / "three-LICENSE.txt").exists()
+
+
+def test_chamber_images_are_small_webp_copies_with_credits():
+    """Runtime images only (no originals): WebP, at most 1024 px, a 512 px copy for Medium, NASA credited."""
+    from PIL import Image
+    img = CH / "img"
+    files = sorted(img.iterdir())
+    assert files and all(f.suffix == ".webp" for f in files), [f.name for f in files if f.suffix != ".webp"]
+    for f in files:
+        with Image.open(f) as im:
+            assert im.format == "WEBP" and max(im.size) <= 1024, (f.name, im.format, im.size)
+    names = {f.name for f in files}
+    for base in ("stone", "stone_n", "floor", "floor_n", "velvet", "velvet_n", "rug", "rug_n", "window", "dome", "moon"):
+        assert {f"{base}_1024.webp", f"{base}_512.webp"} <= names, base
+    credits = (ROOT / "docs" / "CREDITS_GRAPHICS.md").read_text(encoding="utf-8")
+    assert "svs.gsfc.nasa.gov/4720" in credits and "NASA's Scientific Visualization Studio" in credits
+
+
+def test_chamber_loads_its_images_lazily():
+    """The room starts with procedural stand-ins; the WebP set is fetched only after the first frames."""
+    full = (CH / "full.js").read_text(encoding="utf-8")
+    assert "loadTextures()" in full and "frames === 2" in full and "frames === 50" in full
+    assert ".webp" not in (CH / "room.js").read_text(encoding="utf-8")   # only tex.js builds image URLs
