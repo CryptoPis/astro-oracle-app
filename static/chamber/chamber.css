@@ -237,6 +237,9 @@ html:has(#scroller.ch-open) .ch-hud-foot, html:has(#scroller.ch-open) .ch-answer
 /* ── moon ritual, coffee symbols, the book, the flame's voice ── */
 .ch-moon { display: grid; gap: 6px; max-width: 360px; padding: 12px 16px; border-radius: 16px; text-align: center; background: rgba(13,10,36,.7); border: 1px solid rgba(170,190,255,.3); }
 .ch-moon b { font: 600 1.1rem var(--oracle); color: #dfe6ff; }
+.ch-foot-col { flex-direction: column; align-items: center; gap: 10px; }
+.ch-foot-col .ch-moon { padding: 9px 14px; gap: 3px; background: rgba(13,10,36,.78); }
+.ch-foot-col .ch-lore { font-size: .9rem; line-height: 1.38; }
 .ch-lore { margin: 0; font: italic 500 1rem/1.45 var(--oracle); color: var(--mist); }
 .ch-moon small { font-size: .72rem; color: var(--haze); }
 .ch-step { display: grid; gap: 10px; justify-items: center; max-width: 380px; padding: 14px 16px; border-radius: 16px; text-align: center;

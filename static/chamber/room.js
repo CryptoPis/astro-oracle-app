@@ -135,7 +135,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   // 2 · the moon window (shell.js builds it): the glass shows the landscape and the real moon; three candles on the sill
   { const g = shell.win, moon = B.moonNow();
     const pane = new THREE.Mesh(shell.paneGeo, windowMaterial(THREE, (moon.age_days || 0) / 29.53, (moon.illumination || 50) / 100, shell.paneGeo.userData.size)); g.add(pane);
-    register("moon", g, new THREE.Vector3(0, 1.15, 0), 2.9, hitBox(1.8, 2.7, .6, 1.25), { ritual: shell.ritual, pane, stageDist: .85, stageRise: .02, stageOff: .1 });
+    register("moon", g, new THREE.Vector3(0, 1.15, 0), 2.9, hitBox(1.8, 2.7, .6, 1.25), { ritual: shell.ritual, pane, stageDist: 1.12, stageRise: .02, stageOff: .13 });
     const from = toward(WALL - .3, 2.5), to = toward(1.6, 0);
     scene.add(F.beam(from, to, 1.1, 0xb0c0ff, .04 + night.moon * .06));
     const mid = from.clone().lerp(to, .5), box = new THREE.Box3(new THREE.Vector3(mid.x - 1.1, .2, mid.z - 1.1), new THREE.Vector3(mid.x + 1.1, 2.6, mid.z + 1.1));
@@ -467,7 +467,7 @@ function windowMaterial(THREE, p, illum, [w, h]) {
   return new THREE.ShaderMaterial({
     uniforms: { tView: { value: null }, tMoon: { value: null }, uMix: { value: 0 }, uMoonMix: { value: 0 }, uCam: { value: new THREE.Vector3(0, 1, 3) },
       uAspect: { value: w / h }, uSun: { value: new THREE.Vector3(Math.sin(p * TAU), 0, -Math.cos(p * TAU)) }, uIllum: { value: illum },
-      uMoonUv: { value: new THREE.Vector2(.745, .6) } },   // in the right-hand light, below the tracery
+      uMoonUv: { value: new THREE.Vector2(.355, 1.56) } },   // the moon's centre in the pane's metres: the middle of the upper right lancet
     vertexShader: "varying vec2 vUv; varying vec3 vP; void main() { vUv = uv; vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
     fragmentShader: `uniform sampler2D tView, tMoon; uniform float uMix, uMoonMix, uIllum, uAspect; uniform vec3 uCam, uSun; uniform vec2 uMoonUv; varying vec2 vUv; varying vec3 vP;
       void main() { vec3 v = normalize(vP - uCam);
@@ -475,13 +475,19 @@ function windowMaterial(THREE, p, illum, [w, h]) {
         vec2 sc = vec2(0.8, 0.8 * 0.7 / uAspect);   // the plate is 0.7 wide per 1 high: fill the pane without stretching
         vec2 uv = 0.5 + (vUv - 0.5) * sc + par;
         vec3 col = mix(mix(vec3(0.1, 0.125, 0.31), vec3(0.04, 0.063, 0.19), vUv.y), texture2D(tView, uv).rgb, uMix);
-        vec2 q = (uv - (0.5 + (uMoonUv - 0.5) * sc)) * vec2(0.7, 1.0) / 0.084; float d = length(q);
+        /* the moon: placed in the pane's own metres, in the middle of the upper right lancet (so it always sits inside
+           the glass, behind the tracery, never across a bar); a smaller parallax than the landscape (it is farther) */
+        vec2 q = (vP.xy - uMoonUv + par * 0.4 * vec2(1.4, 2.4)) / 0.15; float d = length(q);
+        float halo = exp(-max(d - 1.0, 0.0) * 1.6) * (1.0 - smoothstep(0.0, 1.0, 1.0 - d));   // outside the disc only
+        col += vec3(0.62, 0.68, 0.95) * (0.14 + uIllum * 0.3) * halo + vec3(0.5, 0.56, 0.85) * (0.03 + uIllum * 0.05) * exp(-max(d - 1.0, 0.0) * 0.35);   // a soft halo, a wide faint glow
         if (d < 1.0) { vec3 nr = vec3(q, sqrt(1.0 - d * d));
           vec2 mu = vec2(0.5 + atan(nr.x, nr.z) / 6.2831853, 0.5 + asin(nr.y) / 3.1415927);
           vec3 alb = mix(vec3(0.78, 0.78, 0.8), texture2D(tMoon, mu).rgb, uMoonMix);
-          vec3 mc = alb * (smoothstep(-0.03, 0.12, dot(nr, uSun)) * 1.7 + 0.05);
-          col = mix(col, mc, (1.0 - smoothstep(0.95, 1.0, d))); }
-        else col += vec3(0.7, 0.76, 1.0) * (0.12 + uIllum * 0.3) * exp(-(d - 1.0) * 1.1);   // a soft halo
+          float lit = smoothstep(-0.06, 0.16, dot(nr, uSun));                        // a soft terminator
+          vec3 mc = alb * (lit * (0.62 + 0.38 * nr.z) * 1.15 + 0.035) * vec3(1.0, 0.98, 0.94);   // limb darkening, a little warm
+          mc += vec3(0.5, 0.56, 0.85) * 0.06;                                           // seen through the haze
+          mc = mc / (1.0 + mc * 0.35);                                                  // never a flat white disc
+          col = mix(col, mc, 1.0 - smoothstep(0.9, 1.0, d)); }
         // the glass: a faint warm reflection of the room's candles, stronger at a grazing look, and one soft streak
         float fres = pow(1.0 - clamp(-v.z, 0.0, 1.0), 3.0);
         float streak = (1.0 - smoothstep(0.0, 0.06, abs(vUv.x * 0.9 + vUv.y * 0.45 - 0.62))) * 0.5 + (1.0 - smoothstep(0.0, 0.025, abs(vUv.x * 0.9 + vUv.y * 0.45 - 0.74))) * 0.35;

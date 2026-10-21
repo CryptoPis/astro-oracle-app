@@ -16,7 +16,7 @@ const N = 11;                                          // light points: ten cand
 /* uniforms shared by every shell material: the light points (xyz world, w intensity), their colour, the window */
 export function makeSconceUniforms(THREE) {
   return { uSc: { value: Array.from({ length: N }, () => new THREE.Vector4()) }, uScCol: { value: new THREE.Color(0xf2a958) },
-    uWin: { value: new THREE.Vector4() }, uStreak: { value: 1 } };
+    uWin: { value: new THREE.Vector4() }, uStreak: { value: 1 }, uWax: { value: 1 } };
 }
 
 const MACRO = {
@@ -51,7 +51,7 @@ const MACRO = {
 
 /* a MeshStandardMaterial for the shell: roughness from the albedo (lo..hi), the macro variation, the light points'
    pools, (vary) a per-instance texture offset and rotation from the attribute aVar, (streaks) the floor's reflections */
-export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = false, streaks = false, ...opts }) {
+export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = false, streaks = false, wax = false, ...opts }) {
   const m = new THREE.MeshStandardMaterial({ metalness: 0, roughness: rough[1], ...opts });
   const uRough = { value: new THREE.Vector2(rough[0], rough[1]) };
   m.onBeforeCompile = (sh) => {
@@ -74,7 +74,7 @@ export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = fa
         #endif
       }`);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>
-      varying vec3 vWPos; varying vec2 vRawUv; uniform vec4 uSc[${N}]; uniform vec3 uScCol; uniform vec2 uRough; uniform vec4 uWin; uniform float uStreak;
+      varying vec3 vWPos; varying vec2 vRawUv; uniform vec4 uSc[${N}]; uniform vec3 uScCol; uniform vec2 uRough; uniform vec4 uWin; uniform float uStreak, uWax;
       float chGold = 0.0;
       float chH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float chN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -84,6 +84,9 @@ export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = fa
       .replace("#include <map_fragment>", `#include <map_fragment>
       float chRough = 1.0; diffuseColor.rgb *= chMacro(vWPos, chRough);
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.83, 0.62, 0.28), chGold);`)
+      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>${wax ? `
+      // wax glow: the flame lights the soft top of the candle from inside (the lathe's v runs up the side to the top)
+      totalEmissiveRadiance += vec3(1.0, 0.56, 0.22) * smoothstep(0.62, 0.97, vRawUv.y) * 0.55 * uWax;` : ""}`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
       roughnessFactor = clamp(mix(uRough.y, uRough.x, smoothstep(0.015, 0.25, dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722)))) * chRough, 0.05, 1.0);`)
       .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\n      metalnessFactor = max(metalnessFactor, chGold * 0.75);")
@@ -105,7 +108,7 @@ export function surface(THREE, SC, { macro = "none", rough = [.6, .9], vary = fa
           reflectedLight.directSpecular += sp * uStreak * 0.3 * (1.0 - roughnessFactor * 0.7); }   // wider streaks carry more light: a lower gain keeps the total` : ""}
       }`);
   };
-  m.customProgramCacheKey = () => `ch-${macro}-${vary}-${streaks}`;   // few programs: each one costs compile time at boot
+  m.customProgramCacheKey = () => `ch-${macro}-${vary}-${streaks}-${wax}`;   // few programs: each one costs compile time at boot
   return m;
 }
 
@@ -267,7 +270,7 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
     rug: surface(THREE, SC, { map: T.rug, bumpMap: T.rug, bumpScale: 2, color: 0xffffff, macro: "none", rough: [.86, .98] }),
     velvet: surface(THREE, SC, { map: T.velvet, bumpMap: T.velvet, bumpScale: 1.5, macro: "none", rough: [.62, .95] }),
     drape: surface(THREE, SC, { map: T.velvet, bumpMap: T.velvet, bumpScale: 1.5, color: 0xd8d0ff, macro: "cloth", rough: [.55, .95], vary: true }),
-    wax: surface(THREE, SC, { color: 0xeadcc0, emissive: 0x2a1406, macro: "none", rough: [.45, .6] }),
+    wax: surface(THREE, SC, { color: 0xeadcc0, emissive: 0x2a1406, macro: "none", rough: [.45, .6], wax: true }),
     gold: new THREE.MeshStandardMaterial({ color: 0xd4a84f, metalness: .8, roughness: .35, envMap: env.texture, envMapIntensity: 1.3 }),
     // the dome's gold: no candle reaches up there, so it carries a faint warm light of its own (the candles from below)
     domeGold: new THREE.MeshStandardMaterial({ color: 0xeedcae, metalness: .9, roughness: .3, envMap: env.texture, envMapIntensity: 6.5, emissive: 0x1e1406 }),   // pale: the warm room it reflects brings it to the palette gold   // the palette's gold; a trace of warmth so it never goes black
@@ -390,7 +393,6 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
      offset and rotation (aVar), so the tile never lines up; gold borders from the shader ── */
   const drapeAt = [];
   for (let k = 0; k < 10; k++) { if (k === moonSlot) continue; for (const s of [-1, 1]) drapeAt.push([k, s * (FW / 2 - .5), .62]); }
-  drapeAt.push([moonSlot, -1.2, .72], [moonSlot, 1.2, .72]);
   { const g = drapeGeometry(THREE, 1, 3.86), aVar = [], rnd = X.rng(17);
     const im = new THREE.InstancedMesh(g, mats.drape, drapeAt.length);
     drapeAt.forEach(([k, x, w], i) => { im.setMatrixAt(i, faceM(k * STEP).multiply(new THREE.Matrix4().makeTranslation(x, 0, 0)).multiply(new THREE.Matrix4().makeScale(w, 1, 1)));
@@ -453,6 +455,25 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
     const cg = new THREE.ExtrudeGeometry(prof, { depth: .14, bevelEnabled: true, bevelThickness: .01, bevelSize: .01, bevelSegments: 1 }).rotateY(-Math.PI / 2).translate(.07, -.12, 0);
     scaleUV(cg, 1 / TILE.stone, 1 / TILE.stone);
     for (const x of [-W.hw - .1, W.hw + .1]) { const c = new THREE.Mesh(cg, mats.reveal); c.position.x = x; win.add(c); } }
+  /* curtains at the window: violet velvet from a gold rod above the arch to the floor, gathered to each side by a gold
+     tie-back at sill height; the folds deepen where the cloth is gathered, the gold border runs down the inner edge */
+  { const H = 3.62, w = .7, tb = .37, X0 = W.hw + .34, g = new THREE.PlaneGeometry(w, H, 36, 44), p = g.attributes.position, uv = g.attributes.uv;
+    const ss = (a, b, v) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+    for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + w / 2) / w, t = (p.getY(i) + H / 2) / H;   // u: 0 inner edge .. 1 wall side; t: 0 floor .. 1 rod
+      const gather = t > tb ? .3 + .7 * ss(tb, 1, t) ** .9 : .3 + .38 * ss(tb, 0, t);                 // the width kept at this height
+      const x = -(1 - u) * w * gather, fold = .3 + .7 * (1 - gather);
+      const z = .36 + Math.sin(u * Math.PI * 9 + t * 1.3) * .03 * fold + Math.sin(u * Math.PI * 21 + 2) * .008 * fold + (1 - u) * .05 * (1 - gather);
+      uv.setXY(i, u * w * (1.2 + fold) / TILE.velvet, t * H / TILE.velvet);
+      p.setXYZ(i, x, t * H - 1.0 - .01, z); }
+    g.computeVertexNormals();
+    const mat = surface(THREE, SC, { map: T.velvet, bumpMap: T.velvet, bumpScale: 1.5, color: 0xf2eaff, emissive: 0x0d0818, macro: "cloth", rough: [.5, .92] });   // a little lifted: they frame the moon window
+    sets.velvet.push(mat);
+    for (const side of [-1, 1]) { const m = new THREE.Mesh(g, mat); m.position.x = side * X0; m.scale.x = side; win.add(m); casters.push(m); }
+    // the rod with finials, and the tie-backs (a gold rope ring round each gathered curtain)
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(.016, .016, 2 * X0 + .04, 12).rotateZ(Math.PI / 2), mats.gold); rod.position.set(0, 2.62 - .01, .37); win.add(rod);
+    for (const side of [-1, 1]) { const f = new THREE.Mesh(new THREE.SphereGeometry(.04, 14, 10), mats.gold); f.position.set(side * (X0 + .03), 2.61, .37); win.add(f);
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(.085, .012, 8, 28).scale(1, .55, 1).rotateX(Math.PI / 2 - .25), mats.gold); tie.position.set(side * (X0 - w * .15), tb * H - 1.0, .4); win.add(tie);
+      const tassel = new THREE.Mesh(new THREE.ConeGeometry(.026, .12, 10), mats.gold); tassel.position.set(side * (X0 - w * .08), tb * H - 1.0 - .1, .45); win.add(tassel); } }
   // three candles on the sill: wax, a wick, a living flame; the moon ritual makes them flare
   const sill = [[-.5, .2], [.02, .27], [.46, .16]], waxI = new THREE.InstancedMesh(waxGeometry(THREE, 1, .032, 2), mats.wax, 3);
   sill.forEach(([x, h], i) => waxI.setMatrixAt(i, new THREE.Matrix4().compose(new THREE.Vector3(x, 0, .08), new THREE.Quaternion(), new THREE.Vector3(1, h, 1))));
@@ -497,7 +518,8 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
     let flare = 0;
     for (const c of ritual) { const u = c.userData; u.f += (u.flare - u.f) * Math.min(1, dt * 2); const s = 1 + u.f * .55; flare += u.f;
       u.flame.scale.setScalar(s); u.glow.scale.setScalar(.7 * s); u.glow.material.opacity = .55 + u.f * .3; }
-    SC.uSc.value[10].w = (1.6 + flare * .5) * flick(t, 11);
+    const sill = flick(t, 11) * (1 + .08 * Math.sin(t * 17.3) * Math.sin(t * 5.1));   // the sill candles: a visible, uneven flicker
+    SC.uSc.value[10].w = (1.9 + flare * .6) * sill; SC.uWax.value = .85 + .3 * (sill - .84) / .16;
   }
   function setLevel(level) {   // High: the floor also mirrors the room's environment; Medium keeps only the streaks
     const want = level === "high" ? env.texture : null;

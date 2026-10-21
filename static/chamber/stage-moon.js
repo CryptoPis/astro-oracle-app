@@ -15,10 +15,10 @@ export function createStage({ engine, station, B, ui, THREE }) {
   const tx = (k, v = {}) => { let s = (TX[B.S.lang] || TX.en)[k]; for (const [a, b] of Object.entries(v)) s = s.replace(`{${a}}`, b); return s; };
   const el = B.el, candles = station.ritual;
   const card = el("div", "ch-moon"), title = el("b"), lore = el("p", "ch-lore"), src = el("small", null, tx("tradition")), begin = el("button", "btn", tx("begin"));
-  begin.type = "button"; card.append(title, lore, src); ui.hud.append(card);
+  begin.type = "button"; card.append(title, lore, src);   // below the window (in the foot), never over the glass
   const stepBox = el("div", "ch-step"), stepN = el("span", "label"), stepT = el("p"), next = el("button", "btn", tx("next"));
   next.type = "button"; stepBox.append(stepN, stepT, next); stepBox.hidden = true;
-  const foot = el("div", "ch-hud-foot"); foot.append(begin, stepBox); document.body.append(foot);
+  const foot = el("div", "ch-hud-foot ch-foot-col"); foot.append(card, begin, stepBox); document.body.append(foot);
   let ritual = null, i = -1, glow = 0, glowT = 0;
   const moon = B.moonNow();
   title.textContent = `${B.MOON_NAMES[moon.code] ? B.MOON_NAMES[moon.code][B.S.lang] || moon.name : moon.name} · ${moon.illumination}%`;
@@ -36,7 +36,7 @@ export function createStage({ engine, station, B, ui, THREE }) {
     begin.disabled = true; B.haptic.tap();
     try { const r = await B.api("GET", "/api/moon/ritual"); ritual = r.ritual; B.store.set("astro.chSeen.moon", B.todayKey()); }
     catch (e) { B.showError(e); begin.disabled = false; return; }
-    begin.hidden = true; stepBox.hidden = false; i = 0; show();
+    begin.hidden = true; card.hidden = true; stepBox.hidden = false; i = 0; show();
   });
   next.addEventListener("click", () => {
     B.haptic.tap(); if (i < ritual.steps.length - 1) { i++; show(); return; }
