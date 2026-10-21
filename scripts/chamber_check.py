@@ -136,8 +136,8 @@ def main():
                 all_fails.append(f"asked for {tier}, got {got}")
             if tier == "full":   # the level chosen from frames 10-50, and the lazy texture set
                 tex = page.evaluate("Promise.race([window.__chamber.engine.texReady, new Promise((r) => setTimeout(() => r(null), 30000))])")
-                lvl = page.evaluate("({ gfx: window.__chamber.engine.gfx, ms: window.__chamber.engine.gfxMeasuredMs })")
-                print(f"full: auto level {lvl['gfx']} (frames 10-50 averaged {lvl['ms']} ms) · textures {tex}")
+                lvl = page.evaluate("({ gfx: window.__chamber.engine.gfx, ms: window.__chamber.engine.gfxMeasuredMs, windows: window.__chamber.engine.gfxMeasures })")
+                print(f"full: auto level {lvl['gfx']} (measured windows {lvl['windows']}) · textures {tex}")
                 if not tex or tex["failed"]:
                     all_fails.append(f"full: textures did not load: {tex}")
                 report["full_auto"] = {**lvl, "textures": tex}

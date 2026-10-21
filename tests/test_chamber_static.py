@@ -91,5 +91,5 @@ def test_chamber_images_are_small_webp_copies_with_credits():
 def test_chamber_loads_its_images_lazily():
     """The room starts with procedural stand-ins; the WebP set is fetched only after the first frames."""
     full = (CH / "full.js").read_text(encoding="utf-8")
-    assert "loadTextures()" in full and "frames === 2" in full and "frames === 50" in full
+    assert "loadTextures()" in full and "frames === 2" in full and "decide(TR.windowAverage(samples))" in full   # after the verdict
     assert ".webp" not in (CH / "room.js").read_text(encoding="utf-8")   # only tex.js builds image URLs

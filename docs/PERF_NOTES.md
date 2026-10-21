@@ -401,3 +401,27 @@ then. The first-lap check (no frame above 40 ms) passed for A3 on a quiet machin
 quiet machine or a real phone.
 
 Screenshots: `dist/screens/chamber-graphics/a31-high-*`, `a31-medium-*` (room, tarot, window, dome).
+
+# Chamber tier fix (2026-10-21, branch `chamber-tier-fix`)
+
+A phone showed the old LITE room after the graphics release. The permanent "too slow" flag (`astro.chSlow = "1"`)
+was written once, after any slow start (including the first visit's shader compilation), and from then on FULL was
+never tried again. Now (rules in `static/chamber/tier.js`, tested in `tests/test_chamber_tier.py`):
+- **The flag belongs to one build:** it holds the build's version stamp and counts only for that build; the old `"1"`
+  (or another build's stamp) is ignored, so every release tries FULL again.
+- **Two steps down, not one:** a slow High (over 20 ms a frame) steps down to Medium and measures again; only a Medium
+  that is slow as well (over 45 ms) leaves for LITE, and only then is the flag written.
+- **Compiling is not slowness:** the 40-frame window opens 10 frames after the shaders have really finished compiling
+  (not at a fixed frame count after boot), it measures the real frame time (the old one was clamped at 50 ms), and
+  single frames over 100 ms (stalls) are left out unless they are most of the window.
+- **Profile → Graphics** now shows the tier that is really running (High / Medium / Lite) and, for Lite, why:
+  chosen by hand, reduce motion, desktop or web, weak device, slow earlier, no WebGL, too slow, graphics lost, error.
+
+Checked in a browser reporting 8 cores / 4 GB:
+- an old `"1"` flag → FULL High (16.7 ms)
+- CPU 20× → High 25.4 ms → Medium 19.2 ms, stays Medium
+- 60 ms of extra work per frame → High 62.1 ms → Medium → LITE, flag = the build stamp, label "Lite · too slow"; the next
+  visit of that build → LITE "slow earlier"
+
+Unchanged: FPS (High 60.0 / 60.2, Medium 60.3 / 60.3, LITE 60.3 / 60.2 at CPU 4×), the download (one 1,853-byte
+module more), memory and GPU objects (127 / 38).

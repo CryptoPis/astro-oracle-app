@@ -20,15 +20,15 @@ function webglOK() {
 }
 /* FULL on capable phones; LITE on Telegram Desktop and the web, on weak phones, without fast WebGL and with reduced
    motion. ?tier=full|lite or the Profile choice override it. */
-export function chooseTier(B) {
+export function chooseTier(B, TR) {   // { tier, why }: why says what chose LITE (shown in the Profile)
   let forced = null; try { forced = new URLSearchParams(location.search).get("tier") || B.store.get("astro.chTier"); } catch {}
-  if (forced === "full" || forced === "lite") return { tier: forced, forced: true };
-  if (B.reduced) return { tier: "lite", why: "reduced-motion" };
+  if (forced === "full" || forced === "lite") return { tier: forced, forced: true, why: "forced" };
+  if (B.reduced) return { tier: "lite", why: "reduced" };
   if (["tdesktop", "macos", "weba", "webk", "web", "unigram"].includes(B.PERF.plat)) return { tier: "lite", why: "desktop" };
   if (!(B.tg && B.tg.initData) && matchMedia("(pointer: fine)").matches) return { tier: "lite", why: "desktop" };
   if ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3) return { tier: "lite", why: "weak" };
-  if (B.store.get("astro.chSlow") === "1") return { tier: "lite", why: "slow-before" };
-  if (!webglOK()) return { tier: "lite", why: "no-webgl" };
+  if (TR.slowBefore(B.store.get("astro.chSlow"), V)) return { tier: "lite", why: "slowBefore" };   // this build only: an older flag ("1") is ignored
+  if (!webglOK()) return { tier: "lite", why: "noWebgl" };
   return { tier: "full" };
 }
 
@@ -42,12 +42,13 @@ const ICON = {
 
 export async function start(B) {
   performance.mark("chamber-start");
-  const [st] = await Promise.all([load("stations"), css()]);
+  const [st, TR] = await Promise.all([load("stations"), load("tier"), css()]);
   const { STATIONS, EXTRA, STEP, byId, stationOfView, makeT } = st;
   const T = makeT(B), $ = B.$, el = B.el, html = document.documentElement;
   try { $("#splashText").textContent = T("loading"); } catch {}
-  const choice = chooseTier(B);
+  const choice = chooseTier(B, TR);
   html.dataset.ctier = choice.tier;
+  let liteWhy = choice.tier === "lite" ? choice.why : null;
 
   /* ── Telegram: full screen where supported, our colours, no swipe-to-close ── */
   const tg = B.tg;
@@ -109,16 +110,22 @@ export async function start(B) {
   async function makeEngine(tier) {
     if (tier === "full") {
       const [THREE, tex, fx, room, full, post, shell] = await Promise.all([import(THREE_URL), load("tex"), load("fx"), load("room"), load("full"), load("post"), load("shell")]);
-      return full.createFull(THREE, B, ctx, { tex, fx, room, post, shell });
+      return full.createFull(THREE, B, ctx, { tex, fx, room, post, shell, tier: TR });
     }
     const lite = await load("lite"); return lite.createLite(B, ctx);
   }
   try { engine = await makeEngine(choice.tier); }
-  catch (e) { console.warn("chamber full tier failed, using lite", e); html.dataset.ctier = "lite"; engine = await makeEngine("lite"); }
+  catch (e) { console.warn("chamber full tier failed, using lite", e); html.dataset.ctier = "lite"; liteWhy = "error"; engine = await makeEngine("lite"); }
   async function swapToLite(why) {
     if (engine.tier !== "full") return; console.warn("chamber: switching to the light version", why);
-    if (why === "slow") B.store.set("astro.chSlow", "1");
-    const old = engine; html.dataset.ctier = "lite"; engine = await makeEngine("lite"); old.dispose(); refreshNew(); plaque();
+    if (why === "slow") B.store.set("astro.chSlow", V);   // High and Medium were both too slow: remembered for this build only
+    liteWhy = why; const old = engine; html.dataset.ctier = "lite"; engine = await makeEngine("lite"); old.dispose(); refreshNew(); plaque(); showTier();
+  }
+  /* the Profile shows the tier that is really running (High / Medium / Lite) and why Lite, next to the graphics choice */
+  function showTier() {
+    const n = document.getElementById("tierNow"); if (!n) return;
+    const level = engine.tier === "full" ? (engine.gfx === "medium" ? T("gfxMedium") : T("gfxHigh")) : T("gfxLite");
+    n.textContent = `${T("tierNow")}: ${level}${engine.tier !== "full" && liteWhy ? " · " + T("why_" + liteWhy) : ""}`; n.hidden = false;
   }
 
   /* ── labels ── */
@@ -141,7 +148,7 @@ export async function start(B) {
       const txt = el("span", "ch-item-txt"); txt.append(el("b", null, stationName(s)), el("small", null, T("sub_" + s.id)));
       const dot = el("i", "ch-item-new"); dot.setAttribute("aria-label", T("newToday"));
       b.append(art, txt, dot); b.addEventListener("click", () => { closeCompass(); open(s.id); }); return b; }));
-    plaque(); refreshNew();
+    plaque(); refreshNew(); showTier();
   }
 
   /* ── "something new today" glow ── */
@@ -186,6 +193,7 @@ export async function start(B) {
     root.classList.remove("panel-on"); engine.pause(false); await engine.refocus("stage"); syncBack();
   }
   B.S.onGo = (name) => {
+    if (name === "profile") showTier();
     if (name === "home") { if (state.stage && state.panel) hidePanel(); else closeAll(); return; }
     const s = name === "chamber" ? byId(state.station) : stationOfView(name);
     if (s && s.id !== "profile" && engine.focused !== s.id && !state.opening) { state.station = s.id; engine.focus(s.id, "panel"); }
