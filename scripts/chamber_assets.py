@@ -31,7 +31,11 @@ SRC = {
     "dome": "04_03_16 PM.png",     # night sky with the Milky Way, no lines
 }
 SCENES = ("03_31_55 PM.png", "03_33_18 PM.png", "03_59_46 PM.png")   # full-room references, palette only
-SIZES = (1024, 512)
+# the files each surface needs (pixels). High: near surfaces 1024, the rug and velvet 768; both levels share the
+# 512 normal maps, the sky and the moon (blurred or small on screen). Rug and velvet have no normal map: their bump
+# comes from the albedo in the shader.
+OUTPUTS = {"stone": (1024, 512), "stone_n": (512,), "floor": (1024, 512), "floor_n": (512,), "rug": (768, 512), "velvet": (768, 512),
+           "window": (1024, 512), "dome": (512,), "moon": (512,)}
 SEAM_MAX = 1.15
 
 
@@ -169,10 +173,12 @@ def main() -> None:
             a = make_tileable(a)
         after = seam_ratio(a)
         print(f"{key}: seam ratio L/R {before[0]:.2f} -> {after[0]:.2f}, T/B {before[1]:.2f} -> {after[1]:.2f}")
-        normal = normal_map(a, strength)
-        for s in SIZES:
+        for s in OUTPUTS[key]:
             sizes[f"{key}_{s}.webp"] = save(a, f"{key}_{s}.webp", s, q=80)
-            sizes[f"{key}_n_{s}.webp"] = save(normal, f"{key}_n_{s}.webp", s, q=75)
+        if f"{key}_n" in OUTPUTS:
+            normal = normal_map(a, strength)
+            for s in OUTPUTS[f"{key}_n"]:
+                sizes[f"{key}_n_{s}.webp"] = save(normal, f"{key}_n_{s}.webp", s, q=75)
 
     # the window: a portrait crop over the lake and the village lights, wide enough for a gentle parallax
     w = load(args.art / (PREFIX + SRC["window"]))
@@ -180,22 +186,29 @@ def main() -> None:
     cw = int(h * .7)
     x0 = min(ww - cw, max(0, int(ww * .62) - cw // 2))
     crop = w[:, x0:x0 + cw]
-    for s in SIZES:
+    for s in OUTPUTS["window"]:
         dims = (round(cw * min(1, s / h)), min(h, s))
         sizes[f"window_{s}.webp"] = save(crop, f"window_{s}.webp", dims, q=84)
 
     d = load(args.art / (PREFIX + SRC["dome"]))
-    for s in SIZES:
+    for s in OUTPUTS["dome"]:
         sizes[f"dome_{s}.webp"] = save(d, f"dome_{s}.webp", s, q=84)
 
     m = load(args.moon)
-    for s in SIZES:
+    for s in OUTPUTS["moon"]:
         sizes[f"moon_{s}.webp"] = save(m, f"moon_{s}.webp", (s, s // 2), q=84)
 
-    total = {s: sum(v for k, v in sizes.items() if k.endswith(f"_{s}.webp")) for s in SIZES}
+    for f in OUT.glob("*.webp"):   # files a former plan made and nothing loads any more
+        if f.name not in sizes:
+            f.unlink()
+            print("removed", f.name)
     for k in sorted(sizes):
-        print(f"{k:24s} {sizes[k]:>7,d} B")
-    print("total:", ", ".join(f"{s}px set {v / 1024:.1f} KB" for s, v in total.items()))
+        print(f"{k:24s} {sizes[k]:>9,d} B")
+    level = {"high": {"stone": 1024, "floor": 1024, "rug": 768, "velvet": 768, "window": 1024},
+             "medium": {"stone": 512, "floor": 512, "rug": 512, "velvet": 512, "window": 512}}
+    for name, lv in level.items():   # the same per-level lists as room.js (LEVEL)
+        files = [f"{k}_{v}.webp" for k, v in lv.items()] + ["stone_n_512.webp", "floor_n_512.webp", "dome_512.webp", "moon_512.webp"]
+        print(f"{name}: {len(files)} files, {sum(sizes[f] for f in files):,d} B")
 
 
 if __name__ == "__main__":

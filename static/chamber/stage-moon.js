@@ -1,6 +1,6 @@
 /* Oracle chamber (FULL): the moon window. The moonlight in the room already follows the real phase; here the
    phase's folklore (after T. Harley, Moon Lore, 1885; shown as tradition, never as fact) introduces tonight's ritual
-   (GET /api/moon/ritual, as in the classic UI). Its steps appear one by one while the candles on the sill light. */
+   (GET /api/moon/ritual, as in the classic UI). Its steps appear one by one while the candles on the sill flare up. */
 
 const TX = {
   ka: { tradition: "ხალხური ტრადიცია · ტ. ჰარლი, „მთვარის თქმულებები“ (1885)", begin: "რიტუალის დაწყება", next: "შემდეგი ნაბიჯი", finish: "რიტუალის დასრულება",
@@ -25,7 +25,7 @@ export function createStage({ engine, station, B, ui, THREE }) {
   fetch(new URL("./kb.json" + new URL(import.meta.url).search, import.meta.url)).then((r) => r.json())
     .then((kb) => { const m = kb.moon[moon.code]; if (m) lore.textContent = (m[B.S.lang] || m.en).lore; }).catch(() => { lore.hidden = true; });
 
-  function light(k) { const c = candles[k]; if (!c || c.userData.flame.visible) return; c.userData.flame.visible = true; c.userData.glow.visible = true; B.haptic.soft(); ui.sound("candle"); }
+  function light(k) { const c = candles[k]; if (!c || c.userData.flare) return; c.userData.flare = 1; B.haptic.soft(); ui.sound("candle"); }   // the sill candles burn; each step makes one flare
   function show() {
     const n = ritual.steps.length; stepN.textContent = tx("step", { i: i + 1, n }); stepT.textContent = ritual.steps[i];
     stepBox.classList.remove("on"); void stepBox.offsetWidth; stepBox.classList.add("on");
@@ -54,7 +54,7 @@ export function createStage({ engine, station, B, ui, THREE }) {
     async start() {},
     down() { return true; }, move() { return true; }, up() { return true; },
     update(t, dt) { glow += (glowT - glow) * Math.min(1, dt * 1.5); engine.room.moonLight.intensity = engine.room.moonLight.userData.base * (1 + glow * .6); },
-    end() { candles.forEach((c) => { c.userData.flame.visible = false; c.userData.glow.visible = false; }); engine.room.moonLight.intensity = engine.room.moonLight.userData.base;
+    end() { candles.forEach((c) => { c.userData.flare = 0; }); engine.room.moonLight.intensity = engine.room.moonLight.userData.base;
       foot.remove(); ui.hud.replaceChildren(); },
   };
 }

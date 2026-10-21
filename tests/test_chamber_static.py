@@ -70,7 +70,7 @@ def test_three_is_vendored_and_pinned():
 
 
 def test_chamber_images_are_small_webp_copies_with_credits():
-    """Runtime images only (no originals): WebP, at most 1024 px, a 512 px copy for Medium, NASA credited."""
+    """Runtime images only (no originals): WebP, at most 1024 px, High <= 1.5 MB and Medium <= 0.8 MB, NASA credited."""
     from PIL import Image
     img = CH / "img"
     files = sorted(img.iterdir())
@@ -79,8 +79,11 @@ def test_chamber_images_are_small_webp_copies_with_credits():
         with Image.open(f) as im:
             assert im.format == "WEBP" and max(im.size) <= 1024, (f.name, im.format, im.size)
     names = {f.name for f in files}
-    for base in ("stone", "stone_n", "floor", "floor_n", "velvet", "velvet_n", "rug", "rug_n", "window", "dome", "moon"):
-        assert {f"{base}_1024.webp", f"{base}_512.webp"} <= names, base
+    high = {"stone_1024", "floor_1024", "rug_768", "velvet_768", "window_1024", "stone_n_512", "floor_n_512", "dome_512", "moon_512"}
+    medium = {"stone_512", "floor_512", "rug_512", "velvet_512", "window_512", "stone_n_512", "floor_n_512", "dome_512", "moon_512"}
+    assert {f"{n}.webp" for n in high | medium} == names   # exactly what room.js (LEVEL) loads, nothing unused
+    size = lambda level: sum((img / f"{n}.webp").stat().st_size for n in level)
+    assert size(high) <= 1_500_000 and size(medium) <= 800_000, (size(high), size(medium))
     credits = (ROOT / "docs" / "CREDITS_GRAPHICS.md").read_text(encoding="utf-8")
     assert "svs.gsfc.nasa.gov/4720" in credits and "NASA's Scientific Visualization Studio" in credits
 

@@ -138,6 +138,7 @@ export function makeTextures(THREE, B) {
     ceramic: tex(matcap([[0, "#fff8ee"], [.55, "#d9cfc0"], [1, "#5a5048"]], "rgba(255,255,255,.95)")),
     glow: tex(glow(), { srgb: false }), glowCool: tex(glow("235,240,255", "170,190,255"), { srgb: false }),
     glowViolet: tex(glow("240,230,255", "139,108,255"), { srgb: false }), smoke: tex(smoke(), { srgb: false }),
+    flatN: (() => { const [c, x] = canvas(4); x.fillStyle = "rgb(128,128,255)"; x.fillRect(0, 0, 4, 4); return tex(c, { srgb: false, mips: false }); })(),   // a flat normal map until the real one arrives
   };
   /* a runtime image (img/<name>.webp), decoded off the main thread where the browser can; sRGB for colour maps */
   function load(name, { srgb = true } = {}) {

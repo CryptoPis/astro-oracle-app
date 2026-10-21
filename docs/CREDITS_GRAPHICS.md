@@ -53,33 +53,40 @@ shader, so it needs no file.
 
 ## Runtime files (exact sizes)
 
-| file | pixels | bytes |
-|---|---|---|
-| `dome_1024.webp` | 1024×1024 | 278,336 |
-| `dome_512.webp` | 512×512 | 74,066 |
-| `floor_1024.webp` | 1024×1024 | 265,526 |
-| `floor_512.webp` | 512×512 | 54,266 |
-| `floor_n_1024.webp` | 1024×1024 | 245,238 |
-| `floor_n_512.webp` | 512×512 | 87,552 |
-| `moon_1024.webp` | 1024×512 | 92,502 |
-| `moon_512.webp` | 512×256 | 19,574 |
-| `rug_1024.webp` | 1024×1024 | 395,960 |
-| `rug_512.webp` | 512×512 | 108,628 |
-| `rug_n_1024.webp` | 1024×1024 | 234,066 |
-| `rug_n_512.webp` | 512×512 | 91,238 |
-| `stone_1024.webp` | 1024×1024 | 330,850 |
-| `stone_512.webp` | 512×512 | 81,200 |
-| `stone_n_1024.webp` | 1024×1024 | 341,448 |
-| `stone_n_512.webp` | 512×512 | 121,270 |
-| `velvet_1024.webp` | 1024×1024 | 109,798 |
-| `velvet_512.webp` | 512×512 | 25,938 |
-| `velvet_n_1024.webp` | 1024×1024 | 74,208 |
-| `velvet_n_512.webp` | 512×512 | 26,920 |
-| `window_1024.webp` | 658×941 | 63,658 |
-| `window_512.webp` | 358×512 | 24,478 |
+Stage A2 (2026-10-21). Each surface gets the size it needs. High loads 1024 px for the near stone and oak, 768 px for
+the rug and velvet, and 512 px for the rest. Both levels share the 512 px normal maps, the dome sky and the moon. The
+dome is blurred under procedural stars, and the moon is small on screen. The rug and velvet have no normal map: their
+bump is derived from the albedo in the shader. Roughness, soot, wear and large-scale variation are derived in the
+shader too.
 
-A phone downloads one set: **High 2,431,590 bytes** (11 files, `*_1024`) or **Medium 715,130 bytes** (11 files,
-`*_512`). WebP is already compressed, so gzip saves nothing. LITE downloads none.
+| file | pixels | bytes | High | Medium |
+|---|---|---|---|---|
+| `stone_1024.webp` | 1024×1024 | 330,850 | ✓ | |
+| `stone_512.webp` | 512×512 | 81,200 | | ✓ |
+| `stone_n_512.webp` | 512×512 | 121,270 | ✓ | ✓ |
+| `floor_1024.webp` | 1024×1024 | 265,526 | ✓ | |
+| `floor_512.webp` | 512×512 | 54,266 | | ✓ |
+| `floor_n_512.webp` | 512×512 | 87,552 | ✓ | ✓ |
+| `rug_768.webp` | 768×768 | 239,714 | ✓ | |
+| `rug_512.webp` | 512×512 | 108,628 | | ✓ |
+| `velvet_768.webp` | 768×768 | 60,340 | ✓ | |
+| `velvet_512.webp` | 512×512 | 25,938 | | ✓ |
+| `window_1024.webp` | 658×941 | 63,658 | ✓ | |
+| `window_512.webp` | 358×512 | 24,478 | | ✓ |
+| `dome_512.webp` | 512×512 | 74,066 | ✓ | ✓ |
+| `moon_512.webp` | 512×256 | 19,574 | ✓ | ✓ |
+
+A phone downloads one set: **High 1,262,550 bytes** (9 files; Stage A: 2,431,590) or **Medium 596,972 bytes**
+(9 files; Stage A: 715,130). WebP is already compressed, so gzip saves nothing. LITE downloads none.
+
+Removed since Stage A (bytes as they were): `stone_n_1024` 341,448 · `floor_n_1024` 245,238 · `rug_1024` 395,960 ·
+`rug_n_1024` 234,066 · `rug_n_512` 91,238 · `velvet_1024` 109,798 · `velvet_n_1024` 74,208 · `velvet_n_512` 26,920 ·
+`dome_1024` 278,336 · `moon_1024` 92,502. Unchanged: `stone_1024`, `stone_512`, `stone_n_512`, `floor_1024`,
+`floor_512`, `floor_n_512`, `rug_512`, `velvet_512`, `window_1024`, `window_512`, `dome_512`, `moon_512`. New:
+`rug_768` 239,714 · `velvet_768` 60,340.
+
+The velvet also dresses the new drapes. Each drape shows the tile with its own offset and rotation, under a slow
+light/dark variation, so the repeat never lines up.
 
 ## Code
 

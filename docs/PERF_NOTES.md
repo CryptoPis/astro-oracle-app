@@ -220,3 +220,76 @@ Notes
   match, and the hand-written shaders (flames, the sphere, the stages) needed no change.
 - Screenshots (phone 390×844 @3x): `dist/screens/chamber-graphics/` (`before-*`, `after-high-*`, `after-medium-*`:
   room, window, astrolabe, dome), made with `python -m scripts.chamber_shots`.
+
+# Chamber graphics, stage A2 (2026-10-21, branch `chamber-graphics`)
+
+Lighting and the visible problems of stage A, with the same probe and machine (CPU 4×, GeForce GT 630 via ANGLE/D3D11,
+390×844 @2).
+
+What changed:
+- **Light:** the ambient is down to 0.16 (haze #352f35). The central candle is a downward spotlight (decay 2, gone by 9 m,
+  wide soft cone). The moon is a spotlight through the window (decay 2, 13 m), so its light stays near the window. Ten
+  instanced sconces on the pillars burn real flames, and their pools are computed in the shell's own shader
+  (inverse-square, gone by 3.6 m, one loop over ten points). So there are 3 three.js lights, of which 2 cast shadows. A
+  strong vignette sits on a static CSS layer.
+- **Shadows:** PCF with radius 6 (centre) / 4 (moon). One patched chunk keeps 38 % of a shadowed light, tinted warm,
+  so shadows are never a black blob. They are still drawn once, and again only when a stage starts or ends (objects move).
+- **Shell:**
+  - ten flat stone faces; the moon face has a real opening
+  - beveled gold moldings turned from real profiles (dado bead and cove, a crown under the dome, a skirting),
+    MeshStandard metal 0.8 / rough 0.35 with a small room environment for reflections, not emissive
+  - gold capitals on the pillars
+  - 20 instanced velvet drapes with folds, each with its own texture offset and rotation
+  - low-frequency variation on stone, oak and cloth (patches, soot above each flame, dark corners, grime at the
+    foot, a worn walk round the objects)
+- **Window:** 1.5× larger, set 0.42 m deep in a stone reveal. It has a carved dark-oak frame with two lancet lights, a
+  transom and an oculus (one extruded shape), gold bosses, plates and an oculus ring. The glass has a faint warm
+  reflection and a streak, and sits on a thick stone sill with three wax candles (drips, animated flames). The moon ritual
+  now makes the burning candles flare instead of lighting them.
+- **Dome:** the plate covers a cap of about 50° round the zenith (a view up holds most of it). It is blurred and
+  desaturated toward #121423 under three layers of procedural stars (anti-aliased to the pixel, varied size and colour,
+  a slow twinkle). The real planets and the ecliptic ring are unchanged.
+
+How High got back to 60 (each step measured as an interleaved A/B on fresh builds, High forced):
+
+| step | idle FPS | turning FPS |
+|---|---|---|
+| A2 as first built (point-light centre candle, drapes receive shadows, 2× MSAA bloom target) | 53.0–57.0 | 51.4–56.4 |
+| drapes do not receive shadows | 56.5 | 54.2 |
+| central candle: spotlight (one 2D shadow map) instead of a point light (6-face cube) | 60.0 | 58.8 |
+| walls, wainscot, pillars and the reveal skip shadow lookups (both shadow lights look down) | 57.0 / 60.2 vs 54.8 / 55.0 | |
+| bloom target without MSAA (2× cost 1.7 fps) | 60.2 / 60.2 vs 58.4 / 58.6 | 60.2 / 60.2 vs 57.7 / 56.7 |
+
+Removing the drapes' bump map made no difference (fill, not shading), so the bump stays. Some numbers on this machine
+drift by 2-3 FPS between runs (GPU heat), so every comparison above is interleaved in one session.
+
+The first-turn hitch (117 ms in stage A):
+- **Cause 1: shader compilation.** 33 programs took 2.4 s even without the throttle. compileAsync gave up at its 2.5 s cap,
+  and the rest compiled the first time they came into view. The roughness ranges became uniforms (materials with the
+  same variation share one program), the reveal and the moldings got their winding right (no double-sided variants),
+  and the sill candles' wax shares the sconce candles' instanced program.
+- **Cause 2: first draws.** ANGLE/D3D and many phone GPUs finish some shader variants and uploads only at an object's
+  first real draw, which no compile call reaches. Once the textures are in (each texture goes to the GPU the frame it is
+  swapped in, `initTexture`), the room is drawn once towards each object and up at the dome into a hidden 192 px target,
+  one view per frame, while nobody is turning yet.
+
+## Measured (`python -m scripts.chamber_check --perf`, final build)
+
+| | stage A: High | **A2: High** | **A2: Medium** | LITE |
+|---|---|---|---|---|
+| FPS idle | 59.5 (worst 34 ms) | **60.3 (worst 17 ms)** | **60.3 (worst 17 ms)** | 60.3 (worst 17 ms) |
+| FPS turning | 56.8 (worst 117 ms) | **60.2 (worst 18 ms)** | **60.2 (worst 17 ms)** | 60.2 (worst 17 ms) |
+| Worst frame per turn, first lap round the room (10 turns) | 100 ms | 33 ms (one turn), else 17 | 33 ms (one turn), else 17 | |
+| Interactive (page start → room usable) | 3.54 s | 3.30 s | 4.57 s * | 2.10 s |
+| of which: the chamber's own boot | 1.19 s | 1.23 s | 2.31 s * | 0.20 s |
+| JS heap before → after 10 more station visits | 13.11 → 13.16 MB | 13.64 → 13.71 MB (+0.5 %) | | 6.94 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 110 / 39 → 110 / 39 | 124 / 37 → 124 / 37 | | none |
+| Download (photographic set) | 2,431,590 B | **1,262,550 B** | **596,972 B** | none |
+
+\* Medium ran after High in the same browser. Its programs differ (one shadow light), so it compiled from a cold shader
+cache. On a phone every first visit is cold: expect about 2.3 s of chamber boot on this GPU, about 1.2 s once the browser
+has cached the shaders.
+
+Screenshots (phone 390×844 @3x) are in `dist/screens/chamber-graphics/`:
+- `a2-high-*`, `a2-medium-*`: room, tarot, window, dome, sconces
+- `a2-compare-room|window|dome.png`: the reference beside the High screenshot

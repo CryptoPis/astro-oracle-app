@@ -1,12 +1,12 @@
-/* Oracle chamber (FULL, High graphics): half-resolution bloom. The scene renders once into a 2x multisampled target (4x cost 20% of the frame rate on a mid GPU),
+/* Oracle chamber (FULL, High graphics): half-resolution bloom. The scene renders once into a target (no multisampling, see below),
    its bright parts are thresholded and blurred at half size (two separable passes), and one full-screen pass adds
    them back. Every material writes display-ready colour (see the colour finish in full.js), so the target holds
    exactly what the screen would show and the composite adds light without any colour conversion.
    Medium graphics skip it: the glow sprites stand in for the bloom. */
 
 export function makePost(THREE, renderer, { strength = .55, threshold = .6 } = {}) {
-  const webgl2 = renderer.capabilities.isWebGL2;
-  const scene = new THREE.WebGLRenderTarget(1, 1, { samples: webgl2 ? 2 : 0, depthBuffer: true, stencilBuffer: false });
+  // no multisampling: with the A2 room, 2x MSAA here cost High 2 fps on a mid GPU (58.5 vs 60.2 idle); the 1.75 pixel ratio keeps edges fine
+  const scene = new THREE.WebGLRenderTarget(1, 1, { samples: 0, depthBuffer: true, stencilBuffer: false });
   const half = [0, 1].map(() => new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false, stencilBuffer: false }));
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); quad.frustumCulled = false;

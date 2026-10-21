@@ -4,7 +4,7 @@
     python -m scripts.chamber_shots --label after --gfx high medium            # -> dist/screens/chamber-graphics/
     python -m scripts.chamber_shots --label before --dist path/to/other/dist   # e.g. a build of main, no levels
 
-Views: the tarot table (the room's first view), the moon window, the astrolabe wall and the star dome. 390x844 at
+Views: the room between two objects, the tarot table, the moon window up close, the star dome, a wall with sconces. 390x844 at
 device pixel ratio 3 (the chamber caps it per graphics level). Waits for the photographic textures when the build
 has them (engine.texReady), so the shots show the final room, not the stand-ins.
 """
@@ -18,8 +18,14 @@ from scripts.chamber_check import ARGS
 from scripts.perf_probe import serve
 
 ROOT = Path(__file__).resolve().parent.parent
-VIEWS = (("room", "window.__chamber.turn(0)"), ("window", "window.__chamber.turn(2)"),
-         ("astrolabe", "window.__chamber.turn(5)"), ("dome", "window.__chamber.up(true)"))
+STEP = 0.6283185
+VIEWS = {   # name: (set-up, tear-down); the old builds (no look()) fall back to turning to an object
+    "room": (f"(e => e.look ? e.look({-0.5 * STEP}, -0.04) : window.__chamber.turn(0))(window.__chamber.engine)", None),
+    "tarot": ("window.__chamber.turn(0)", None),
+    "window": ("window.__chamber.engine.focus('moon', 'stage')", "window.__chamber.engine.unfocus()"),
+    "dome": ("window.__chamber.up(true)", "window.__chamber.up(false)"),
+    "sconces": (f"(e => e.look ? e.look({4.5 * STEP}, 0.06) : window.__chamber.turn(5))(window.__chamber.engine)", None),
+}
 
 
 def main() -> None:
@@ -27,6 +33,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--label", required=True)
     ap.add_argument("--gfx", nargs="*", default=[None])
+    ap.add_argument("--views", nargs="*", default=None)
     ap.add_argument("--dist", type=Path, default=ROOT / "dist")
     ap.add_argument("--out", type=Path, default=ROOT / "dist" / "screens" / "chamber-graphics")
     args = ap.parse_args()
@@ -50,12 +57,15 @@ def main() -> None:
             page.wait_for_timeout(1500)   # the plates fade in
             name = f"{args.label}-{gfx}" if gfx else args.label
             print(name, info)
-            for view, js in VIEWS:
+            for view, (js, undo) in VIEWS.items():
+                if args.views and view not in args.views:
+                    continue
                 page.evaluate(js)
-                page.wait_for_timeout(2200)
+                page.wait_for_timeout(2400)
                 page.screenshot(path=str(args.out / f"{name}-{view}.png"))
-                if view == "dome":
-                    page.evaluate("window.__chamber.up(false)")
+                if undo:
+                    page.evaluate(undo)
+                    page.wait_for_timeout(1200)
             if errors:
                 print("  console errors:", errors)
             ctx.close()
