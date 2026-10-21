@@ -246,6 +246,10 @@ function candelabra(THREE, n, y0) {
   geos.push(new THREE.CylinderGeometry(.06, .07, .016, 20).rotateX(Math.PI / 2).scale(1, 1.6, 1).translate(0, y0 - .02, .008));   // back plate
   geos.push(new THREE.CylinderGeometry(.012, .016, .2, 10).rotateX(Math.PI / 2).translate(0, y0, .1));                         // bracket
   geos.push(new THREE.SphereGeometry(.026, 14, 10).translate(0, y0, .2));                                                        // hub
+  { const pts = []; for (let i = 0; i <= 30; i++) { const k = i / 30, a = k * Math.PI * 1.7, rr = .055 * (1 - k * .6);              // a scrolled bracket under the plate
+      pts.push(new THREE.Vector3(0, y0 - .06 - k * .06 - Math.sin(a) * rr * .5, .015 + (1 - Math.cos(a)) * rr * .9)); }
+    geos.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, .007, 6));
+    geos.push(new THREE.SphereGeometry(.011, 10, 8).translate(pts[30].x, pts[30].y, pts[30].z)); }
   for (let i = 0; i < n; i++) { const o = i - (n - 1) / 2, x = o * spread, z = .2 + (1 - Math.abs(o) / ((n - 1) / 2 || 1)) * .04, y = y0 + .05 + (n - Math.abs(o) * 2) * .012;
     const a = new THREE.Vector3(0, y0, .2), b = new THREE.Vector3(x, y - .03, z);
     if (Math.abs(o) > 0) { const mid = a.clone().lerp(b, .5).add(new THREE.Vector3(0, -.04, 0));
@@ -417,7 +421,17 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
   { const o = pointed(THREE, W.hw + .17, W.hs, W.R + .17); o[0].y = -.1; o[o.length - 1].y = -.1;
     const sh = new THREE.Shape(o); sh.holes.push(new THREE.Path(outline));
     const g = new THREE.ExtrudeGeometry(sh, { depth: .05, bevelEnabled: true, bevelThickness: .025, bevelSize: .025, bevelSegments: 2, curveSegments: 24 });
-    scaleUV(g, 1 / TILE.stone, 1 / TILE.stone); win.add(new THREE.Mesh(g, mats.reveal)); }
+    scaleUV(g, 1 / TILE.stone, 1 / TILE.stone); win.add(new THREE.Mesh(g, mats.reveal));
+    // gilt rosettes on the moulding (a boss and six petals), from the springers over the apex; a larger one as the keystone
+    const ros = [new THREE.SphereGeometry(.014, 10, 8)];
+    for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ros.push(new THREE.SphereGeometry(.011, 8, 6).scale(1.5, .7, .5).rotateZ(a).translate(Math.cos(a) * .019, Math.sin(a) * .019, -.004)); }
+    const rg = merge(THREE, ros), mid = pointed(THREE, W.hw + .085, W.hs, W.R + .085, 18), spots = [];
+    for (let i = 1; i < mid.length - 1; i += 3) spots.push([mid[i], 1]);
+    const apex = mid.reduce((m, q) => (q.y > m.y ? q : m), mid[0]);
+    const ri = new THREE.InstancedMesh(rg, mats.gold, spots.length + 1), ro = new THREE.Object3D();
+    spots.forEach(([q], i) => { ro.position.set(q.x, q.y, .085); ro.scale.setScalar(1); ro.updateMatrix(); ri.setMatrixAt(i, ro.matrix); });
+    ro.position.set(apex.x, apex.y + .02, .09); ro.scale.set(2.2, 2.2, 1.4); ro.updateMatrix(); ri.setMatrixAt(spots.length, ro.matrix);
+    win.add(ri); }
   // the frame: one carved piece of dark oak, the opening minus two lights (each split by a transom) and a quatrefoil
   const yT = 1.0, ys = 1.45, hwl = (W.hw - W.t - W.m / 2) / 2, xl = W.m / 2 + hwl, Rl = hwl * 1.5, qc = 2.12;
   { const sh = new THREE.Shape(outline), holes = [];
@@ -494,7 +508,15 @@ export function buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonS
   const RD = 5.9, Y0 = 4.2;
   { const pts = []; for (let i = 0; i <= 24; i++) { const e = (.03 + i / 24 * 1.49); pts.push(new THREE.Vector3(0, Y0 + RD * Math.sin(e), -RD * Math.cos(e))); }
     const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, .024, 8), im = new THREE.InstancedMesh(g, mats.domeGold, 10);
-    for (let k = 0; k < 10; k++) im.setMatrixAt(k, new THREE.Matrix4().makeRotationY(-(k + .5) * STEP)); add(im, { receive: false }); }
+    for (let k = 0; k < 10; k++) im.setMatrixAt(k, new THREE.Matrix4().makeRotationY(-(k + .5) * STEP)); add(im, { receive: false });
+    // a moulded rib: two thin fillets beside each rib (converging towards the boss, as on a real vault), gilt studs along it
+    const fg = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((v) => v.clone().multiplyScalar(1).setY(v.y - .004))), 48, .009, 6), fl = new THREE.InstancedMesh(fg, mats.domeGold, 20);
+    for (let k = 0; k < 10; k++) for (const d of [-1, 1]) fl.setMatrixAt(k * 2 + (d + 1) / 2, new THREE.Matrix4().makeRotationY(-(k + .5) * STEP + d * .0105));
+    add(fl, { receive: false });
+    const studs = []; for (let k = 0; k < 10; k++) for (const e of [.16, .22, .5, .62, .76, .9, 1.2, 1.34]) studs.push([(k + .5) * STEP, e]);
+    const sg = new THREE.SphereGeometry(.026, 12, 8).scale(1, 1, .6), si = new THREE.InstancedMesh(sg, mats.domeGold, studs.length), so = new THREE.Object3D();
+    studs.forEach(([a, e], i) => { so.position.set(Math.sin(a) * (RD - .035) * Math.cos(e), Y0 + (RD - .035) * Math.sin(e), -Math.cos(a) * (RD - .035) * Math.cos(e)); so.lookAt(0, Y0, 0); so.updateMatrix(); si.setMatrixAt(i, so.matrix); });
+    add(si, { receive: false }); }
   for (const e of [.07, .3, 1.05]) { const r = RD * Math.cos(e), t = new THREE.Mesh(new THREE.TorusGeometry(r, e < .1 ? .032 : .022, 8, 160), mats.domeGold);
     t.rotation.x = Math.PI / 2; t.position.y = Y0 + RD * Math.sin(e); add(t, { receive: false }); }
   { const boss = new THREE.Mesh(new THREE.LatheGeometry([[0, -.16], [.1, -.15], [.18, -.11], [.25, -.07], [.3, -.03], [.33, 0]].map(([r, y]) => new THREE.Vector2(r, y)), 40), mats.domeGold);
