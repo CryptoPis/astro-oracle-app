@@ -1145,7 +1145,7 @@ textarea.field { min-height: 132px; resize: vertical; line-height: 1.5; }
 </div>
 
 <div class="tab-fade" aria-hidden="true"></div>
-<nav class="tabs" aria-label="Main">
+<nav class="tabs" data-i18n-aria="navMain">
   <div class="tabs-in">
     <i class="tab-ind" aria-hidden="true"></i>
     <button class="tab" data-tab="home" aria-current="page"><svg viewBox="0 0 24 24"><path d="M15.5 4.5a8 8 0 1 0 4 11.5 6.5 6.5 0 0 1-4-11.5z"/><path d="M18 3.5l.6 1.6 1.6.6-1.6.6L18 7.9l-.6-1.6-1.6-.6 1.6-.6z"/></svg><span data-i18n="tHome"></span></button>
@@ -1264,7 +1264,7 @@ const I18N = {
     rx_saturn:"დროა გადახედო ძველ ვალდებულებებს და გამართო საზღვრები.",
     frzReady:"სერიის დაცვა მზადაა: ერთი გამოტოვებული დღე ამ კვირაში სერიას არ გაანულებს.",
     frzSaving:"გუშინ გამოტოვე, მაგრამ დაცვა სერიას შეგინარჩუნებს. აიღე დღევანდელი საჩუქარი.",
-    frzUsed:"ამ კვირის დაცვა გამოყენებულია. ახალი ორშაბათს გამოჩნდება.", frzToast:"სერია გადარჩა!",
+    frzUsed:"ამ კვირის დაცვა გამოყენებულია. ახალი ორშაბათს გამოჩნდება.", frzToast:"სერია გადარჩა!", navMain:"მთავარი მენიუ",
     repTitle:"კვირის ცის ანგარიში", repMoonL:"მთვარე", repRetroL:"რეტროგრადული", repNone:"არცერთი", repStreakL:"შენი სერია", repDays:"{n} დღე",
     repDoneL:"პრაქტიკა 7 დღეში", repWax:"მთვარე იზრდება: კარგი კვირაა დასაწყებად და ახალი ჩანაფიქრებისთვის.",
     repWane:"მთვარე კლებულობს: კარგი კვირაა დასასრულებლად და ზედმეტისგან გასათავისუფლებლად.",
@@ -1359,7 +1359,7 @@ const I18N = {
     rx_saturn:"Time to review old commitments and set your boundaries right.",
     frzReady:"Streak freeze ready: one missed day this week won't reset your streak.",
     frzSaving:"You missed yesterday, but the freeze keeps your streak. Claim today's gift.",
-    frzUsed:"This week's freeze is used. A new one comes on Monday.", frzToast:"Streak saved!",
+    frzUsed:"This week's freeze is used. A new one comes on Monday.", frzToast:"Streak saved!", navMain:"Main menu",
     repTitle:"Weekly sky report", repMoonL:"Moon", repRetroL:"Retrograde", repNone:"none", repStreakL:"Your streak", repDays:"{n} days",
     repDoneL:"Practices in 7 days", repWax:"The Moon is growing: a good week to begin and plant new intentions.",
     repWane:"The Moon is waning: a good week to finish things and let go of what's extra.",
@@ -1454,7 +1454,7 @@ const I18N = {
     rx_saturn:"Время пересмотреть старые обязательства и выстроить границы.",
     frzReady:"Заморозка серии готова: один пропущенный день на этой неделе не обнулит серию.",
     frzSaving:"Вчера ты пропустил день, но заморозка сохранит серию. Забери сегодняшний подарок.",
-    frzUsed:"Заморозка на этой неделе использована. Новая появится в понедельник.", frzToast:"Серия спасена!",
+    frzUsed:"Заморозка на этой неделе использована. Новая появится в понедельник.", frzToast:"Серия спасена!", navMain:"Главное меню",
     repTitle:"Небесный отчёт недели", repMoonL:"Луна", repRetroL:"Ретроградные", repNone:"нет", repStreakL:"Твоя серия", repDays:"{n} дн.",
     repDoneL:"Практик за 7 дней", repWax:"Луна растёт: хорошая неделя, чтобы начинать и загадывать новое.",
     repWane:"Луна убывает: хорошая неделя, чтобы завершать дела и отпускать лишнее.",
@@ -1504,10 +1504,23 @@ const UI = (() => {
 })();
 const CHAMBER_URL = "./static/chamber/main.js?v=59e4ece8f3";   // the build stamps a content hash
 
+/* PICK_LANG: the interface language at boot. The server's user.lang (written by every explicit switch, on any device)
+   wins over this device's stored choice, which can be stale (another device switched since): otherwise the app's own
+   texts and the server-written ones (readings, rituals) came in two languages. A switch whose save failed is kept
+   as pending and sent again instead of being overwritten. Before the server answers: pending, stored, Telegram's. */
+function pickLang(stored, pending, server, tgLang) {
+  const ok = (l) => ["ka", "en", "ru"].includes(l);
+  if (ok(pending)) return { lang: pending, push: ok(server) && pending !== server };
+  if (ok(server)) return { lang: server, push: false };
+  if (ok(stored)) return { lang: stored, push: false };
+  return { lang: ok(tgLang) ? tgLang : "ka", push: false };
+}
+/* /PICK_LANG */
 function applyI18n() {
   document.documentElement.lang = S.lang;
   document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = t(n.dataset.i18n); });
   document.querySelectorAll("[data-i18n-ph]").forEach((n) => { n.placeholder = t(n.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-aria]").forEach((n) => { n.setAttribute("aria-label", t(n.dataset.i18nAria)); });
 }
 
 /* ═════════════ astrology data ═════════════ */
@@ -3079,8 +3092,8 @@ $("#dateForm").addEventListener("submit", async (e) => {
   finally { S.saving = false; btn.classList.remove("busy"); btn.disabled = false; }
 });
 $("#langSeg").addEventListener("click", async (e) => { const b = e.target.closest("button"); if (!b || b.dataset.lang === S.lang) return;
-  S.lang = b.dataset.lang; store.set("astro.lang", S.lang); applyI18n(); paintBacks(); syncDrawBtn();
-  try { await api("PATCH", "/api/user/profile", { lang: S.lang }); } catch (err) { showError(err); }
+  S.lang = b.dataset.lang; store.set("astro.lang", S.lang); store.set("astro.langPending", S.lang); applyI18n(); paintBacks(); syncDrawBtn(); renderGift();
+  try { await api("PATCH", "/api/user/profile", { lang: S.lang }); store.set("astro.langPending", ""); } catch (err) { showError(err); }
   finally { afterProfileChange(); loadProfile(); } });   // after the PATCH, so Home's texts come in the new language
 /* switching the interface or the chamber's graphics tier reloads the page (the chamber is a separate module) */
 const reloadClean = () => { try { const u = new URL(location.href); u.searchParams.delete("ui"); u.searchParams.delete("tier"); history.replaceState(null, "", u); } catch {} location.reload(); };
@@ -3136,7 +3149,7 @@ async function boot() {
   S.demo = !(tg && tg.initData);
   if (tg) { try { tg.ready(); tg.expand(); tg.setHeaderColor("#0d0a24"); tg.setBackgroundColor("#0d0a24"); tg.setBottomBarColor && tg.setBottomBarColor("#0d0a24"); tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch {} }
   const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
-  S.lang = store.get("astro.lang") || (["ka", "ru", "en"].includes(tgLang) ? tgLang : "ka");
+  S.lang = pickLang(store.get("astro.lang"), store.get("astro.langPending"), null, tgLang).lang;
   applyI18n(); paintBacks(); $("#demoPill").hidden = !S.demo;
   try { tg.BackButton.onClick(() => { if (S.sheetOpen) Sheet.close(); else if (S.onBack && S.onBack()) return; else go("home"); }); } catch {}
   let chamberErr = "";
@@ -3144,7 +3157,12 @@ async function boot() {
   watchAnim($("#heroCard")); watchAnim($(".num-hero")); watchAnim($(".oracle"));
   $("#oracleArt").innerHTML = practiceArt("advisor", { glow: "#3fb8a8" }); $("#ball").innerHTML = practiceArt("sphere", { live: true }) + '<canvas class="mist" aria-hidden="true"></canvas>';
   Mist.attach($("#ball .mist"));
-  try { const r = await wakeAndVerify(); S.economy = r.economy; if (r.user && r.user.lang && !store.get("astro.lang")) { S.lang = r.user.lang; applyI18n(); } }
+  try { const r = await wakeAndVerify(); S.economy = r.economy;
+    const pl = pickLang(store.get("astro.lang"), store.get("astro.langPending"), r.user && r.user.lang, tgLang);
+    if (pl.lang !== S.lang) { S.lang = pl.lang; applyI18n(); paintBacks(); }
+    store.set("astro.lang", S.lang);
+    if (pl.push) api("PATCH", "/api/user/profile", { lang: S.lang }).then(() => store.set("astro.langPending", "")).catch(() => {});
+    else store.set("astro.langPending", ""); }   // the server already has it (or nothing was pending): a newer switch elsewhere must win next time
   catch (e) { return splashFail(e); }
   setCoins((S.user && S.user.coins) || 0);
   let chamberOn = false;
