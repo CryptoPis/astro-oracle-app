@@ -14,10 +14,11 @@ export function ease(x) {
 
 /* Graphics levels inside FULL. High: pixel ratio up to 1.75, shadows from the moon and the central candle, half-res
    bloom, 1024 px textures. Medium: up to 1.4, the moon's shadow only, glow sprites instead of bloom, 512 px textures.
-   The level is chosen from the frame times of frames 10-50 (drawn at High); a room too slow even for that switches to
-   LITE (ctx.onSlow). ?gfx=high|medium forces a level. */
+   The level is chosen by measuring (rules in tier.js): 40 frames, starting 10 frames after the shaders have really
+   finished compiling, frames over 100 ms (stalls) left out. High that is too slow steps down to Medium and measures
+   again; only Medium that is too slow as well leaves for LITE (ctx.onSlow), which is then remembered for this build
+   only. ?gfx=high|medium forces a level (no changes, no LITE). */
 export const GFX = { high: { dpr: 1.75, tex: 1024, bloom: true }, medium: { dpr: 1.4, tex: 512, bloom: false } };
-const HIGH_MAX_MS = 20, LITE_MS = 45;   // average frame time over frames 10-50 (drawn before the 1024 px set: keep headroom)
 
 /* two patches of three.js's shader chunks, for every built-in material:
    - the colour finish: lift the exposure, write display-ready sRGB (also into the bloom's target, so High and Medium look alike) and
@@ -156,11 +157,12 @@ export async function createFull(THREE, B, ctx, mods) {
   let orbTo = null;
 
   /* ── loop ── */
-  let raf = 0, last = 0, t0 = performance.now(), frames = 0, slowSum = 0, settled = 0;
+  const TR = mods.tier;
+  let raf = 0, last = 0, t0 = performance.now(), frames = 0, settled = 0, samples = [], mStart = Infinity;   // mStart: the frame the measuring window opens
   const ready = new Promise((r) => { ctx._ready = r; });
   function kick() { if (!raf && !paused && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(frame); } }
   function frame(now) {
-    raf = 0; const dt = Math.min(.05, (now - last) / 1000); last = now;
+    raf = 0; const rawMs = now - last, dt = Math.min(.05, rawMs / 1000); last = now;   // the window measures the real frame time, not the clamped step
     if (paused || document.hidden) return;
     const k = 1 - Math.exp(-dt * 7.5);
     nav.yaw += (nav.yawT - nav.yaw) * (ptr && ptr.axis === "x" ? 1 : k);
@@ -179,17 +181,18 @@ export async function createFull(THREE, B, ctx, mods) {
     if (warm) warmStep();
     if (post) post.render(scene, camera); else renderer.render(scene, camera);
     frames++; if (frames === 2) { ctx._ready(); if (forcedGfx) loadTextures(); }   // a forced level needs no measuring
-    if (frames > 10 && frames <= 50) { slowSum += dt; if (frames === 50) decide(slowSum / 40 * 1000); }
+    if (frames >= mStart && samples.length < TR.WINDOW) { samples.push(rawMs); if (samples.length === TR.WINDOW) decide(TR.windowAverage(samples)); }
     const moving = Math.abs(nav.yawT - nav.yaw) > 1e-4 || Math.abs(nav.pitchT - nav.pitch) > 1e-4 || focus || ptr;
     settled = moving ? 0 : settled + 1;
     raf = requestAnimationFrame(frame);   // the room is alive (candles, dust): keep drawing while visible and uncovered
   }
-  let measured = null;
-  function decide(avgMs) {   // after frames 10-50: keep High, step down to Medium, or leave for LITE
-    measured = Math.round(avgMs * 10) / 10;
-    if (avgMs > LITE_MS && !ctx.forced) { ctx.onSlow(); return; }
-    if (!forcedGfx && gfx === "high" && avgMs > HIGH_MAX_MS) setGfx("medium").then(loadTextures);
-    else loadTextures();
+  let measured = null; const measures = [];   // [level, average ms] of every window, for tools and the Profile label
+  function decide(avgMs) {   // after a window: keep the level, step High down to Medium and measure again, or leave for LITE
+    measured = Math.round(avgMs * 10) / 10; measures.push([gfx, measured]);
+    const step = TR.nextStep(gfx, avgMs, { forced: ctx.forced, fixedLevel: !!forcedGfx });
+    if (step === "lite") { ctx.onSlow(); return; }
+    if (step === "medium") { setGfx("medium").then(() => { samples = []; mStart = frames + TR.SETTLE; }); return; }   // textures wait for the verdict
+    loadTextures();
   }
   let offW = 0;
   function applyOffset() { const w = innerWidth, h = innerHeight;
@@ -204,13 +207,17 @@ export async function createFull(THREE, B, ctx, mods) {
 
   // start facing the tarot table; shaders compile in parallel first where the driver allows (KHR_parallel_shader_compile)
   nav.yaw = nav.yawT = 0; camera.position.copy(pose.pos); roomLook(currentLook); camera.lookAt(currentLook);
-  try { await Promise.race([renderer.compileAsync(scene, camera), new Promise((r) => setTimeout(r, 2500))]); } catch {}
+  // the room shows after at most 2.5 s, but the measuring window opens only 10 frames after the compile has really
+  // finished: a phone still compiling shaders is not a slow phone
+  const compiled = renderer.compileAsync(scene, camera).catch(() => {});
+  compiled.then(() => { mStart = frames + TR.SETTLE; });
+  await Promise.race([compiled, new Promise((r) => setTimeout(r, 2500))]);
   kick();
   await Promise.race([ready, new Promise((r) => setTimeout(r, 4000))]);
 
   const api = {
     tier: "full", canvas: cv, room, THREE, F, X, camera, scene, renderer,
-    get gfx() { return gfx; }, get gfxMeasuredMs() { return measured; }, texReady, setGfx,
+    get gfx() { return gfx; }, get gfxMeasuredMs() { return measured; }, get gfxMeasures() { return measures.slice(); }, texReady, setGfx,
     index, get up() { return nav.up; },
     turnTo(i) { if (focused) return; nav.up = false; nav.pitchT = -.1; const cur = nav.yawT; let target = i * STEP; while (target - cur > Math.PI) target -= TAU; while (cur - target > Math.PI) target += TAU; nav.yawT = target; kick(); ctx.onTurned(((i % 10) + 10) % 10); },
     step(d) { api.turnTo(index() + d); },
