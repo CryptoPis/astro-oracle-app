@@ -48,7 +48,6 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     ceramic: new THREE.MeshStandardMaterial({ color: 0xf2ece3, metalness: 0, roughness: .28, envMap: env, envMapIntensity: .7 }),   // porcelain
     hidden: new THREE.MeshBasicMaterial({ visible: false }),
   };
-  const metal = [];   // (matcaps, tinted with the candlelight each frame: none left)
   const receivers = [...shell.receivers], casters = [...shell.casters];
   // the star dome: the night-sky plate seen from below under live stars (planets and the ecliptic are meshes, setSky)
   const domeMat = domeMaterial(THREE, F.clock);
@@ -197,12 +196,12 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   // with two scrolls, a cartouche at the foot) on a dark cheval stand; dark violet glass; motes drifting before it
   { const g = new THREE.Group(), a = .4, b = .6, Y = 1.3, fw = .085;
     const gilt = new THREE.MeshStandardMaterial({ color: 0xeac57a, metalness: .9, roughness: .26, envMap: env, envMapIntensity: 1.9 });   // a brighter, burnished gold for the frame   // the glass's half axes, its centre, the frame's width
-    const ell = (ra, rb, n = 96, cw = false) => { const pts = []; for (let i = 0; i < n; i++) { const t = (cw ? -i : i) / n * TAU; pts.push(new THREE.Vector2(Math.cos(t) * ra, Math.sin(t) * rb)); } return pts; };
+    const ell = (ra, rb, n = 64, cw = false) => { const pts = []; for (let i = 0; i < n; i++) { const t = (cw ? -i : i) / n * TAU; pts.push(new THREE.Vector2(Math.cos(t) * ra, Math.sin(t) * rb)); } return pts; };
     const oval = new THREE.Group(); oval.position.y = Y; g.add(oval);
-    { const sh = new THREE.Shape(ell(a + fw, b + fw)); sh.holes.push(new THREE.Path(ell(a + .004, b + .004, 96, true)));
-      const fg = new THREE.ExtrudeGeometry(sh, { depth: .022, bevelEnabled: true, bevelThickness: .016, bevelSize: .014, bevelSegments: 4, curveSegments: 96 }); fg.translate(0, 0, -.02);
+    { const sh = new THREE.Shape(ell(a + fw, b + fw)); sh.holes.push(new THREE.Path(ell(a + .004, b + .004, 64, true)));
+      const fg = new THREE.ExtrudeGeometry(sh, { depth: .022, bevelEnabled: true, bevelThickness: .016, bevelSize: .014, bevelSegments: 3, curveSegments: 64 }); fg.translate(0, 0, -.02);
       oval.add(new THREE.Mesh(fg, gilt)); }
-    const tube = (ra, rb, r) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ell(ra, rb, 64).map((p) => new THREE.Vector3(p.x, p.y, 0)), true), 128, r, 8, true);
+    const tube = (ra, rb, r) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ell(ra, rb, 64).map((p) => new THREE.Vector3(p.x, p.y, 0)), true), 96, r, 6, true);
     oval.add(at(new THREE.Mesh(tube(a + .012, b + .012, .009), gilt), 0, 0, .022));               // the inner bead moulding
     oval.add(at(new THREE.Mesh(tube(a + fw + .006, b + fw + .006, .013), gilt), 0, 0, .004));     // the outer roll
     { const n = 56, im = new THREE.InstancedMesh(new THREE.SphereGeometry(.0095, 10, 8), gilt, n), m4 = new THREE.Matrix4();   // a ring of beads on the frame
@@ -371,7 +370,6 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
 
   /* ── every frame ── */
   const flick = (t, s) => .82 + Math.sin(t * 7.1 + s) * .06 + Math.sin(t * 13.3 + s * 3) * .05 + Math.sin(t * 2.3 + s * 5) * .07;
-  const tint = new THREE.Color();
   let busy = 0, busyBook = false;
   /* ── graphics levels: shadows (rendered once) and the photographic textures, loaded after the first frames ── */
   function setShadows(level) {   // "high": moon + central candle; "medium": the moon only
@@ -410,7 +408,6 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     { const gl = stations.get("aura").glass; gl.worldToLocal(gl.material.uniforms.uCam.value.copy(camera.position)); }
     const k = flick(t, 0), kf = flick(t * (1 + busy * .9), 2.1) * (1 + busy * .35);
     central.intensity = 11 * k * (birthday ? 1.25 : 1); flameLight.intensity = 2.6 * kf;
-    tint.setRGB(.75 + k * .3, .7 + k * .28, .68 + k * .25); for (const m of metal) m.color.copy(tint);
     shell.update(t, dt, camera); ambient.intensity = fill * k;
     const st = stations.get("num"); st.rings.forEach((p, i) => { if (!p.userData.target) p.rotation.z += dt * (.02 + i * .015) * (i % 2 ? -1 : 1); });
     smoke.userData.update(t); tNow = t;

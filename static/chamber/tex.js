@@ -1,5 +1,5 @@
 /* Oracle chamber (FULL tier): textures. Procedural ones are drawn once on canvases at boot (never any text): stone,
-   dark wood, the rug, velvet, parchment, a star chart, gold matcaps, glows, smoke and gold engravings made from the
+   dark wood, the rug, velvet, parchment, a star chart, glows, smoke and gold engravings made from the
    app's own line art (practiceArt). The room's photographic set (img/*.webp, built by scripts/chamber_assets.py) is
    loaded after the first frames with load(); the shell shows the procedural stand-ins until then. */
 
@@ -99,15 +99,6 @@ export function makeTextures(THREE, B) {
     for (let i = 0; i < 160; i++) { x.globalAlpha = .3 + r() * .5; x.beginPath(); x.arc(r() * S, r() * S, .6 + r(), 0, 7); x.fill(); }
     x.globalAlpha = 1; return x.canvas;
   }
-  /* matcaps: the whole "metal" look in one lookup (cheap on phones) */
-  function matcap(stops, hi = "rgba(255,246,220,.95)") {
-    const S = 256, [c, x] = canvas(S), g = x.createRadialGradient(S * .42, S * .38, S * .04, S / 2, S / 2, S / 2);
-    stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, S, S);
-    const h = x.createRadialGradient(S * .34, S * .28, 0, S * .34, S * .28, S * .2); h.addColorStop(0, hi); h.addColorStop(1, "rgba(255,240,200,0)");
-    x.fillStyle = h; x.fillRect(0, 0, S, S);
-    const rim = x.createRadialGradient(S / 2, S / 2, S * .38, S / 2, S / 2, S / 2); rim.addColorStop(0, "rgba(255,200,120,0)"); rim.addColorStop(1, "rgba(255,200,120,.35)");
-    x.fillStyle = rim; x.fillRect(0, 0, S, S); return c;
-  }
   function glow(core = "255,248,225", edge = "255,214,150") {
     const S = 128, [c, x] = canvas(S), g = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
     g.addColorStop(0, `rgba(${core},1)`); g.addColorStop(.18, `rgba(${edge},.55)`); g.addColorStop(.5, `rgba(${edge},.12)`); g.addColorStop(1, `rgba(${edge},0)`);
@@ -130,12 +121,7 @@ export function makeTextures(THREE, B) {
   }
   const T = {
     stone: tex(stone(), { repeat: [12, 3] }), floor: tex(wood(), { repeat: [8, 8] }), table: tex(wood([58, 36, 26]), { repeat: [1, 1] }),
-    rug: tex(rug()), velvet: tex(velvet()), parchment: tex(parchment()), chart: tex(starChart()),
-    gold: tex(matcap([[0, "#fff1c8"], [.35, "#e2bd6a"], [.75, "#7d5c24"], [1, "#2b1d0a"]])),
-    brass: tex(matcap([[0, "#f3dca0"], [.4, "#b48a45"], [.8, "#4a3416"], [1, "#1d1307"]], "rgba(255,240,210,.7)")),
-    darkwood: tex(matcap([[0, "#8a6040"], [.5, "#4a2e1c"], [1, "#120a06"]], "rgba(255,220,180,.25)")),
-    glass: tex(matcap([[0, "#cfd8ff"], [.5, "#3a3477"], [1, "#0b0920"]], "rgba(255,255,255,.9)")),
-    ceramic: tex(matcap([[0, "#fff8ee"], [.55, "#d9cfc0"], [1, "#5a5048"]], "rgba(255,255,255,.95)")),
+    rug: tex(rug()), velvet: tex(velvet()), parchment: tex(parchment()), chart: tex(starChart()),   // (the metals are lit PBR now: no matcaps)
     glow: tex(glow(), { srgb: false }), glowCool: tex(glow("235,240,255", "170,190,255"), { srgb: false }),
     glowViolet: tex(glow("240,230,255", "139,108,255"), { srgb: false }), smoke: tex(smoke(), { srgb: false }),
     flatN: (() => { const [c, x] = canvas(4); x.fillStyle = "rgb(128,128,255)"; x.fillRect(0, 0, 4, 4); return tex(c, { srgb: false, mips: false }); })(),   // a flat normal map until the real one arrives
