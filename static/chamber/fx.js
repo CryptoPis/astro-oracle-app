@@ -40,7 +40,9 @@ export function makeFx(THREE, X) {
     const wax = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.04, h, 14), new THREE.MeshLambertMaterial({ color: waxColor, emissive: 0x3a2410 }));
     wax.position.y = h / 2; grp.add(wax);
     const f = flame(r * 2.4); f.position.y = h + .004; grp.add(f);
-    const gl = glow(X.T.glow, 0xffc27a, r * 22, .55); gl.position.y = h + r * 2.2; grp.add(gl);
+    // the glow quad faces the eye and would cut through the table it stands on (a hard line across the cloth when
+    // seen from above): it is not depth-tested; nothing ever stands between the eye and a candle but its own table
+    const gl = glow(X.T.glow, 0xffc27a, r * 22, .55); gl.position.y = h + r * 2.2; gl.material.depthTest = false; gl.renderOrder = 8; grp.add(gl);
     grp.userData.flameY = h + r * 2.2; grp.userData.glow = gl; grp.userData.flame = f;
     return grp;
   }

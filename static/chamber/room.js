@@ -30,21 +30,25 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
 
   const lam = (o) => new THREE.MeshLambertMaterial(o);
   const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
-  const mat = {   // the objects' materials (stage C rebuilds the objects)
-    wood: lam({ map: T.table, color: 0xe8d0b8 }),
-    gold: new THREE.MeshMatcapMaterial({ matcap: T.gold }),
-    brass: new THREE.MeshMatcapMaterial({ matcap: T.brass }),
-    dark: new THREE.MeshMatcapMaterial({ matcap: T.darkwood }),
-    ceramic: new THREE.MeshMatcapMaterial({ matcap: T.ceramic }),
-    hidden: new THREE.MeshBasicMaterial({ visible: false }),
-  };
-  const metal = [mat.gold, mat.brass, mat.dark, mat.ceramic];   // matcaps ignore lights: tinted with the candlelight instead
 
   /* ── the shell (shell.js): stone faces, oak, moldings, pillars, sconces, drapes, the moon window ── */
   const SC = SH.makeSconceUniforms(THREE);
   SC.uScCol.value.set(night.candle);
   const moonSlot = STATIONS.find((s) => s.id === "moon").slot;
   const shell = SH.buildShell(THREE, { scene, X, F, SC, renderer, STEP, WALL, moonSlot });
+  /* the objects' materials: the metals and the dark wood are lit PBR with the room's environment, like the shell.
+     (They were matcaps: a flat face turned to the eye sampled the matcap's hot centre and, after the colour finish's
+     exposure, clipped to a white slab.) */
+  const env = shell.env.texture;
+  const mat = {
+    wood: lam({ map: T.table, color: 0xe8d0b8 }),
+    gold: shell.mats.gold,
+    brass: new THREE.MeshStandardMaterial({ color: 0xb98d4c, metalness: .85, roughness: .42, envMap: env, envMapIntensity: 1.1 }),
+    dark: new THREE.MeshStandardMaterial({ map: T.table, color: 0x9a7864, metalness: 0, roughness: .6, envMap: env, envMapIntensity: .35 }),
+    ceramic: new THREE.MeshStandardMaterial({ color: 0xf2ece3, metalness: 0, roughness: .28, envMap: env, envMapIntensity: .7 }),   // porcelain
+    hidden: new THREE.MeshBasicMaterial({ visible: false }),
+  };
+  const metal = [];   // (matcaps, tinted with the candlelight each frame: none left)
   const receivers = [...shell.receivers], casters = [...shell.casters];
   // the star dome: the night-sky plate seen from below under live stars (planets and the ecliptic are meshes, setSky)
   const domeMat = domeMaterial(THREE, F.clock);
@@ -77,7 +81,9 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   }
   function register(id, grp, center, dist, hit, extra = {}) {
     grp.add(hit); hit.userData.station = id; grp.updateMatrixWorld(true);
-    const newGlow = F.glow(T.glow, 0xffd27a, 1.3, 0); newGlow.position.copy(center);
+    // the "new today" halo: not depth-tested (as a camera-facing quad it would cut a hard line through the table), and
+    // it fades while its object is focused (room.focus)
+    const newGlow = F.glow(T.glow, 0xffd27a, 1.3, 0); newGlow.position.copy(center); newGlow.material.depthTest = false;
     grp.add(newGlow);
     stations.set(id, { id, grp, center: grp.localToWorld(center.clone()), dist, hit, newGlow, isNew: false, ...extra });
   }
@@ -93,11 +99,21 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     const side = lam({ color: 0xd8c9a6 }), back = lam({ color: 0x2a2060 });
     const deck = new THREE.Mesh(new THREE.BoxGeometry(.13, .04, .2), [side, side, back, side, side, side]); deck.position.set(0, .856, .02); g.add(deck);
     new THREE.TextureLoader().load(B.BACK_IMG, (tx) => { tx.colorSpace = THREE.SRGBColorSpace; back.map = tx; back.color.set(0xffffff); back.needsUpdate = true; });
-    const c = F.candle(.14, .022); c.position.set(.36, .836, -.3); g.add(c);
-    const box = new THREE.Mesh(new THREE.BoxGeometry(.2, .07, .14), mat.dark); box.position.set(-.3, .87, -.2); box.rotation.y = .3; g.add(box);
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(.21, .012, .15), mat.gold); lid.position.set(-.3, .91, -.2); lid.rotation.y = .3; g.add(lid);
+    // the candle and the casket sit at the back corners, inside the portrait frame of the stage's view (half width ~.3 m)
+    const c = F.candle(.14, .022); c.position.set(.25, .836, -.33); g.add(c);
+    const casket = new THREE.Group(); casket.position.set(-.25, .836, -.3); casket.rotation.y = .35; g.add(casket);
+    const rounded = (w, d, r) => { const s = new THREE.Shape(), x = w / 2 - r, z = d / 2 - r;
+      s.absarc(x, z, r, 0, Math.PI / 2); s.absarc(-x, z, r, Math.PI / 2, Math.PI); s.absarc(-x, -z, r, Math.PI, Math.PI * 1.5); s.absarc(x, -z, r, Math.PI * 1.5, Math.PI * 2); return s; };
+    const slab = (w, d, h, r, bevel) => new THREE.ExtrudeGeometry(rounded(w, d, r), { depth: h, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 6 }).rotateX(-Math.PI / 2);
+    const box = new THREE.Mesh(slab(.17, .115, .05, .012, .004), mat.dark); box.position.y = .004; casket.add(box);
+    const lid = new THREE.Mesh(slab(.178, .123, .012, .014, .005), mat.dark); lid.position.y = .06; casket.add(lid);
+    casket.add(at(new THREE.Mesh(slab(.19, .135, .006, .016, .002), mat.gold), 0, .057, 0));                 // the gold band under the lid
+    casket.add(at(new THREE.Mesh(slab(.1, .05, .003, .02, .002), mat.gold), 0, .078, 0));                    // an inlaid plate on the lid
+    casket.add(at(new THREE.Mesh(new THREE.SphereGeometry(.009, 12, 8), mat.gold), 0, .084, 0));             // its stud
+    casket.add(at(new THREE.Mesh(new THREE.BoxGeometry(.024, .03, .006), mat.gold), 0, .048, .062));         // the clasp
+    for (const [x, z] of [[-.075, -.05], [.075, -.05], [-.075, .05], [.075, .05]]) casket.add(at(new THREE.Mesh(new THREE.SphereGeometry(.009, 10, 6), mat.gold), x, .004, z));   // ball feet
     place(g, S.tarot.slot, 2.7);
-    register("tarot", g, new THREE.Vector3(0, .86, 0), 1.25, hitBox(1.3, .5, 1.3, .8), { deck, box, lid, candle: c, stageDist: .34, stageRise: 2.5, stageOff: -.02 });
+    register("tarot", g, new THREE.Vector3(0, .86, 0), 1.25, hitBox(1.3, .5, 1.3, .8), { deck, box: casket, lid, candle: c, stageDist: .36, stageRise: 2.4, stageOff: -.075 });
   }
   // 1 · crystal ball on a turned gold stand: a stepped plinth, a bead, a baluster stem with knops, a cup with a lip
   { const g = new THREE.Group();
@@ -130,9 +146,9 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   { const g = new THREE.Group();
     const prof = [[0, 0], [.17, 0], [.18, .03], [.06, .1], [.04, .5], [.07, .55], [.035, .62], [.035, .95], [.1, .98], [.11, 1.0]].map(([x, y]) => new THREE.Vector2(x, y));
     g.add(new THREE.Mesh(new THREE.LatheGeometry(prof, 24), mat.brass));
-    const c = F.candle(.3, .055, 0xf0e2c6); c.position.y = 1.0; g.add(c);
-    c.userData.flame.scale.set(1.5, 1.5, 1.5); c.userData.glow.scale.multiplyScalar(1.6);
-    flameLight = new THREE.PointLight(night.candle, 2.6, 5, 2); flameLight.position.set(0, 1.42, .08); g.add(flameLight);
+    const c = F.candle(.3, .055, 0xd9c7a6); c.position.y = 1.0; g.add(c);
+    c.userData.flame.scale.set(1.5, 1.5, 1.5); c.userData.glow.scale.multiplyScalar(1.15); c.userData.glow.material.opacity = .4;
+    flameLight = new THREE.PointLight(night.candle, 2.6, 5, 2); flameLight.position.set(0, 1.62, .32); g.add(flameLight);   // above and in front of the flame: it lights the room, not its own wax
     place(g, S.advisor.slot, 2.9);
     register("advisor", g, new THREE.Vector3(0, 1.3, 0), .95, hitBox(.5, 1.6, .5, .8), { candle: c });
   }
@@ -191,7 +207,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   { const g = new THREE.Group();
     g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, .035, 32), mat.wood), 0, .68, 0));
     g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.04, .06, .66, 10), mat.dark), 0, .33, 0));
-    const ceramic2 = Object.assign(mat.ceramic.clone(), { side: THREE.DoubleSide }); metal.push(ceramic2);   // a lathe surface seen from above: both sides
+    const ceramic2 = Object.assign(mat.ceramic.clone(), { side: THREE.DoubleSide });   // a lathe surface seen from above: both sides
     const saucer = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [.1, 0], [.13, .012], [.135, .018]].map(([x, y]) => new THREE.Vector2(x, y)), 32), ceramic2);
     saucer.position.y = .7; g.add(saucer);
     const cup = new THREE.Group(); cup.position.y = .712; g.add(cup);
@@ -255,7 +271,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
       const a = constellation(.1, 5), b = constellation(.1, 9), grp = new THREE.Group(); grp.add(a, b); grp.position.set(0, 1.05, .05); st.grp.add(grp);
       R.compat = { grp, a, b, t0: clockNow() }; }
   }
-  let tNow = 0; const clockNow = () => tNow;
+  let tNow = 0, focusId = null; const clockNow = () => tNow;
 
   /* ── every frame ── */
   const flick = (t, s) => .82 + Math.sin(t * 7.1 + s) * .06 + Math.sin(t * 13.3 + s * 3) * .05 + Math.sin(t * 2.3 + s * 5) * .07;
@@ -311,7 +327,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
       c.a.position.set(-.3 * (1 - e2), Math.sin(t) * .01, 0); c.b.position.set(.3 * (1 - e2), Math.cos(t) * .01, 0); c.a.rotation.z = (1 - e2) * .6; c.b.rotation.z = -(1 - e2) * .6;
       for (const g of [c.a, c.b]) { g.children[0].material.size = .06 + (k >= 1 ? .03 * (1 + Math.sin(t * 3)) : 0); g.children[0].material.opacity = fade; g.children[1].material.opacity = .55 * fade; }
       if (fade <= 0) { stations.get("chart").grp.remove(c.grp); c.grp.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); R.compat = null; } }
-    for (const s of stations.values()) if (s.newGlow) { const want = s.isNew ? .3 + .22 * Math.sin(t * 1.6 + s.grp.position.x) : 0; s.newGlow.material.opacity += (want - s.newGlow.material.opacity) * Math.min(1, dt * 3); }
+    for (const s of stations.values()) if (s.newGlow) { const want = s.isNew && focusId !== s.id ? .3 + .22 * Math.sin(t * 1.6 + s.grp.position.x) : 0; s.newGlow.material.opacity += (want - s.newGlow.material.opacity) * Math.min(1, dt * 3); }
     F.face(camera);
   }
   /* ── the real sky on the dome (from /api/sky): planets on a gold ecliptic ring, retrogrades with a red halo ── */
@@ -330,6 +346,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   }
 
   return { scene, stations, update, central, flameLight, moonLight, ambient, birthday, night, engr, setSky, skyAt, setShadows, upgrade, shell,
+    focus(id) { focusId = id; },
     setBusy(on, path) { busy = on ? 1 : 0; busyBook = !!(on && path && path.startsWith("/api/dreams")); }, react, mat };
 }
 

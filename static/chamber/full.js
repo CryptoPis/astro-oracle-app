@@ -228,12 +228,12 @@ export async function createFull(THREE, B, ctx, mods) {
       if (id !== "horo" && nav.up) { nav.up = false; nav.pitchT = -.1; }
       if (id !== "horo") { const st = room.stations.get(id); if (st) { const slot = STATIONS.find((s) => s.id === id).slot; api.turnTo(slot); nav.yaw = nav.yawT; } }
       if (!focused) { camera.position.copy(pose.pos); roomLook(currentLook); }
-      focused = id; await glide(focusPose(id, mode), 900);
+      focused = id; room.focus(id); await glide(focusPose(id, mode), 900);
     },
     async refocus(mode) { api.pause(false); if (focused) await glide(focusPose(focused, mode), 480); },
     async unfocus() { if (!focused) return; api.pause(false);
       if (focused === "horo") { nav.up = false; nav.pitch = nav.pitchT = -.1; ctx.onLook(false); }
-      const to = { pos: pose.pos.clone(), look: roomLook(new THREE.Vector3()), off: 0 }; await glide(to, 900); focused = null; },
+      const to = { pos: pose.pos.clone(), look: roomLook(new THREE.Vector3()), off: 0 }; room.focus(null); await glide(to, 900); focused = null; },
     get focused() { return focused; },
     pause(on) { paused = on; if (!on) kick(); else if (raf) { cancelAnimationFrame(raf); raf = 0; } },
     setNew(map) { for (const [id, v] of Object.entries(map)) { const s = room.stations.get(id); if (s) s.isNew = !!v; } kick(); },
