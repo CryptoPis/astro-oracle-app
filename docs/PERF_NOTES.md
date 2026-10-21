@@ -425,3 +425,36 @@ Checked in a browser reporting 8 cores / 4 GB:
 
 Unchanged: FPS (High 60.0 / 60.2, Medium 60.3 / 60.3, LITE 60.3 / 60.2 at CPU 4×), the download (one 1,853-byte
 module more), memory and GPU objects (127 / 38).
+
+# Chamber polish 1 (2026-10-22, branch `chamber-polish-1`)
+
+Visual polish of every station after a real-phone review (Chrome, Android, 360x800). Root causes and fixes are in
+the commit messages; screenshots: `python -m scripts.chamber_stations --label after` (360x800, High / Medium / LITE,
+Georgian) -> `dist/screens/chamber-stations/`.
+
+Measured with `python -m scripts.chamber_check --perf` (headless Chrome, 390x844, CPU 4x throttled), before (tag
+`backup-before-chamber-polish-1`) and after, back to back on the same machine:
+
+| | before | after |
+|---|---|---|
+| High idle / turning fps (worst frame) | 60.3 (17 ms) / 60.2 (17 ms) | 60.0 (33 ms) / 60.2 (17 ms) |
+| Medium idle / turning fps (worst frame) | 60.3 (17 ms) / 60.2 (17 ms) | 60.3 (17 ms) / 60.2 (17 ms) |
+| LITE idle / turning fps (worst frame) | 60.3 (17 ms) / 60.2 (17 ms) | 60.3 (17 ms) / 60.2 (17 ms) |
+| Chamber boot High / Medium / LITE | 1556 / 2767 / 207 ms | 1624 / 3229 / 265 ms |
+| Medium draw calls / triangles (room view) | 36 / 108,707 | 41 / 140,131 |
+| GPU geometries / textures after the station tour | 127 / 38 | 188 / 34 |
+| JS heap before -> after 10 station visits (FULL) | 15.66 -> 15.74 MB (+0.5 %) | 17.76 -> 17.84 MB (+0.5 %) |
+| GPU objects after 3 tarot draws / 10 visits | no growth | no growth |
+| Every station opens and closes (FULL, LITE) | ok | ok |
+| Download: images High / Medium | 1.26 / 0.60 MB | 1.26 / 0.60 MB (no image changed) |
+| Download: FULL boot JS + CSS (gzip, incl. three.js 162 KB) | 224.7 KB | 233.1 KB |
+| Stage modules on demand (gzip) | 22.0 KB | 23.7 KB |
+
+- The new geometry (chest, casket, mirror frame, curtains, sphere stand, dome fillets) is procedural: no texture,
+  no image. GPU geometries grow once at boot (127 -> 188) and stay flat afterwards.
+- Medium boots about 0.46 s later at 4x CPU (triangulating the extruded shapes and one more shader variant, the
+  wax glow); High +0.07 s. To be confirmed on a real phone.
+- The single 33 ms frame at High idle appeared once in one run (none in the run before the last trims); the
+  other windows stayed at 17 ms. Below the 40 ms limit.
+- All numbers come from a desktop machine with a throttled CPU; a real phone (and a busy browser on the same
+  machine) can differ.
