@@ -293,3 +293,68 @@ has cached the shaders.
 Screenshots (phone 390×844 @3x) are in `dist/screens/chamber-graphics/`:
 - `a2-high-*`, `a2-medium-*`: room, tarot, window, dome, sconces
 - `a2-compare-room|window|dome.png`: the reference beside the High screenshot
+
+# Chamber graphics, stage A3 (2026-10-21, branch `chamber-graphics`)
+
+A second lighting and detail pass. Same rig: CPU 4×, GeForce GT 630 via ANGLE/D3D11, 390×844 @2 (screenshots @3).
+
+What changed:
+- **Brightness:** exposure ×1.3 in the colour finish (+0.38 stop), and a warm fill in the candles' own colour (0.55,
+  flickering with them) in place of the grey-violet haze ambient. The dark corners, soot and vignette stay.
+- **Candelabras:** two per pillar, 5 candles at head height and 3 lower (80 candles). Instanced: the gold (2 draws), the
+  wax (1), the flames (1: camera-facing in the vertex shader, noise flicker) and the cluster glows (1). The light is
+  still fake: one pool point per pillar in the shell shader, plus 31 soft additive decals (pools on the walls and pillars,
+  a cool glow round the window) and a window-shaped moonlight patch on the floor, all in 2 draws. The real three.js
+  lights are unchanged: 3, of which 2 cast shadows.
+- **Floor:**
+  - glossier (roughness 0.30-0.60)
+  - a reflection streak of every candelabra, the sill candles and the window, computed in the floor shader on both
+    levels: narrow across the view, long along it, on the boards' smooth plane, so they streak instead of glittering
+  - High also mirrors the room environment
+  - the rug is larger (radius 2.3 → 2.6 m) and 35 % brighter, so its gold pattern reads on a phone
+- **Window:**
+  - the moon is twice the size, brighter, with a soft halo
+  - the oculus is a quatrefoil (the union of four circles), with a gold ring round it
+  - fleur-cross fittings sit where the bars meet
+  - the frame has a carved lozenge relief (procedural normal map)
+  - a beveled stone arch molding runs round the opening, and the sill rests on two stepped corbels
+  - the sill candles light the reveal (an eleventh pool point)
+- **Dome:**
+  - gold ribs over each pillar meet at a boss; there are three rings and 20 medallions where ribs and rings cross. The
+    dome's gold has a faint warm self-light, since no candle reaches it.
+  - the stars are denser (4 layers) with blue and amber ones
+  - the Milky Way is purple with a warm pink-amber core
+- **Drapes:** a gold lozenge-chain border down both edges (it reads as metal), a darker centre and a candle rim on the
+  folds.
+- **Walls:** stronger soot over both candle clusters.
+
+## Measured (`python -m scripts.chamber_check --perf`, and 2 laps round the room)
+
+| | A2: High | **A3: High** | **A3: Medium** | LITE |
+|---|---|---|---|---|
+| FPS idle | 60.3 (worst 17 ms) | **60.3 (worst 17 ms)** | **60.0-60.3 (worst 17-33 ms)** | 60.3 |
+| FPS turning | 60.2 | **60.2 (worst 17 ms)** | **60.2 (worst 17 ms)** | 60.2 |
+| Worst frame per turn, first lap (10 turns) | 33 ms | **17 ms on every turn** | **17 ms on every turn** | |
+| Chamber boot, cold shader cache / cached | 2.3 s / 1.2 s | 3.9 s / 1.4 s | 4.5 s / 2.3 s | 0.17 s |
+| JS heap before → after 10 more station visits | 13.64 → 13.71 MB | 14.47 → 14.63 MB (+1.1 %) | | 6.93 → 6.94 MB |
+| GPU geometries / textures after 10 visits and 3 tarot draws | 124 / 37 → 124 / 37 | 124 / 38 → 124 / 38 | | none |
+| Download | 1,262,550 B | **1,262,550 B** | **596,972 B** | none |
+
+The cold boot grew: there are more programs to compile (the flames, glows, decals and floor patch), and compileAsync
+still finishes inside the first seconds, so the first lap stays clean.
+
+## Brightness (`python -m scripts.chamber_luma`)
+
+Mean Rec. 709 luma of the sRGB pixels, from 12 % to 80 % of the height (the app's header and name plaque excluded).
+Reference: the empty-chamber image (`03_59_46 PM.png`) = **34.2**.
+
+| view | A2 High | A3 High | A3 Medium |
+|---|---|---|---|
+| main room | 16.8 (49 %) | **29.4 (85.8 %)** | **29.8 (87.2 %)** |
+| wall with candelabras | 21.3 (62 %) | 35.1 (102.5 %) | 34.4 (100.6 %) |
+| tarot table | 18.8 (55 %) | 32.1 (93.8 %) | 30.4 (88.9 %) |
+| toward the window | | 43.3 (126.3 %) | 42.5 (124.0 %) |
+| dome | | 41.3 (120.5 %) | 39.6 (115.6 %) |
+
+Screenshots: `dist/screens/chamber-graphics/a3-high-*`, `a3-medium-*` (room, window, tarot, dome, candelabras,
+windowclose) and `a3-compare-room|window|dome.png`.

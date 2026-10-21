@@ -20,13 +20,13 @@ export const GFX = { high: { dpr: 1.75, tex: 1024, bloom: true }, medium: { dpr:
 const HIGH_MAX_MS = 20, LITE_MS = 45;   // average frame time over frames 10-50 (drawn before the 1024 px set: keep headroom)
 
 /* two patches of three.js's shader chunks, for every built-in material:
-   - the colour finish: write display-ready sRGB (also into the bloom's target, so High and Medium look alike) and
+   - the colour finish: lift the exposure, write display-ready sRGB (also into the bloom's target, so High and Medium look alike) and
      raise the black point to the palette's night (#0b0710)
    - soft warm shadows: a shadowed light keeps 38 % of its strength, tinted warm, instead of going black */
 function colourFinish(THREE) {
   const C = THREE.ShaderChunk;
   if (C.colorspace_fragment.includes("CH_FINISH")) return;
-  C.colorspace_fragment = "/* CH_FINISH */ gl_FragColor = sRGBTransferOETF( gl_FragColor );"
+  C.colorspace_fragment = "/* CH_FINISH */ gl_FragColor.rgb *= 1.3; gl_FragColor = sRGBTransferOETF( gl_FragColor );"   // exposure +0.38 stop
     + " gl_FragColor.rgb = vec3(0.0431, 0.0275, 0.0627) + gl_FragColor.rgb * vec3(0.9569, 0.9725, 0.9373);";
   C.shadowmap_pars_fragment += "\nvec3 chShade( float s ) { return mix( vec3( 0.38, 0.33, 0.28 ), vec3( 1.0 ), s ); }\n";
   C.lights_fragment_begin = C.lights_fragment_begin.replace(/directLight\.color \*= \( directLight\.visible && receiveShadow \) \? (get\w*Shadow\([^;]*\)) : 1\.0;/g,

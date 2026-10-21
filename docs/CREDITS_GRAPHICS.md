@@ -88,6 +88,17 @@ Removed since Stage A (bytes as they were): `stone_n_1024` 341,448 · `floor_n_1
 The velvet also dresses the new drapes. Each drape shows the tile with its own offset and rotation, under a slow
 light/dark variation, so the repeat never lines up.
 
+## Stage A3: no new files
+
+Everything new in A3 is generated in code: the candelabras, the decals of light, the floor's reflection streaks, the
+window's quatrefoil, fittings, arch molding, corbels and carved relief (a 128 px canvas normal map), the drapes' gold
+borders, the dome's gold architecture and the procedural stars. The runtime files and their exact bytes are the
+table above, unchanged: **High 1,262,550 bytes, Medium 596,972 bytes**.
+
+The reference dome (`03_39_51 PM.png`, gold frame) was evaluated as a cut-out ring for the dome and rejected. The image is
+1536×1024 landscape, so its gold ring is cut off at the top and bottom and cannot form a full annulus, and its medallions
+are drawn sunburst emblems. The architecture is built from geometry instead (10 ribs, 3 rings, 20 medallions, a boss).
+
 ## Code
 
 three.js r160 (MIT), vendored in `static/vendor/` with its license (`three-LICENSE.txt`).

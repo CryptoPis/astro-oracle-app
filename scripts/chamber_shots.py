@@ -4,7 +4,7 @@
     python -m scripts.chamber_shots --label after --gfx high medium            # -> dist/screens/chamber-graphics/
     python -m scripts.chamber_shots --label before --dist path/to/other/dist   # e.g. a build of main, no levels
 
-Views: the room between two objects, the tarot table, the moon window up close, the star dome, a wall with sconces. 390x844 at
+Views: the room between two objects, toward the window, the tarot table, the star dome, a wall with candelabras, the window up close. 390x844 at
 device pixel ratio 3 (the chamber caps it per graphics level). Waits for the photographic textures when the build
 has them (engine.texReady), so the shots show the final room, not the stand-ins.
 """
@@ -21,10 +21,11 @@ ROOT = Path(__file__).resolve().parent.parent
 STEP = 0.6283185
 VIEWS = {   # name: (set-up, tear-down); the old builds (no look()) fall back to turning to an object
     "room": (f"(e => e.look ? e.look({-0.5 * STEP}, -0.04) : window.__chamber.turn(0))(window.__chamber.engine)", None),
+    "window": ("window.__chamber.turn(2)", None),
     "tarot": ("window.__chamber.turn(0)", None),
-    "window": ("window.__chamber.engine.focus('moon', 'stage')", "window.__chamber.engine.unfocus()"),
     "dome": ("window.__chamber.up(true)", "window.__chamber.up(false)"),
-    "sconces": (f"(e => e.look ? e.look({4.5 * STEP}, 0.06) : window.__chamber.turn(5))(window.__chamber.engine)", None),
+    "candelabras": (f"(e => e.look ? e.look({4.5 * STEP}, 0.06) : window.__chamber.turn(5))(window.__chamber.engine)", None),
+    "windowclose": ("window.__chamber.engine.focus('moon', 'stage')", "window.__chamber.engine.unfocus()"),
 }
 
 

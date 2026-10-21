@@ -3,8 +3,8 @@
    adds the dome, the lights and the ten objects. The photographic textures are loaded after the first frames
    (upgrade); until then small procedural textures stand in. The window and the dome are pre-rendered plates under live
    shaders (the real moon phase; procedural stars over the Milky Way; the planets and the ecliptic are meshes).
-   Lights: a faint haze, the central candle (a downward spot), the oracle's candle and the moon (a spot through the
-   window); the ten sconces' pools are computed in the shell's shader. Shadows (centre and moon) are rendered once. */
+   Lights: a warm candle-coloured fill, the central candle (a downward spot), the oracle's candle and the moon (a spot through the
+   window); the candelabras' pools are computed in the shell's shader. Shadows (centre and moon) are rendered once. */
 
 const TAU = Math.PI * 2;
 const WALL = 6 * Math.cos(Math.PI / 10);   // the decagon's flat faces sit at the apothem (5.71 m), not at the 6 m radius
@@ -52,7 +52,8 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   dome.position.y = 4.2; scene.add(dome);
 
   /* ── lights: a faint haze, the central candle (decay 2, gone by 9 m), the moon as a spot through the window ── */
-  const ambient = new THREE.AmbientLight(PALETTE.haze, .16); scene.add(ambient);
+  // a warm low fill in the candles' own colour (not a neutral ambient): the room's light is candlelight everywhere
+  let fill = .55; const ambient = new THREE.AmbientLight(night.candle, fill); scene.add(ambient);
   // the central candle hangs above the rug and lights downwards in a wide, soft cone: one 2D shadow map instead of a
   // point light's cube (the cube's lookups cost High 7 fps on a mid GPU), and the light fades towards the walls
   const central = new THREE.SpotLight(night.candle, 11, 9, 1.18, 1, 2); central.position.set(0, 3.1, 0); central.target.position.set(0, 0, 0); scene.add(central, central.target);
@@ -224,7 +225,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   /* ── birthday: a golden glow all evening ── */
   const u = B.S.user || {}, today = new Date();
   const birthday = !!u.birth_date && u.birth_date.slice(5) === `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  if (birthday) { ambient.color.set(0x6a5020); ambient.intensity = .45; central.intensity *= 1.25; scene.add(F.dust(160, new THREE.Box3(new THREE.Vector3(-4, .2, -4), new THREE.Vector3(4, 3.8, 4)), 0xffd27a, 10)); }
+  if (birthday) { ambient.color.set(0xffc060); fill = .8; central.intensity *= 1.25; scene.add(F.dust(160, new THREE.Box3(new THREE.Vector3(-4, .2, -4), new THREE.Vector3(4, 3.8, 4)), 0xffd27a, 10)); }
 
   /* ── reactions to readings: the mirror blooms, the astrolabe turns, constellations meet, the quill writes ── */
   const R = { bloom: 0, bloomT: 0, quill: 0, book: 0, compat: null };
@@ -254,7 +255,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
   let busy = 0, busyBook = false;
   /* ── graphics levels: shadows (rendered once) and the photographic textures, loaded after the first frames ── */
   function setShadows(level) {   // "high": moon + central candle; "medium": the moon only
-    moonLight.castShadow = true;
+    moonLight.castShadow = true; shell.setLevel(level);
     const want = level === "high";
     if (central.castShadow !== want) { central.castShadow = want; if (!want && central.shadow.map) { central.shadow.map.dispose(); central.shadow.map = null; } }
   }
@@ -271,7 +272,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     const albedo = (set) => swap(X.load(`${set}_${L[set]}`, { srgb: true }), (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping;
       const old = shell.sets[set][0].map; for (const m of shell.sets[set]) { m.map = t; if (m.bumpMap) m.bumpMap = t; } X.release(old); });
     const normal = (set) => swap(X.load(`${set}_n_${L.normals}`, { srgb: false }), (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      for (const m of shell.sets[set]) m.normalMap = t; });
+      for (const m of shell.sets[set]) if (!m.userData.keepNormal) m.normalMap = t; });   // the window frame keeps its carving
     // a plate under a shader: raw colour (the shaders write display colour), faded in
     const plate = (file, u, fade) => swap(X.load(file, { srgb: false }), (t) => { if (file.startsWith("moon")) t.wrapS = THREE.RepeatWrapping; u.value = t; fades.push(fade); });
     const jobs = [albedo("stone"), albedo("floor"), normal("stone"), normal("floor"), albedo("rug"), albedo("velvet"),
@@ -288,7 +289,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     const k = flick(t, 0), kf = flick(t * (1 + busy * .9), 2.1) * (1 + busy * .35);
     central.intensity = 11 * k * (birthday ? 1.25 : 1); flameLight.intensity = 2.6 * kf;
     tint.setRGB(.75 + k * .3, .7 + k * .28, .68 + k * .25); for (const m of metal) m.color.copy(tint);
-    shell.update(t, dt);
+    shell.update(t, dt, camera); ambient.intensity = fill * k;
     const st = stations.get("num"); st.rings.forEach((p, i) => { if (!p.userData.target) p.rotation.z += dt * (.02 + i * .015) * (i % 2 ? -1 : 1); });
     smoke.userData.update(t); tNow = t;
     // reactions
@@ -353,19 +354,21 @@ function domeMaterial(THREE, clock) {
         float a = (1.0 - smoothstep(max(rad - px, 0.0), rad + px, d)) * min(1.0, rad / px);   // a sub-pixel star spreads over one pixel, dimmer
         a *= 1.0 - smoothstep(0.12, 0.35, px);   // a layer whose cells are smaller than a few pixels would alias: fade it
         float tw = 0.78 + 0.22 * sin(uTime * (0.6 + 2.0 * h(id + 9.0)) + r * 60.0);
-        vec3 col = mix(vec3(0.78, 0.84, 1.0), vec3(1.0, 0.86, 0.66), step(0.72, h(id + seed * 5.3)));
-        return col * a * tw * (0.55 + 0.45 * h(id + 4.0)); }
+        float c2 = h(id + seed * 5.3);
+        vec3 col = c2 < 0.25 ? vec3(0.55, 0.72, 1.0) : c2 > 0.78 ? vec3(1.0, 0.76, 0.48) : vec3(0.86, 0.9, 1.0);
+        return col * a * tw * (0.55 + 0.75 * h(id + 4.0)); }
       void main() { vec3 d = normalize(vDir); float th = acos(clamp(d.y, 0.0, 1.0)) / 1.5707963;
         vec2 p = d.xz / max(1e-4, length(d.xz)) * th;               // 0 at the zenith, 1 at the rim
         vec2 uv = 0.5 + p / 0.56 * 0.5;                              // the plate spans th < 0.56
         vec3 sky = texture2D(tSky, uv, 1.5).rgb;                     // blurred: the plate gives the band, not the stars
         float l = dot(sky, vec3(0.2126, 0.7152, 0.0722));
-        sky = mix(vec3(l), sky, 0.38) * vec3(0.88, 0.9, 1.08);       // toward the measured night: less orange and pink
+        sky = mix(vec3(l), sky, 0.85) * vec3(1.04, 0.84, 1.16);       // purple, as in the reference dome
+        sky += vec3(1.0, 0.6, 0.42) * smoothstep(0.22, 0.55, l) * 0.35;  // a warm pink-amber in the bright core
         vec3 base = vec3(0.071, 0.078, 0.137);                       // #121423
         float inCap = (1.0 - smoothstep(0.44, 0.56, th)) * uMix;
         float b = dot(d, vec3(-0.7071, 0.0, -0.7071)), band = exp(-b * b / 0.03) * (0.6 + 0.4 * n(p * 6.0 + uTime * 0.01));
-        vec3 col = base + vec3(0.1, 0.09, 0.15) * band * (1.0 - inCap) + max(sky - base * 0.6, 0.0) * 0.62 * inCap;
-        col += stars(p, 34.0, 0.3, 0.1, 1.0) * 1.15 + stars(p, 70.0, 0.4, 0.085, 7.0) * 0.75 + stars(p, 140.0, 0.5, 0.075, 13.0) * 0.5;
+        vec3 col = base + vec3(0.14, 0.09, 0.2) * band * (1.0 - inCap) + max(sky - base * 0.6, 0.0) * 0.95 * inCap;
+        col += stars(p, 22.0, 0.4, 0.095, 1.0) * 1.7 + stars(p, 48.0, 0.55, 0.1, 7.0) * 1.0 + stars(p, 100.0, 0.65, 0.085, 13.0) * 0.7 + stars(p, 190.0, 0.7, 0.08, 19.0) * 0.45;
         col *= mix(0.62, 1.0, (1.0 - smoothstep(0.72, 1.0, th)));             // deeper towards the rim, where the dome meets the walls
         gl_FragColor = vec4(col, 1.0); }`,
   });
@@ -377,7 +380,7 @@ function windowMaterial(THREE, p, illum, [w, h]) {
   return new THREE.ShaderMaterial({
     uniforms: { tView: { value: null }, tMoon: { value: null }, uMix: { value: 0 }, uMoonMix: { value: 0 }, uCam: { value: new THREE.Vector3(0, 1, 3) },
       uAspect: { value: w / h }, uSun: { value: new THREE.Vector3(Math.sin(p * TAU), 0, -Math.cos(p * TAU)) }, uIllum: { value: illum },
-      uMoonUv: { value: new THREE.Vector2(.74, .64) } },   // in the right-hand light, below the tracery
+      uMoonUv: { value: new THREE.Vector2(.745, .6) } },   // in the right-hand light, below the tracery
     vertexShader: "varying vec2 vUv; varying vec3 vP; void main() { vUv = uv; vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
     fragmentShader: `uniform sampler2D tView, tMoon; uniform float uMix, uMoonMix, uIllum, uAspect; uniform vec3 uCam, uSun; uniform vec2 uMoonUv; varying vec2 vUv; varying vec3 vP;
       void main() { vec3 v = normalize(vP - uCam);
@@ -385,13 +388,13 @@ function windowMaterial(THREE, p, illum, [w, h]) {
         vec2 sc = vec2(0.8, 0.8 * 0.7 / uAspect);   // the plate is 0.7 wide per 1 high: fill the pane without stretching
         vec2 uv = 0.5 + (vUv - 0.5) * sc + par;
         vec3 col = mix(mix(vec3(0.1, 0.125, 0.31), vec3(0.04, 0.063, 0.19), vUv.y), texture2D(tView, uv).rgb, uMix);
-        vec2 q = (uv - (0.5 + (uMoonUv - 0.5) * sc)) * vec2(0.7, 1.0) / 0.042; float d = length(q);
+        vec2 q = (uv - (0.5 + (uMoonUv - 0.5) * sc)) * vec2(0.7, 1.0) / 0.084; float d = length(q);
         if (d < 1.0) { vec3 nr = vec3(q, sqrt(1.0 - d * d));
           vec2 mu = vec2(0.5 + atan(nr.x, nr.z) / 6.2831853, 0.5 + asin(nr.y) / 3.1415927);
           vec3 alb = mix(vec3(0.78, 0.78, 0.8), texture2D(tMoon, mu).rgb, uMoonMix);
-          vec3 mc = alb * (smoothstep(-0.03, 0.12, dot(nr, uSun)) * 1.25 + 0.035);
+          vec3 mc = alb * (smoothstep(-0.03, 0.12, dot(nr, uSun)) * 1.7 + 0.05);
           col = mix(col, mc, (1.0 - smoothstep(0.95, 1.0, d))); }
-        else col += vec3(0.7, 0.76, 1.0) * uIllum * 0.16 * exp(-(d - 1.0) * 1.6);
+        else col += vec3(0.7, 0.76, 1.0) * (0.12 + uIllum * 0.3) * exp(-(d - 1.0) * 1.1);   // a soft halo
         // the glass: a faint warm reflection of the room's candles, stronger at a grazing look, and one soft streak
         float fres = pow(1.0 - clamp(-v.z, 0.0, 1.0), 3.0);
         float streak = (1.0 - smoothstep(0.0, 0.06, abs(vUv.x * 0.9 + vUv.y * 0.45 - 0.62))) * 0.5 + (1.0 - smoothstep(0.0, 0.025, abs(vUv.x * 0.9 + vUv.y * 0.45 - 0.74))) * 0.35;
