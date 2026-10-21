@@ -30,6 +30,13 @@ html[data-ctier="full"] .ch-stage::after { content: ""; position: absolute; inse
 .ch-coins { display: inline-flex; align-items: center; gap: 7px; height: 42px; padding: 0 14px; border-radius: 99px; color: var(--gold-hi);
   background: rgba(13,10,36,.55); border: 1px solid rgba(226,189,106,.3); font: 600 .95rem var(--display); font-variant-numeric: tabular-nums; }
 .ch-coins svg { width: 19px; height: 19px; }
+/* the app's toast, in the chamber: under the coin pill (the "+35 $AST" flies out of the counter), never over the top bar */
+html[data-ui="chamber"] #toast { top: calc(var(--ch-top) + 60px); left: auto; right: max(14px, env(safe-area-inset-right, 0px)); z-index: 30;
+  max-width: min(calc(100% - 28px), 360px); transform: translate3d(0, -10px, 0) scale(.96); transform-origin: 85% 0; opacity: 0;
+  transition: transform 360ms var(--ease), opacity 260ms var(--ease), visibility 0s 360ms; }
+html[data-ui="chamber"] #toast.show { transform: none; opacity: 1; transition: transform 420ms var(--ease), opacity 260ms var(--ease), visibility 0s; }
+html[data-ui="chamber"] #toast::before { content: ""; position: absolute; top: -6px; right: 34px; width: 10px; height: 10px; transform: rotate(45deg);
+  background: inherit; border-left: inherit; border-top: inherit; }
 
 /* ── the plaque under the current object, the swipe hint, the side arrows ── */
 .ch-plaque { position: fixed; z-index: 5; left: 50%; bottom: calc(var(--ch-bottom) + 50px); transform: translateX(-50%);
@@ -106,7 +113,8 @@ html[data-ui="chamber"] .back-link, html[data-ui="chamber"] #scroller .view-head
 .ch-intro-row .btn { min-height: 46px; }
 
 /* ── stage HUD (interactive objects: tarot, sphere, chest, dome) ── */
-.ch-hud { position: fixed; z-index: 15; left: 0; right: 0; top: calc(var(--ch-top) + 62px); display: grid; gap: 10px; justify-items: center; padding: 0 16px;
+.ch-hud { position: fixed; z-index: 15; left: 0; right: 0; top: calc(var(--ch-top) + 62px); display: grid; gap: 10px; justify-items: center;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
   pointer-events: none; }
 .ch-hud > * { pointer-events: auto; }
 .ch-hud { transition: opacity var(--t2) var(--ease); }
@@ -218,7 +226,8 @@ html[data-ui="chamber"] .back-link, html[data-ui="chamber"] #scroller .view-head
 .ch-potd { margin: 0; padding: 7px 14px; border-radius: 12px; font-size: .8rem; color: var(--haze); background: rgba(13,10,36,.62); border: 1px solid rgba(226,189,106,.22); }
 .ch-potd i { display: inline-block; width: 9px; height: 9px; margin-right: 7px; vertical-align: -1px; border-radius: 50%; background: var(--dc, var(--gold)); box-shadow: 0 0 8px var(--dc, var(--gold)); }
 .ch-potd b { color: var(--mist); font-weight: 500; }
-.ch-hud-foot { position: fixed; z-index: 15; left: 0; right: 0; bottom: calc(var(--ch-bottom) + 24px); display: flex; justify-content: center; padding: 0 16px; transition: opacity var(--t2) var(--ease); }
+.ch-hud-foot { position: fixed; z-index: 15; left: 0; right: 0; bottom: calc(var(--ch-bottom) + 24px); display: flex; justify-content: center;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); transition: opacity var(--t2) var(--ease); }
 .ch-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .panel-on ~ .ch-hud-foot, .ch.panel-on ~ .ch-hud-foot { opacity: 0; pointer-events: none; }
 html:has(#scroller.ch-open) .ch-hud-foot, html:has(#scroller.ch-open) .ch-answer { opacity: 0; pointer-events: none; }

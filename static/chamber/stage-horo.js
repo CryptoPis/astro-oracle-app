@@ -29,9 +29,18 @@ export function createStage({ THREE, engine, B, ui, F, X }) {
   disposables.push(gold, goldDim);
   const at = (lon, r) => { const a = lon * Math.PI / 180; return new THREE.Vector3(-Math.cos(a) * r, -Math.sin(a) * r, 0); };   // Aries at nine o'clock, as in the app's wheel
 
-  /* place the wheel in front of the dome, facing the eye */
-  function placeWheel() { const dir = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion); cam.getWorldDirection(dir);
-    root.position.copy(cam.position).addScaledVector(dir, 3.25).addScaledVector(up, -.16); root.lookAt(cam.position); }
+  /* place the wheel in front of the dome, facing the eye, in the free band between the HUD above and the foot below
+     (measured: the chips and buttons never cover the ring), as large as that band and the screen width allow */
+  let fit = 1;
+  const D = 3.25, R_ALL = R_TRANSIT + .1;   // the outermost orbs and their halos
+  function placeWheel() {
+    const hb = ui.hud.getBoundingClientRect(), fb = foot.getBoundingClientRect(), W = innerWidth, H = innerHeight;
+    const top = (ui.hud.hidden || !hb.height ? 70 : hb.bottom) + 10, bot = (fb.height ? fb.top : H - 90) - 10;
+    const pxPerM = H / (2 * D * Math.tan(cam.fov * Math.PI / 360));
+    fit = Math.max(.45, Math.min(1, (bot - top) / 2 / (R_ALL * pxPerM), (W / 2 - 6) / (R_ALL * pxPerM)));
+    const cy = (top + bot) / 2, ndc = new THREE.Vector3(0, 1 - 2 * cy / H, .5).unproject(cam).sub(cam.position).normalize();
+    root.position.copy(cam.position).addScaledVector(ndc, D); root.lookAt(cam.position); }
+  const relayout = () => requestAnimationFrame(placeWheel);
 
   /* ── the fixed wheel: rings, sign divisions, glyph sprites ── */
   const geos = [];
@@ -92,6 +101,7 @@ export function createStage({ THREE, engine, B, ui, F, X }) {
     if (chart && natal) for (const it of chart.transits) { if (natal[it.natal] == null) continue;
       beams.push(beam(it, at(it.lon, R_TRANSIT), at(natal[it.natal], it.natal === "asc" ? R_IN : R_NATAL))); }
     hint.textContent = !chart ? tx("noDate") : chart.transits.length ? tx("hint") : tx("calm");
+    relayout();
     list.replaceChildren(...(chart ? chart.transits : []).map((it) => { const b = el("button", `ch-trb ${it.nature}`, it.label); b.type = "button"; b.addEventListener("click", () => explain(it)); return b; }));
     btnProfile.hidden = !!chart;
   }
@@ -116,8 +126,9 @@ export function createStage({ THREE, engine, B, ui, F, X }) {
   btnRead.addEventListener("click", () => { B.haptic.tap(); B.openHoro(period); });
   btnProfile.addEventListener("click", () => B.go("profile"));
   const list = el("div", "ch-tr"); hint.setAttribute("aria-live", "polite");   // the beams as buttons too (screen readers, small hands)
-  row.append(btnRead, btnProfile); ui.hud.append(seg, day, hint, list); ui.hud.classList.add("ch-hud-dome");
-  const foot = el("div", "ch-hud-foot"); foot.append(row); document.body.append(foot);
+  row.append(btnRead, btnProfile); ui.hud.append(seg, day, hint); ui.hud.classList.add("ch-hud-dome");
+  const foot = el("div", "ch-hud-foot ch-foot-col"); foot.append(list, row); document.body.append(foot);   // the transit chips sit above the button, under the wheel
+  addEventListener("resize", relayout);
 
   /* ── a touched beam: its meaning and why ── */
   function explain(item) {
@@ -144,17 +155,17 @@ export function createStage({ THREE, engine, B, ui, F, X }) {
 
   return {
     debug: () => ({ beams: beams.map((b) => engine.project(b.pick.getWorldPosition(new THREE.Vector3()))), n: beams.length, chart: !!chart }),
-    async start() { placeWheel(); root.scale.setScalar(.01); this._t0 = performance.now(); await load(); },
+    async start() { placeWheel(); root.scale.setScalar(.01); this._t0 = performance.now(); await load(); relayout(); },
     down, move() { return true; }, up() { return true; },
     update(t) {
       const now = performance.now(), k = Math.min(1, (now - this._t0) / 1400), e = engine.ease(k);
-      root.scale.setScalar(.01 + .99 * e); wheel.position.y = Math.sin(t * .6) * .015;
+      root.scale.setScalar((.01 + .99 * e) * fit); wheel.position.y = Math.sin(t * .6) * .015;
       for (const a of arrivals) { const p = Math.min(1, Math.max(0, (now - a.t0) / a.dur)); a.o.position.copy(at(a.from + (a.to - a.from) * engine.ease(p), R_TRANSIT));
         if (a.o.userData.potd) a.o.userData.potd.material.opacity = .3 + .2 * Math.sin(t * 2); }
       const arrived = arrivals.length ? Math.min(1, Math.max(0, (now - arrivals[arrivals.length - 1].t0 - 1600) / 900)) : 1;
       for (const b of beams) { const u = b.mesh.material.uniforms; u.uT.value = t; u.uOn.value = arrived; u.uSel.value += ((selected === b.item ? 1 : 0) - u.uSel.value) * .1; }
       core.material.opacity = .7 + .2 * Math.sin(t * 1.4);
     },
-    end() { clear(); engine.scene.remove(root); for (const g of geos) g.dispose(); for (const d of disposables) d.dispose(); foot.remove(); ui.hud.classList.remove("ch-hud-dome"); ui.hud.replaceChildren(); },
+    end() { removeEventListener("resize", relayout); clear(); engine.scene.remove(root); for (const g of geos) g.dispose(); for (const d of disposables) d.dispose(); foot.remove(); ui.hud.classList.remove("ch-hud-dome"); ui.hud.replaceChildren(); },
   };
 }
