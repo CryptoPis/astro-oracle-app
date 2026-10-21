@@ -193,15 +193,50 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     place(g, S.chart.slot, 2.85);
     register("chart", g, new THREE.Vector3(0, .82, 0), 1.05, hitBox(.9, .6, .7, .6), { chart });
   }
-  // 7 · the aura mirror in an oval gold frame
-  { const g = new THREE.Group();
-    const oval = new THREE.Group(); oval.position.y = 1.35; oval.scale.set(1, 1.45, 1); g.add(oval);
-    oval.add(new THREE.Mesh(new THREE.TorusGeometry(.42, .032, 10, 64), mat.gold));
-    oval.add(new THREE.Mesh(new THREE.TorusGeometry(.465, .012, 6, 64), mat.brass));
-    const glass = new THREE.Mesh(new THREE.CircleGeometry(.415, 64), mirrorMaterial(THREE, F.clock)); glass.position.z = -.005; oval.add(glass);
-    for (const x of [-.3, .3]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(.035, .78, .035), mat.dark); leg.position.set(x, .39, -.05); leg.rotation.z = x * .2; g.add(leg); }
+  // 7 · the aura mirror: an ornate gold oval (a bevelled frame, bead mouldings, a ring of beads, a scalloped crest
+  // with two scrolls, a cartouche at the foot) on a dark cheval stand; dark violet glass; motes drifting before it
+  { const g = new THREE.Group(), a = .4, b = .6, Y = 1.3, fw = .085;
+    const gilt = new THREE.MeshStandardMaterial({ color: 0xeac57a, metalness: .9, roughness: .26, envMap: env, envMapIntensity: 1.9 });   // a brighter, burnished gold for the frame   // the glass's half axes, its centre, the frame's width
+    const ell = (ra, rb, n = 96, cw = false) => { const pts = []; for (let i = 0; i < n; i++) { const t = (cw ? -i : i) / n * TAU; pts.push(new THREE.Vector2(Math.cos(t) * ra, Math.sin(t) * rb)); } return pts; };
+    const oval = new THREE.Group(); oval.position.y = Y; g.add(oval);
+    { const sh = new THREE.Shape(ell(a + fw, b + fw)); sh.holes.push(new THREE.Path(ell(a + .004, b + .004, 96, true)));
+      const fg = new THREE.ExtrudeGeometry(sh, { depth: .022, bevelEnabled: true, bevelThickness: .016, bevelSize: .014, bevelSegments: 4, curveSegments: 96 }); fg.translate(0, 0, -.02);
+      oval.add(new THREE.Mesh(fg, gilt)); }
+    const tube = (ra, rb, r) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ell(ra, rb, 64).map((p) => new THREE.Vector3(p.x, p.y, 0)), true), 128, r, 8, true);
+    oval.add(at(new THREE.Mesh(tube(a + .012, b + .012, .009), gilt), 0, 0, .022));               // the inner bead moulding
+    oval.add(at(new THREE.Mesh(tube(a + fw + .006, b + fw + .006, .013), gilt), 0, 0, .004));     // the outer roll
+    { const n = 56, im = new THREE.InstancedMesh(new THREE.SphereGeometry(.0095, 10, 8), gilt, n), m4 = new THREE.Matrix4();   // a ring of beads on the frame
+      for (let i = 0; i < n; i++) { const t = i / n * TAU; im.setMatrixAt(i, m4.makeTranslation(Math.cos(t) * (a + fw * .55), Math.sin(t) * (b + fw * .55), .03)); } oval.add(im); }
+    // the crest: a scalloped fan (seven lobes) between two scrolls; the cartouche below
+    { const fan = new THREE.Shape(), R0 = .15, lobes = 7; fan.moveTo(-R0, 0);
+      for (let i = 0; i < lobes; i++) { const t0 = Math.PI - i / lobes * Math.PI, t1 = Math.PI - (i + 1) / lobes * Math.PI, tm = (t0 + t1) / 2;
+        fan.quadraticCurveTo(Math.cos(tm) * R0 * 1.22, Math.sin(tm) * R0 * 1.22, Math.cos(t1) * R0, Math.sin(t1) * R0); }
+      fan.lineTo(0, -.02); fan.lineTo(-R0, 0);
+      const cg = new THREE.ExtrudeGeometry(fan, { depth: .016, bevelEnabled: true, bevelThickness: .008, bevelSize: .007, bevelSegments: 3, curveSegments: 10 });
+      oval.add(at(new THREE.Mesh(cg, gilt), 0, b + fw - .02, -.006));
+      for (let i = 1; i < lobes; i++) { const t = Math.PI - i / lobes * Math.PI, rib = new THREE.Mesh(new THREE.CylinderGeometry(.0045, .006, R0 * .95, 6), gilt);   // the fan's ribs
+        rib.position.set(Math.cos(t) * R0 * .48, b + fw - .02 + Math.sin(t) * R0 * .48, .022); rib.rotation.z = t - Math.PI / 2; oval.add(rib); }
+      for (const side of [-1, 1]) { const pts = []; for (let i = 0; i <= 40; i++) { const k = i / 40, ang = k * Math.PI * 2.4, rr = .07 * (1 - k * .75);   // a scroll: a spiral ending inwards
+          pts.push(new THREE.Vector3(side * (.13 + Math.cos(ang) * rr), b + fw - .03 + Math.sin(ang) * rr * .9, .012)); }
+        oval.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, .0085, 6), gilt)); }
+      const cart = new THREE.Shape(); cart.moveTo(0, .055); cart.quadraticCurveTo(.09, .04, .085, 0); cart.quadraticCurveTo(.09, -.04, 0, -.055); cart.quadraticCurveTo(-.09, -.04, -.085, 0); cart.quadraticCurveTo(-.09, .04, 0, .055);
+      oval.add(at(new THREE.Mesh(new THREE.ExtrudeGeometry(cart, { depth: .014, bevelEnabled: true, bevelThickness: .006, bevelSize: .006, bevelSegments: 3, curveSegments: 12 }), gilt), 0, -b - fw + .01, -.004));
+      oval.add(at(new THREE.Mesh(new THREE.SphereGeometry(.016, 14, 10), gilt), 0, -b - fw + .01, .024)); }
+    // the glass: an ellipse, uv over its box
+    const gg = new THREE.ShapeGeometry(new THREE.Shape(ell(a + .01, b + .01)), 1); { const p = gg.attributes.position, uv = gg.attributes.uv;
+      for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / (2 * a) + .5, p.getY(i) / (2 * b) + .5); }
+    const glass = new THREE.Mesh(gg, mirrorMaterial(THREE, F.clock)); glass.position.z = -.004; oval.add(glass);
+    // the cheval stand: two dark posts with gold finials, splayed feet, the pivots at the oval's waist
+    for (const sx of [-1, 1]) { const x = sx * (a + fw + .05);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(.018, .024, Y + .05, 10), mat.dark); post.position.set(x, (Y + .05) / 2, -.03); g.add(post);
+      g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.03, 12, 8), mat.gold), x, Y + .08, -.03));
+      g.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.016, .016, .07, 10).rotateZ(Math.PI / 2), mat.gold), x - sx * .03, Y, -.02));
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(.05, .035, .42), mat.dark); foot.position.set(x, .02, -.03); g.add(foot);
+      for (const z of [-.2, .17]) g.add(at(new THREE.Mesh(new THREE.SphereGeometry(.022, 10, 6), mat.gold), x, .02, z - .03)); }
+    { const bar = new THREE.Mesh(new THREE.CylinderGeometry(.014, .014, 2 * (a + fw + .05), 8).rotateZ(Math.PI / 2), mat.dark); bar.position.set(0, .22, -.03); g.add(bar); }
     place(g, S.aura.slot, 3.2);
-    register("aura", g, new THREE.Vector3(0, 1.35, 0), 1.45, hitBox(1.0, 1.9, .3, 1.0), { glass });
+    const motes = F.dust(46, new THREE.Box3(new THREE.Vector3(-.55, .7, .05), new THREE.Vector3(.55, 2.05, .5)), 0xd6c4ff, 6); g.add(motes);   // drifting before the glass
+    register("aura", g, new THREE.Vector3(0, Y, 0), 1.45, hitBox(1.1, 1.9, .3, 1.0), { glass, panelDist: 1.55 });
   }
   // 8 · the coffee cup on its saucer, on a small round table
   { const g = new THREE.Group();
@@ -372,6 +407,7 @@ export function buildRoom(THREE, B, X, F, { STEP, STATIONS, renderer, SH }) {
     for (let i = fades.length - 1; i >= 0; i--) { const u = fades[i]; u.value = Math.min(1, u.value + dt * 1.6); if (u.value >= 1) fades.splice(i, 1); }
     { const st = stations.get("moon"); st.grp.worldToLocal(pane.uniforms.uCam.value.copy(camera.position)); }
     { const b = stations.get("sphere").ball; b.worldToLocal(b.material.uniforms.uCam.value.copy(camera.position)); }
+    { const gl = stations.get("aura").glass; gl.worldToLocal(gl.material.uniforms.uCam.value.copy(camera.position)); }
     const k = flick(t, 0), kf = flick(t * (1 + busy * .9), 2.1) * (1 + busy * .35);
     central.intensity = 11 * k * (birthday ? 1.25 : 1); flameLight.intensity = 2.6 * kf;
     tint.setRGB(.75 + k * .3, .7 + k * .28, .68 + k * .25); for (const m of metal) m.color.copy(tint);
@@ -540,20 +576,38 @@ export function sphereMaterial(THREE, clock) {
     transparent: true,
   });
 }
-/* the aura mirror: dark silvered glass, a slow sheen; uAura (up to 3 colours) blooms inside when a reading comes */
+/* the aura mirror: dark violet silvered glass. It "reflects" the room: the candles as soft warm points and a dim
+   violet depth that slide with the eye (parallax from uCam, the camera in the glass's space), a faint fresnel lift;
+   over it a slow aura shimmer, flowing bands in the three colours (quiet at rest, blooming with a reading: uBloom),
+   and a few slow sparkles. No moving sheen line. */
 export function mirrorMaterial(THREE, clock) {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: clock, uBloom: { value: 0 }, uA: { value: new THREE.Color(0xe2bd6a) }, uB: { value: new THREE.Color(0x8b6cff) }, uC: { value: new THREE.Color(0x3fb8a8) } },
-    vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-    fragmentShader: `uniform float uTime, uBloom; uniform vec3 uA, uB, uC; varying vec2 vUv;
-      void main() { vec2 p = vUv - 0.5; float d = length(p);
-        vec3 base = mix(vec3(0.1, 0.1, 0.18), vec3(0.03, 0.03, 0.08), d * 1.6);
-        float sheen = smoothstep(0.08, 0.0, abs(p.x + p.y * 0.6 - mod(uTime * 0.06, 1.6) + 0.8)) * 0.25;
-        float a1 = smoothstep(0.5, 0.0, length(p - vec2(sin(uTime * 0.21) * 0.12, cos(uTime * 0.17) * 0.12 + 0.05)));
-        float a2 = smoothstep(0.45, 0.0, length(p - vec2(cos(uTime * 0.13) * 0.15, -0.1 + sin(uTime * 0.19) * 0.1)));
-        float a3 = smoothstep(0.4, 0.0, length(p - vec2(-0.1 + sin(uTime * 0.11) * 0.1, 0.12)));
-        vec3 aura = (uA * a1 + uB * a2 * 0.8 + uC * a3 * 0.7) * uBloom;
-        float rim = smoothstep(0.35, 0.5, d) * 0.25;
-        gl_FragColor = vec4(base + aura + vec3(0.9, 0.85, 1.0) * sheen + vec3(0.4, 0.35, 0.6) * rim, 1.0); }`,
+    uniforms: { uTime: clock, uBloom: { value: 0 }, uA: { value: new THREE.Color(0xe2bd6a) }, uB: { value: new THREE.Color(0x8b6cff) }, uC: { value: new THREE.Color(0x3fb8a8) },
+      uCam: { value: new THREE.Vector3(0, 0, 2) } },
+    vertexShader: `varying vec2 vUv; varying vec3 vP; void main() { vUv = uv; vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float uTime, uBloom; uniform vec3 uA, uB, uC, uCam; varying vec2 vUv; varying vec3 vP;
+      float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      float fbm(vec2 p) { return n(p) * 0.55 + n(p * 2.1 + 3.1) * 0.3 + n(p * 4.3 + 7.7) * 0.15; }
+      void main() { vec2 p = vUv - 0.5; float e = length(p * vec2(1.0, 1.0)) * 2.0;   // 0 centre .. 1 rim
+        vec3 V = normalize(vP - uCam); float fr = pow(1.0 - abs(V.z), 3.0);
+        vec2 rf = V.xy / max(0.25, abs(V.z)) * 3.0 + p * 0.6;   // the reflected room, magnified by its distance; it also shifts across the glass   // where the reflected ray goes: the room behind the viewer, sliding with the eye
+        vec3 col = mix(vec3(0.07, 0.045, 0.13), vec3(0.025, 0.016, 0.05), smoothstep(0.2, 1.0, e));   // deep violet, darker at the rim
+        col += vec3(0.16, 0.1, 0.24) * exp(-dot(rf - vec2(0.0, 0.25), rf - vec2(0.0, 0.25)) * 1.8) * 0.5;   // the room's violet depth
+        for (int i = 0; i < 5; i++) { float fi = float(i); vec2 c = vec2(-0.9 + fi * 0.45, 0.05 + 0.22 * sin(fi * 2.1));   // the candles behind the viewer
+          vec2 d = rf * 0.9 - c; col += vec3(1.0, 0.66, 0.32) * exp(-dot(d, d) * 140.0) * 0.45 + vec3(1.0, 0.6, 0.3) * exp(-dot(d, d) * 7.0) * 0.05; }
+        col += vec3(0.5, 0.42, 0.7) * fr * 0.18;
+        // the aura: bands flowing up and round, in the three colours
+        vec2 q = vec2(p.x * 1.6, p.y * 1.1); float t = uTime * 0.06;
+        float f1 = fbm(q * 2.4 + vec2(fbm(q * 1.7 + t) * 1.4, -t * 1.8)), f2 = fbm(q * 3.1 - vec2(t * 1.3, t));
+        float band = smoothstep(0.45, 0.8, f1) * (1.0 - smoothstep(0.55, 1.0, e)), soft = smoothstep(0.35, 0.9, f2) * (1.0 - smoothstep(0.4, 1.0, e));
+        vec3 aura = mix(uB, uC, smoothstep(0.3, 0.7, f2)) * band + mix(uA, uB, f1) * soft * 0.6;
+        col += aura * (0.15 + 0.5 * uBloom);
+        // slow sparkles in the depth
+        vec2 sc = vUv * vec2(26.0, 38.0), id = floor(sc); float r = h(id);
+        if (r > 0.92) { vec2 o = fract(sc) - 0.5 - (vec2(h(id + 3.1), h(id + 7.3)) - 0.5) * 0.5; float s = exp(-dot(o, o) * 90.0) * (0.5 + 0.5 * sin(uTime * (0.8 + r * 2.0) + r * 40.0));
+          col += vec3(0.85, 0.8, 1.0) * s * 0.35 * (1.0 - e * 0.6); }
+        col = col / (1.0 + col * 0.4);
+        gl_FragColor = vec4(col, 1.0); }`,
   });
 }

@@ -102,7 +102,7 @@ export async function createFull(THREE, B, ctx, mods) {
       nav.up = true; nav.pitch = nav.pitchT = 1.02;
       const look = roomLook(new THREE.Vector3()); return { pos: new THREE.Vector3(0, EYE, 0), look, off: mode === "panel" ? .3 : 0 }; }
     const c = st.center, flat = new THREE.Vector3(-c.x, 0, -c.z).normalize();
-    const dist = st.dist * (mode === "stage" ? (st.stageDist || 1) : 1);
+    const dist = st.dist * (mode === "stage" ? (st.stageDist || 1) : (st.panelDist || 1));   // panelDist: stands back so the object shows above the panel
     const pos = c.clone().addScaledVector(flat, dist); pos.y = Math.max(.95, c.y + dist * (st.stageRise != null && mode === "stage" ? st.stageRise : .42));
     return { pos, look: c.clone(), off: mode === "panel" ? .36 : (st.stageOff || 0) };
   }
